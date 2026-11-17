@@ -236,3 +236,10 @@
 @media (prefers-reduced-motion: reduce) {
  .command-backdrop i:first-child, .command-backdrop i:nth-child(2), .command-backdrop i:last-child { animation: none!important; transition: none!important; }
 }
+
+/* On phones the working calculator takes precedence over decorative metrics. */
+@media(max-width:650px){
+ .command-credibility{display:none}
+ .command-hero-main{padding-top:33px}
+ .command-hero-utility{margin-top:0}
+}
