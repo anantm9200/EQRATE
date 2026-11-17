@@ -1,20 +1,19 @@
-import {ExplorerSections} from '@/components/sections-primary';
-import CompanySearch from '@/components/search';
 import Link from 'next/link';
-export const metadata={title:'Company explorer',description:'Find official company identities before assessing financial information.'};
+import GlobalCompanySearch from '@/components/global-company-search';
+import CompanySearch from '@/components/search';
+export const metadata={title:'Global company discovery',description:'Search real global LEI legal entity reference records via GLEIF. Distinguish company identity from financial verification and valuation.'};
 export default function Explore(){return <>
- <section className="page-hero v2-page-hero">
-  <div className="v2-page-topline"><span className="eyebrow">01 / COMPANY DISCOVERY</span><span>VERIFY THE ENTITY / THEN THE NUMBERS</span></div>
-  <div className="v2-page-hero-grid">
-   <div><h1>Every analysis begins<br/><em>with the right company.</em></h1><p>Resolve a company's official identity before drawing a conclusion. One issuer, one canonical starting point.</p></div>
-   <div className="v2-page-art v2-explore-art" aria-hidden="true"><div className="v2-explore-art-node">◇</div><span className="v2-art-orbit o1"/><span className="v2-art-orbit o2"/><span className="v2-art-orbit o3"/><span className="v2-art-chip a">IDENTITY</span><span className="v2-art-chip b">SOURCE</span></div>
-  </div>
+ <section className="lei-explore-hero">
+  <div className="command-eyebrow"><span className="command-signal"/> GLOBAL ENTITY DISCOVERY / PUBLIC REFERENCE DATA</div>
+  <div className="lei-explore-top"><div><h1>Find the company.<br/><em>Know the entity.</em></h1><p>Search global Legal Entity Identifier records by name. See the jurisdiction, LEI and registration status before drawing conclusions about a business.</p><div className="lei-explore-stats"><span>WORLDWIDE LEI DATA</span><i/> <span>NO API KEY REQUIRED</span><i/> <span>ORIGINAL SOURCE LINKS</span></div></div><div className="lei-explore-symbol" aria-hidden="true"><span>◇</span><i/><i/></div></div>
  </section>
- <section className="body-wrap v2-explore-body">
-  <div className="v2-explore-search-panel"><div className="v2-explore-search-head"><div><span className="eyebrow">OFFICIAL ISSUER DIRECTORY</span><h2>Find a company.</h2></div><span className="v2-registry-status">DATA SOURCE / US SEC</span></div><CompanySearch variant="full"/></div>
-  <div className="v2-explore-steps"><article><span>01</span><h3>Resolve the name.</h3><p>Match a company to official CIK, ticker and exchange records.</p></article><article><span>02</span><h3>Inspect the filing.</h3><p>Open reported financial highlights with source dates and official links.</p></article><article><span>03</span><h3>Question the value.</h3><p>Develop an independent scenario instead of guessing a market cap.</p></article></div>
-  <div className="v2-explore-bottom"><p>Coverage currently begins with SEC-recorded US companies. India, UAE and African registries need approved source integration. An unavailable metric is never silently represented as zero.</p><Link href="/compare">Compare two issuers <span>↗</span></Link></div>
+ <section className="lei-main">
+  <div className="lei-main-header"><div><span className="command-mini">CONNECTED NOW / GLEIF</span><h2>Search registered legal entities.</h2><p>Actual, source-linked data. LEI coverage is substantial but not universal, especially among smaller private companies.</p></div><a href="https://search.gleif.org/" target="_blank" rel="noopener noreferrer">Original GLEIF Search ↗</a></div>
+  <GlobalCompanySearch/>
  </section>
- 
- <ExplorerSections/>
- </>}
+ <section className="lei-difference">
+  <div><span className="command-mini">WHAT YOU'LL LEARN</span><h2>Identity is the beginning.<br/>Not the valuation.</h2><p>An LEI record can identify a legal entity and its registered details. It does not prove the entity is exchange-listed, provide audited financial statements, or establish what its shares are worth.</p><Link href="/workbench">Take an entity into the valuation workbench ↗</Link></div>
+  <div className="lei-proof-layers"><div><span>01 / IDENTITY</span><strong>Legal name, LEI, jurisdiction</strong><small>Available through GLEIF</small></div><div><span>02 / FINANCIAL PROOF</span><strong>Filing periods, audited records</strong><small>Source connection and review needed</small></div><div><span>03 / VALUATION</span><strong>Inputs, assumptions, models</strong><small>Build in CREQOR workbench</small></div></div>
+ </section>
+ <section className="lei-sec-section"><div><span className="command-mini">US LISTED / SEC FILINGS</span><h2>Need a US listed issuer?</h2><p>CREQOR also supports official SEC issuer records when the server-side SEC identity connection is configured. Until then, the SEC remains available directly.</p><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener noreferrer">Open official SEC EDGAR ↗</a></div><div><CompanySearch variant="full"/></div></section>
+ </>;}
