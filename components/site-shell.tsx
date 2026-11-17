@@ -1,46 +1,71 @@
 'use client';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import Brand from '@/components/brand';
-const nav=[
- {href:'/',title:'Overview',index:'01'},
- {href:'/explore',title:'Company explorer',index:'02'},
- {href:'/lab',title:'Valuation lab',index:'03'},
- {href:'/compare',title:'Compare companies',index:'04'},
- {href:'/intelligence',title:'Market intelligence',index:'05'},
- {href:'/analyst',title:'AI analyst',index:'06'},
- {href:'/research',title:'Research centre',index:'07'},
- {href:'/verification',title:'Verification',index:'08'},
- {href:'/methodology',title:'Methodology',index:'09'},
- {href:'/watchlist',title:'My watchlist',index:'10'}
+
+const primary=[
+  {href:'/explore',label:'Explore'},
+  {href:'/lab',label:'Valuation lab'},
+  {href:'/compare',label:'Compare'},
+  {href:'/intelligence',label:'Intelligence'}
 ];
-export default function SiteShell({children}:{children:React.ReactNode}){
- const [open,setOpen]=useState(false);const path=usePathname();
+const menu=[
+  {href:'/',label:'Overview',index:'01',detail:'A better way to know'},
+  {href:'/explore',label:'Company explorer',index:'02',detail:'Start with the right identity'},
+  {href:'/lab',label:'Valuation lab',index:'03',detail:'Test the assumptions'},
+  {href:'/compare',label:'Compare companies',index:'04',detail:'Understand the differences'},
+  {href:'/analyst',label:'AI analyst',index:'05',detail:'Question the evidence'},
+  {href:'/intelligence',label:'Market intelligence',index:'06',detail:'See the bigger picture'},
+  {href:'/research',label:'Research centre',index:'07',detail:'The work behind the numbers'},
+  {href:'/verification',label:'Verification',index:'08',detail:'Separate claims from proof'},
+  {href:'/methodology',label:'Methodology',index:'09',detail:'Our standards and limitations'},
+  {href:'/watchlist',label:'My watchlist',index:'10',detail:'Return to your research'}
+];
+export default function SiteShell({children}:{children:React.ReactNode}) {
+ const path=usePathname();const [open,setOpen]=useState(false);const menuButton=useRef<HTMLButtonElement>(null);const firstLink=useRef<HTMLAnchorElement>(null);
  useEffect(()=>{setOpen(false)},[path]);
- useEffect(()=>{const previous=document.body.style.overflow;document.body.style.overflow=open?'hidden':previous;return ()=>{document.body.style.overflow=previous}},[open]);
- useEffect(()=>{if(!open)return;const onEscape=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false)};window.addEventListener('keydown',onEscape);return()=>window.removeEventListener('keydown',onEscape)},[open]);
+ useEffect(()=>{
+  if(!open)return;
+  const previous=document.body.style.overflow;document.body.style.overflow='hidden';
+  firstLink.current?.focus();
+  const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape'){setOpen(false);menuButton.current?.focus();}};
+  window.addEventListener('keydown',onKey);
+  return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',onKey)};
+ },[open]);
  return <>
-  <header className="site-header">
-    <Brand/>
-    <div className="header-right"><span className="header-caption"><span className="status-dot"/> RESEARCH / INTELLIGENCE / VALUATION</span>
-    <Link className="header-explore" href="/explore">Explore companies <span aria-hidden="true">↗</span></Link>
-    <button className={'menu-trigger'+(open?' active':'')} onClick={()=>setOpen(!open)} aria-label={open?'Close menu':'Open full screen menu'} aria-expanded={open} aria-controls="creqor-menu">
-      <span>{open?'CLOSE':'MENU'}</span><span className="menu-bars"><i/><i/></span>
-    </button></div>
-  </header>
-  <div className={'menu-overlay'+(open?' open':'')} id="creqor-menu" aria-hidden={!open}>
-   <div className="menu-glow"/><div className="menu-inner"><div className="menu-kicker">NAVIGATE CREQOR <span> / 10 DESTINATIONS</span></div>
-     <nav className="menu-links">{nav.map(item=><Link key={item.href} href={item.href} tabIndex={open?0:-1} className={path===item.href?'selected':''}><span className="menu-number">{item.index}</span><span>{item.title}</span><span className="menu-arrow">↗</span></Link>)}</nav>
-     <div className="menu-bottom"><span>EST. FOR EVIDENCE</span><span>ANY COMPANY. EVERY ANSWER EXPLAINED.</span></div>
+  <a className="skip-link" href="#main-content">Skip to content</a>
+  <header className="site-header v2-header">
+   <Brand/>
+   <nav className="v2-top-nav" aria-label="Primary navigation">{primary.map(item=><Link href={item.href} key={item.href} className={path===item.href?'is-current':''}>{item.label}</Link>)}</nav>
+   <div className="v2-header-actions">
+    <Link href="/analyst" className="v2-ai-link"><span className="v2-live-dot"/> AI analyst <span aria-hidden="true">↗</span></Link>
+    <button ref={menuButton} className={'v2-menu-button'+(open?' is-open':'')} onClick={()=>setOpen(x=>!x)} aria-expanded={open} aria-controls="creqor-menu" aria-label={open?'Close navigation':'Open full-screen navigation'}>
+      <span className="v2-menu-text">{open?'Close':'Menu'}</span><span className="v2-menu-icon"><i/><i/></span>
+    </button>
    </div>
+  </header>
+  <div className={'v2-menu-panel'+(open?' is-open':'')} id="creqor-menu" aria-hidden={!open}>
+    <div className="v2-menu-heading"><span className="eyebrow">Navigation / CREQOR</span><span className="v2-menu-heading-right">Research. Verify. Value.</span></div>
+    <nav className="v2-menu-grid" aria-label="Full navigation">
+      {menu.map((item,i)=><Link ref={i===0?firstLink:undefined} tabIndex={open?0:-1} onClick={()=>setOpen(false)} href={item.href} key={item.href} className={'v2-menu-item'+(path===item.href?' is-current':'')}>
+        <span className="v2-menu-index">{item.index}</span><span className="v2-menu-name">{item.label}<small>{item.detail}</small></span><span className="v2-menu-arrow">↗</span>
+      </Link>)}
+    </nav>
+    <div className="v2-menu-foot"><span>Independent by design.</span><span>Every number explained.</span></div>
   </div>
   <main id="main-content">{children}</main>
-  <section className="prefooter"><div><span className="eyebrow">A BETTER STANDARD OF KNOWING</span><h2>Confidence begins<br/><em>with a question.</em></h2></div><Link href="/explore" className="round-link" aria-label="Explore companies">↗</Link></section>
-  <footer className="footer">
-    <div className="footer-top"><Brand/><span>Financial intelligence built on evidence, not assumptions.</span></div>
-    <div className="footer-grid"><div className="footer-links"><Link href="/explore">Explore</Link><Link href="/lab">Valuation lab</Link><Link href="/analyst">AI analyst</Link><Link href="/compare">Compare</Link><Link href="/methodology">Methodology</Link></div><div className="footer-links"><Link href="/research">Research</Link><Link href="/verification">Verification</Link><Link href="/intelligence">Intelligence</Link><Link href="/watchlist">Watchlist</Link><Link href="/api/health">System status</Link></div><p>CREQOR provides research tools, not investment advice or regulated credit ratings. Values and conclusions require traceable evidence.</p></div>
-    <div className="footer-bottom"><span>© {new Date().getFullYear()} CREQOR. INDEPENDENT BY DESIGN.</span><span>RESEARCH / RATE / REASON</span></div>
+  <section className="v2-prefooter">
+    <div className="v2-prefooter-copy"><span className="eyebrow">MAKE A MORE INFORMED DECISION</span><h2>Don't just know the number.<br/><em>Know what stands behind it.</em></h2></div>
+    <Link href="/explore" className="v2-cta-round" aria-label="Open company explorer">↗</Link>
+    <div className="v2-prefooter-rings" aria-hidden="true"/>
+  </section>
+  <footer className="v2-footer">
+    <div className="v2-footer-top"><Brand/><p>Company intelligence built on evidence.<br/>Every number should withstand a second look.</p></div>
+    <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link></div>
+    <div><span className="v2-footer-label">RESEARCH</span><Link href="/intelligence">Market intelligence</Link><Link href="/research">Research centre</Link><Link href="/methodology">Methodology</Link><Link href="/verification">Verification</Link></div>
+    <div className="v2-footer-statement"><span className="v2-footer-label">INDEPENDENCE MATTERS</span><p>CREQOR is a research and modelling platform—not a credit rating agency or an investment adviser. Estimates are not observable market prices. Claims and conclusions need traceable sources.</p></div></div>
+    <div className="v2-footer-bottom"><span>© {new Date().getFullYear()} CREQOR</span><span>Designed for clarity. Built for scrutiny.</span><Link href="/api/health">System status ↗</Link></div>
   </footer>
  </>;
 }

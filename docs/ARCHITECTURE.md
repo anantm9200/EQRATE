@@ -27,7 +27,7 @@ The analyst route:
 
 ## Status and launch plan
 
-Implemented: site shell, pages, responsive visuals, SEC adapter (needs SEC_USER_AGENT), issuer identity and XBRL financial highlights, issuer comparison with reporting-period labels, browser-local watchlist (no alerts or cloud sync), DCF and market-cap library, tests, research methodology, guarded inference gateway, SEO metadata/robots/sitemap.
+Implemented: site shell, pages, responsive visuals, SEC adapter (needs SEC_USER_AGENT), issuer details, DCF and market-cap library, tests, research methodology, guarded inference gateway, SEO metadata/robots/sitemap.
 
 Not yet implemented: production PostgreSQL application access and migrations, MFA and RBAC, global registry connectors, licensed market-price feeds, claim-ingestion, document malware scanning, material company scoring, score publishing, proper acquisition monitoring, research editorial workflows, secure public multi-user AI, advanced valuation models, watchlists, alerts, distributed rate limiting and automated company indexing.
 
