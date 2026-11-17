@@ -7,8 +7,8 @@ CREQOR is a new evidence-led company research and valuation application. Its fir
 ## What's working in the code
 
 - Premium, responsive dark-green and gradient design, custom SVG logo, Poppins + Inter, full-screen navigation, motion and glassmorphism
-- Landing, company explorer, issuer profile, valuation lab, market intelligence, private AI analyst, research, verification and methodology pages
-- Official US SEC entity discovery and issuer-identity records **when** `SEC_USER_AGENT` is configured
+- Landing, company explorer, issuer profile, comparison, local watchlist, valuation lab, market intelligence, private AI analyst, research, verification and methodology pages
+- Official US SEC entity discovery, issuer identity and annual financial highlights **when** `SEC_USER_AGENT` is configured
 - Deterministic market-cap and DCF computations with input checks and unit tests
 - Live-updating hypothetical DCF scenarios and sensitivity table, explicitly labelled as illustrative
 - Server-only DGX inference gateway with access token, off by default, and request constraints
