@@ -85,3 +85,15 @@ test('directory rejects unsound country and pagination parameters',async({reques
   expect(result.status(),path).toBe(400);
  }
 });
+
+test('suggested global company search uses official results, not static fake profiles',async({page})=>{
+ const requests:string[]=[];
+ await page.route('**/api/directory?*',async route=>{
+  requests.push(route.request().url());
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...API,page:1,results:[A],total:1,hasMore:false})});
+ });
+ await page.goto('/directory');
+ await page.getByRole('button',{name:/Siemens ↗/}).click();
+ await expect.poll(()=>requests.some(url=>new URL(url).searchParams.get('q')==='Siemens')).toBe(true);
+ await expect(page.getByRole('searchbox',{name:'Search global company directory'})).toHaveValue('Siemens');
+});

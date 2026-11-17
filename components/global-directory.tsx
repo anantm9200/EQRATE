@@ -6,6 +6,7 @@ import type {LeiDirectoryPage,LeiEntity} from '@/lib/gleif';
 
 const COUNTRY_CODES='AW AF AO AI AX AL AD AE AR AM AS AQ TF AG AU AT AZ BI BE BJ BQ BF BD BG BH BS BA BL BY BZ BM BO BR BB BN BT BV BW CF CA CC CH CL CN CI CM CD CG CK CO KM CV CR CU CW CX KY CY CZ DE DJ DM DK DO DZ EC EG ER EH ES EE ET FI FJ FK FR FO FM GA GB GE GG GH GI GN GP GM GW GQ GR GD GL GT GF GU GY HK HM HN HR HT HU ID IM IN IO IE IR IQ IS IL IT JM JE JO JP KZ KE KG KH KI KN KR KW LA LB LR LY LC LI LK LS LT LU LV MO MF MA MC MD MG MV MX MH MK ML MT MM ME MN MP MZ MR MS MQ MU MW MY YT NA NC NE NF NG NI NU NL NO NP NR NZ OM PK PA PN PE PH PW PG PL PR KP PT PY PS PF QA RE RO RU RW SA SD SN SG GS SH SJ SB SL SV SM SO PM RS SS ST SR SK SI SE SZ SX SC SY TC TD TG TH TJ TK TM TL TO TT TN TR TV TW TZ UG UA UM UY US UZ VA VC VE VG VI VN VU WF WS YE ZA ZM ZW'.split(' ');
 const POPULAR=['','US','IN','AE','GB','DE','JP','SG','SA','ZA','NA','AU','CA','FR','BR','VN','TZ'];
+const SEARCH_IDEAS=['Apple','Microsoft','Toyota','Tata','Reliance','Siemens','HSBC','Samsung','Unilever','Emirates'];
 const storageKey='creqor.global-directory.bookmarks.v1';
 const regionNames=new Intl.DisplayNames(['en'],{type:'region'});
 function region(code:string){return regionNames.of(code)||code;}
@@ -107,6 +108,7 @@ export default function GlobalDirectory({initial,initialCountry='',initialQuery=
    <button type="button" className={'gd-save-toggle'+(onlySaved?' is-active':'')} aria-pressed={onlySaved} onClick={()=>setOnlySaved(x=>!x)}><span aria-hidden="true">☆</span> Saved ({saved.length})</button>
   </div>
   <div className="gd-quick-countries" aria-label="Browse popular countries"><span>EXPLORE BY COUNTRY</span><div>{POPULAR.map(code=><button type="button" key={code||'world'} aria-pressed={country===code} className={country===code?'is-active':''} onClick={()=>chooseCountry(code)}>{code?region(code):'Worldwide'}</button>)}</div></div>
+  <div className="gd-search-ideas"><span>LOOK UP A COMPANY</span><div>{SEARCH_IDEAS.map(name=><button key={name} type="button" onClick={()=>{setQuery(name);setOnlySaved(false)}}>{name} ↗</button>)}</div></div>
   <div className="gd-prompt-row"><span className="gd-source-dot"/> Connected to the official GLEIF global legal-entity register</div>
   <div className="gd-section-heading">
    <div><span className="gd-kicker">SOURCE-BACKED COMPANY RECORDS</span><h2>{onlySaved?'Your bookmarked companies':query?'Companies matching “'+query.trim()+'”':country?'Companies in '+region(country):'Companies around the world'}</h2>
@@ -120,7 +122,7 @@ export default function GlobalDirectory({initial,initialCountry='',initialQuery=
   {shown.length>0?<div className="gd-grid" aria-live="polite">{shown.map(e=><article className="gd-company" key={e.lei}>
    <div className="gd-company-header"><span className="gd-company-avatar" aria-hidden="true">{e.name.trim().slice(0,1).toUpperCase()}</span><button type="button" className={'gd-bookmark'+(savedSet.has(e.lei)?' is-saved':'')} aria-label={(savedSet.has(e.lei)?'Remove bookmarked ':'Bookmark ')+e.name} aria-pressed={savedSet.has(e.lei)} onClick={()=>toggleSaved(e)}>{savedSet.has(e.lei)?'★':'☆'}</button></div>
    <h3><Link href={'/lei/'+e.lei}>{e.name}</Link></h3>
-   <div className="gd-company-meta"><span>{e.country?region(e.country):'Country unavailable'}</span><span className={'gd-status'+(e.registrationStatus==='ISSUED'?' gd-issued':'')}>{e.registrationStatus||'LEI STATUS N/A'}</span></div>
+   <div className="gd-company-meta"><span>{e.country?region(e.country):'Country unavailable'}</span><span className={'gd-status'+(e.registrationStatus==='ISSUED'?' gd-issued':'')}>{'LEI: '+(e.registrationStatus||'UNKNOWN')}</span></div>
    <div className="gd-company-bottom"><span>LEI</span><code>{e.lei}</code></div>
    <Link className="gd-company-link" href={'/lei/'+e.lei}>View company record <span aria-hidden="true">↗</span></Link>
   </article>)}</div>:!busy&&!error&&<div className="gd-empty"><span aria-hidden="true">◇</span><h3>{onlySaved?'No matching bookmarks':'No legal-entity records returned'}</h3><p>{onlySaved?'Bookmark entities from the directory and they will appear here on this device.':'Try another company name or browse a different country. Not having an LEI record does not prove that a company does not exist.'}</p>{onlySaved&&<button type="button" onClick={()=>setOnlySaved(false)}>Browse all companies</button>}</div>}

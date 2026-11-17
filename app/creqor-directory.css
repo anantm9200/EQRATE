@@ -97,3 +97,10 @@
 @media(prefers-reduced-transparency:reduce){.gd-company,.gd-toolbar{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#fff!important}}
 
 .gd-explore-link{margin-top:18px;font-size:.76rem;font-weight:650;color:#247b48}
+
+.gd-search-ideas{max-width:1440px;margin:14px auto 0;display:flex;align-items:flex-start;gap:17px}
+.gd-search-ideas>span{flex-shrink:0;margin-top:9px;font-size:.62rem;letter-spacing:.09em;color:#6a8a75;font-weight:700}
+.gd-search-ideas>div{display:flex;flex-wrap:wrap;gap:6px}
+.gd-search-ideas button{border-radius:7px!important;background:rgba(255,255,255,.74);border:1px solid #e1ece3;color:#478058;padding:7px 11px;cursor:pointer;font-size:.71rem!important;transition:background .2s,border-color .2s}
+.gd-search-ideas button:hover{background:#eaf6ed;border-color:#c6e2d0;color:#267548}
+@media(max-width:1020px){.gd-search-ideas{display:block}.gd-search-ideas>div{margin-top:11px}}
