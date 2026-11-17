@@ -40,6 +40,7 @@ test('desktop homepage contains distinct editorial sections without overflow',as
  await page.locator('.cx-questions').scrollIntoViewIfNeeded();
  const dim=await page.evaluate(()=>({document:document.documentElement.scrollWidth,viewport:window.innerWidth}));
  expect(dim.document).toBeLessThanOrEqual(dim.viewport+2);
+ await page.evaluate(()=>window.scrollTo(0,0));
  await page.screenshot({path:'test-results/screenshots/expanded-home-desktop.png',fullPage:true});
 });
 test('native FAQ expands to reveal evidence-based answer',async({page})=>{
