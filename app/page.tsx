@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import QuickValuation from '@/components/quick-valuation';
+import IntelligenceCanvas from '@/components/intelligence-canvas';
 
 const jobs=[
  {n:'01',title:'Investors',headline:'An issuer worth understanding.',text:'Inspect the correct legal entity, source its financial records and challenge the assumptions behind its value.',href:'/explore',action:'Find the issuer',icon:'⌕'},
@@ -14,23 +14,22 @@ const steps=[
 ];
 export const metadata={title:'Company intelligence and valuation',description:'CREQOR helps analysts value listed and unlisted companies with transparent financial methods and traceable evidence.'};
 export default function Home(){return <>
- <section className="command-hero" aria-labelledby="command-title">
-  <div className="command-backdrop" aria-hidden="true"><i/><i/><i/></div>
-  <div className="command-hero-main">
-   <div className="command-hero-copy">
-    <div className="command-eyebrow"><span className="command-signal"/> CREQOR / FINANCIAL INTELLIGENCE <span className="command-eyebrow-line"/></div>
-    <h1 id="command-title">Value the business.<br/><em>Show your work.</em></h1>
-    <p className="command-lead">Listed or private. Move from financial assumptions to explainable calculations, documented evidence and an assessment you can actually use.</p>
-    <div className="command-hero-actions">
-     <Link className="command-main-cta" href="/workbench">Start a company assessment <span>↗</span></Link>
-     <Link className="command-outline-cta" href="/explore">Explore companies <span>↗</span></Link>
+ <section className="atlas-hero" aria-labelledby="atlas-title">
+  <div className="atlas-ambient" aria-hidden="true"/>
+  <div className="atlas-hero-grid">
+   <div className="atlas-copy">
+    <div className="atlas-eyebrow"><span className="atlas-eyebrow-line"/> INDEPENDENT COMPANY INTELLIGENCE <span className="atlas-edition">EST. 2026 / GLOBAL</span></div>
+    <h1 id="atlas-title">Every company<br/>has a story.<br/><span>Find the truth</span><br/>in the numbers<span className="atlas-period">.</span></h1>
+    <p className="atlas-lead">Understand the business. Challenge the valuation. Follow the evidence. A sharper way to research listed and private companies.</p>
+    <div className="atlas-actions">
+     <Link className="atlas-primary" href="/explore">Explore companies <span aria-hidden="true">↗</span></Link>
+     <Link className="atlas-secondary" href="/workbench">Build a valuation <span aria-hidden="true">↗</span></Link>
     </div>
-    <div className="command-credibility"><div><strong>06</strong><span>Valuation methods</span></div><div><strong>03</strong><span>Export formats</span></div><div><strong>05</strong><span>Review stages</span></div></div>
-    <p className="command-footnote">NO UNSOURCED PRICES · NO INVENTED RATINGS</p>
+    <div className="atlas-proof"><span><i/> Transparent models</span><span><i/> Traceable sources</span><span><i/> No invented ratings</span></div>
    </div>
-   <div className="command-hero-utility"><QuickValuation/></div>
+   <IntelligenceCanvas/>
   </div>
-  <div className="command-bottom"><span><span className="command-signal"/> INDEPENDENT THINKING. TRACEABLE NUMBERS.</span><Link href="#for-whom">EXPLORE THE PLATFORM ↓</Link></div>
+  <div className="atlas-bottom"><div><span className="atlas-bottom-number">01 / 04</span><span>RESEARCH WITH CONVICTION</span></div><Link href="#for-whom">DISCOVER THE PLATFORM <span aria-hidden="true">↓</span></Link><span className="atlas-bottom-caption">CREQOR — INTELLIGENCE, RECONSIDERED.</span></div>
  </section>
  <nav className="command-routebar" aria-label="Direct access to CREQOR tools">
   <Link href="/workbench"><span>START HERE</span><strong>Company workbench</strong><i>↗</i></Link>
@@ -39,7 +38,7 @@ export default function Home(){return <>
   <Link href="/verification"><span>TRUST</span><strong>Evidence standards</strong><i>↗</i></Link>
  </nav>
  <section className="command-section command-jobs" id="for-whom">
-  <div className="command-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Different questions.<br/>One serious workspace.</h2></div><p>A founder, analyst and investor need different answers. CREQOR puts the tools first and the explanation next.</p></div>
+  <div className="command-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Different questions.<br/>One serious workspace.</h2></div><p>Purpose-built research journeys for people who need more than a headline number.</p></div>
   <div className="command-jobs-grid">{jobs.map(j=><Link key={j.n} href={j.href} className="command-job">
     <div className="command-job-top"><span>{j.n} / {j.title.toUpperCase()}</span><b>↗</b></div>
     <div className="command-job-symbol" aria-hidden="true">{j.icon}<i/><i/></div>
@@ -58,7 +57,7 @@ export default function Home(){return <>
   </div>
  </section>
  <section className="command-section command-availability">
-  <div><span className="command-mini">PRODUCT READINESS</span><h2>Functional where it counts.<br/><em>Clear where it isn't.</em></h2><p>Calculations, browser-saved drafts, source registers and exports work without market-data subscriptions. We don't claim that the SEC connection, global prices, DGX inference or regulated ratings are already running.</p></div>
+  <div><span className="command-mini">PRODUCT READINESS</span><h2>Designed for real decisions.<br/><em>Honest about the limits.</em></h2><p>Calculations, browser-saved drafts, source registers and exports work without market-data subscriptions. We don't claim that the SEC connection, global prices, DGX inference or regulated ratings are already running.</p></div>
   <div className="command-status-list">
    <div><span className="command-live"/> <strong>Valuation cockpit, local research desk, exports</strong><small>AVAILABLE</small></div>
    <div><span className="command-muted-dot"/> <strong>Official US issuer records</strong><small>CONFIGURATION REQUIRED</small></div>

@@ -11,6 +11,7 @@ import './research-upgrade.css';
 import './creqor-command.css';
 import './creqor-operations.css';
 import './creqor-lei.css';
+import './creqor-atlas.css';
 import SiteShell from '@/components/site-shell';
 const poppins=Poppins({subsets:['latin'],weight:['400','500','600','700'],variable:'--font-poppins',display:'swap'});
 const inter=Inter({subsets:['latin'],variable:'--font-inter',display:'swap'});
