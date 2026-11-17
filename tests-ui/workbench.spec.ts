@@ -25,7 +25,8 @@ test('workbench persists a user assessment locally and reloads it',async({page})
  await page.getByRole('button',{name:'Save locally'}).click();
  await expect(page.getByRole('status')).toContainText(/saved locally/i);
  await page.reload();
- await page.getByLabel('Open saved company assessment').selectOption({label:/Synthetic Saved Co/});
+ const savedId=await page.locator('#wk-saved option').last().getAttribute('value');
+ await page.getByLabel('Open saved company assessment').selectOption(savedId!);
  await expect(page.getByPlaceholder('Enter company name')).toHaveValue('Synthetic Saved Co');
 });
 test('evidence register accepts HTTPS records and preserves status as user supplied',async({page})=>{
