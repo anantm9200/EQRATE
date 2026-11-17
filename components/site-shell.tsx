@@ -19,6 +19,7 @@ export default function SiteShell({children}:{children:React.ReactNode}){
  const [open,setOpen]=useState(false);const path=usePathname();
  useEffect(()=>{setOpen(false)},[path]);
  useEffect(()=>{const previous=document.body.style.overflow;document.body.style.overflow=open?'hidden':previous;return ()=>{document.body.style.overflow=previous}},[open]);
+ useEffect(()=>{if(!open)return;const onEscape=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false)};window.addEventListener('keydown',onEscape);return()=>window.removeEventListener('keydown',onEscape)},[open]);
  return <>
   <header className="site-header">
     <Brand/>
