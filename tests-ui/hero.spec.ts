@@ -19,6 +19,18 @@ for(const viewport of viewports){
   await expect(hero).toBeVisible();
   await expect(title).toBeVisible();
   await expect(search).toBeVisible();
+  const heroHeight=await hero.evaluate(el=>el.getBoundingClientRect().height);
+  expect(heroHeight,'Hero should fill exactly one viewport').toBeGreaterThanOrEqual(viewport.height-2);
+  expect(heroHeight,'Hero should not be taller than the viewport at standard sizes').toBeLessThanOrEqual(viewport.height+2);
+  const radii=await page.evaluate(()=>{
+    const selectors='button, [role="button"], a.primary-button, a.secondary-button, a.v2-primary-cta, a.v2-ai-link, a.v2-cta-round, a.round-link';
+    return [...document.querySelectorAll<HTMLElement>(selectors)].map(el=>{
+      const s=getComputedStyle(el);
+      return {tag:el.tagName,cls:el.className,radius:Math.max(...[s.borderTopLeftRadius,s.borderTopRightRadius,s.borderBottomLeftRadius,s.borderBottomRightRadius].map(parseFloat))};
+    });
+  });
+  for(const control of radii) expect(control.radius,'Button corner radius: '+control.cls).toBeLessThanOrEqual(9);
+
   const searchWidget=page.locator('.c3-hero-search .company-search');
   await expect(searchWidget).toBeVisible();
   const widgetHeight=await searchWidget.evaluate(node=>node.getBoundingClientRect().height);

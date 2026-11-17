@@ -1,0 +1,20 @@
+/* CREQOR button shape: uniform 8px corner radius, never above 9px.
+   Includes CTA links, icon buttons, toggles, and secondary actions.
+   Decorative orbit and status circles retain their geometry. */
+:root { --creqor-button-radius: 8px; }
+button,
+[role="button"],
+a.primary-button,
+a.secondary-button,
+a.link-button,
+a.v2-primary-cta,
+a.v2-ai-link,
+a.v2-cta-round,
+a.round-link,
+a.menu-trigger,
+a.v2-menu-button,
+a.v2-card-arrow,
+a.v2-search-clear,
+a.fact-tag {
+  border-radius: var(--creqor-button-radius) !important;
+}

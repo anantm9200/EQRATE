@@ -171,3 +171,28 @@
  .c3-visual-halo,.c3-contours,.c3-pane-stack,.c3-pane-content,.c3-trace,.c3-trace-marker{animation:none!important}
  .c3-landscape,.c3-stage-label{transition:none!important;transform:none!important}
 }
+
+/* Full-screen first fold: 100vh (100svh on mobile browser chrome).
+   Short landscape windows may grow to protect content from clipping. */
+.c3-hero {
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.c3-hero-main {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.c3-hero-bottom {
+  flex: 0 0 auto;
+}
+@supports (height: 100svh) {
+  .c3-hero { height: 100svh; min-height: 100svh; }
+}
+@media (max-height: 700px) {
+  .c3-hero { height: auto; min-height: 100vh; }
+  @supports (height: 100svh) {
+    .c3-hero { min-height: 100svh; }
+  }
+}
