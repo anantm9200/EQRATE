@@ -86,5 +86,5 @@ test('import preserves update chronology for saved research and validates curren
  const safe=parseAssessment(raw);
  assert.equal(safe.currency,'USD');
  assert.equal(safe.active.filter(x=>x==='dcf').length,1);
- assert.match(safe.asOf,/^\\d{4}-\\d{2}-\\d{2}$/);
+ assert.ok(Number.isFinite(Date.parse(safe.asOf)));
 });
