@@ -1,9 +1,11 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
+import AnalysisCockpit from '@/components/analysis-cockpit';
+import {reviewAssessment} from '@/lib/research-intelligence';
 import {createAssessment,computeAssessment,formatMillions,formatPerShare,parseAssessment,methodNames,methodUnits,numberKeys,ratingCategories,ratingNames,ratingWeights,type Assessment,type Evidence,type FinancialInputs,type Method,type NumberKey,type ClaimType,type SourceKind} from '@/lib/assessment';
 
-const tabs=[{id:'company',label:'Company',number:'01'},{id:'financials',label:'Valuation',number:'02'},{id:'evidence',label:'Evidence',number:'03'},{id:'rating',label:'Score draft',number:'04'},{id:'report',label:'Report',number:'05'}] as const;
+const tabs=[{id:'company',label:'Company',number:'01'},{id:'financials',label:'Valuation',number:'02'},{id:'analysis',label:'Analysis',number:'03'},{id:'evidence',label:'Evidence',number:'04'},{id:'rating',label:'Score draft',number:'05'},{id:'report',label:'Report',number:'06'}] as const;
 type Tab=(typeof tabs)[number]['id'];
 const currencyOptions=['USD','INR','AED','GBP','EUR','NAD','ZAR','TZS','KES'];
 const industries=['General','Agriculture','Manufacturing','Technology','SaaS','Financial services','Banking','Insurance','Logistics','Healthcare','Pharmaceuticals','Energy','Real estate','Commodities','Infrastructure','Retail','Other'];
@@ -45,6 +47,7 @@ const fields:{section:string;fields:{key:NumberKey;label:string;hint:string}[]}[
 const storeKey='creqor.assessment-workspace.v1';
 const draftKey='creqor.assessment-active-draft.v1';
 const handoffKey='creqor.workbench.handoff.v1';
+const handoffContext='creqor.workbench.handoff-context.v1';
 function safeFileName(s:string){return (s||'company').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,60)||'company';}
 function textToCsv(v:string|number|null|undefined){
  const raw=v===null||v===undefined?'':String(v);
@@ -80,12 +83,13 @@ export default function AssessmentWorkbench(){
   }catch{setNotice('Saved assessments could not be read from this browser.');}
   try{
    const transferred=sessionStorage.getItem(handoffKey);
+    const sourceContext=sessionStorage.getItem(handoffContext);
    const draft=sessionStorage.getItem(draftKey);
    if(transferred){
     const item=parseAssessment(JSON.parse(transferred));
-    setAssessment(item);setActiveTab('financials');
-    setNotice('Calculator inputs transferred. Add company identity and evidence before exporting a defensible assessment.');
-    sessionStorage.removeItem(handoffKey);
+    setAssessment(item);setActiveTab(sourceContext==='saved'||sourceContext==='new'?'company':'financials');
+    setNotice(sourceContext==='saved'?'Saved assessment opened from your research desk. Review and save any changes.':sourceContext==='new'?'Blank assessment created. Start with the legal entity.':'Calculator inputs transferred. Add company identity and evidence before exporting a defensible assessment.');
+    sessionStorage.removeItem(handoffKey);sessionStorage.removeItem(handoffContext);
    }else if(draft){
     setAssessment(parseAssessment(JSON.parse(draft)));
    }
@@ -97,10 +101,14 @@ export default function AssessmentWorkbench(){
   try{sessionStorage.setItem(draftKey,JSON.stringify(assessment));}catch{}
  },[assessment,loaded]);
  const results=useMemo(()=>computeAssessment(assessment),[assessment]);
+ const readiness=useMemo(()=>reviewAssessment(assessment),[assessment]);
  const hasName=assessment.name.trim().length>0;
  const meaningfulEvidence=assessment.evidence.filter(s=>s.title.trim()&&s.url.trim()&&s.asOf.trim()).length;
  function updateTop<K extends keyof Assessment>(key:K,value:Assessment[K]){
   setAssessment(old=>({...old,[key]:value,updatedAt:new Date().toISOString()}));
+ }
+ function patchInputs(patch:Partial<Record<NumberKey,number>>){
+  setAssessment(old=>({...old,fields:{...old.fields,...patch},updatedAt:new Date().toISOString()}));
  }
  function updateNumber(key:NumberKey,text:string){
   const value=text.trim()===''?null:Number(text);
@@ -213,7 +221,7 @@ export default function AssessmentWorkbench(){
      </select>
      <button type="button" onClick={newAssessment} className="wk-button wk-outline">+ New assessment</button>
      <button type="button" onClick={loadSyntheticExample} className="wk-button wk-outline">Try sample data</button>
-     <button type="button" onClick={save} className="wk-button wk-primary">Save locally</button>
+     <button type="button" onClick={save} className="wk-button wk-primary">Save locally</button><Link href="/desk" className="wk-button wk-outline">Research desk ↗</Link>
     </div>
     <div className="wk-toolbar-end">
      <button type="button" onClick={exportJson} className="wk-button wk-outline">Export JSON</button>
@@ -258,9 +266,10 @@ export default function AssessmentWorkbench(){
         {assessment.active.includes(method)&&<Field label="Relative weight"><input type="number" min="0" step="0.5" max="100" inputMode="decimal" value={assessment.weights[method]} onChange={e=>setAssessment(a=>({...a,weights:{...a.weights,[method]:Number(e.target.value)}}))}/></Field>}
        </div>)}</div>
       </section>
-      <div className="wk-panel-actions"><button className="wk-button wk-outline" onClick={()=>setActiveTab('company')}>← Company</button><button className="wk-button wk-primary" onClick={()=>setActiveTab('evidence')}>Continue to evidence →</button></div>
+      <div className="wk-panel-actions"><button className="wk-button wk-outline" onClick={()=>setActiveTab('company')}>← Company</button><button className="wk-button wk-primary" onClick={()=>setActiveTab('analysis')}>Stress-test value →</button></div>
     </section>}
-    {activeTab==='evidence'&&<section className="wk-panel" id="wk-panel-evidence" aria-labelledby="wk-tab-evidence">
+    {activeTab==='analysis'&&<section className="wk-panel" id="wk-panel-analysis" aria-labelledby="wk-tab-analysis"><AnalysisCockpit assessment={assessment} onChangeInputs={patchInputs} onOpenValuation={()=>setActiveTab('financials')} onOpenEvidence={()=>setActiveTab('evidence')} onOpenReport={()=>setActiveTab('report')}/><div className="wk-panel-actions"><button className="wk-button wk-outline" onClick={()=>setActiveTab('financials')}>← Valuation</button><button className="wk-button wk-primary" onClick={()=>setActiveTab('evidence')}>Continue to evidence →</button></div></section>}
+     {activeTab==='evidence'&&<section className="wk-panel" id="wk-panel-evidence" aria-labelledby="wk-tab-evidence">
       <div className="wk-panel-head"><span className="wk-label">STEP 03 / PROVENANCE</span><h3>Build the evidence register.</h3><p>Record each document, link and claim it supports. Entries remain user-submitted and <strong>are not automatically verified</strong>, even when categorised as an official filing.</p></div>
       <form onSubmit={addSource} className="wk-evidence-form"><div className="wk-form-grid">
        <Field label="Document title"><input value={sourceForm.title} maxLength={250} required onChange={e=>setSourceForm(s=>({...s,title:e.target.value}))} placeholder="e.g. FY2025 audited accounts"/></Field>
@@ -274,7 +283,7 @@ export default function AssessmentWorkbench(){
        {assessment.evidence.length===0?<p className="wk-empty">No source records yet. Financial calculations may be performed, but a defensible company valuation cannot be independently established without documented evidence.</p>:
        assessment.evidence.map((s,i)=><article className="wk-evidence-row" key={s.id}><span className="wk-evidence-index">{String(i+1).padStart(2,'0')}</span><div><h5>{s.title}</h5><p>{sourceKinds[s.kind]} · {claimTypes[s.claim]} · {s.asOf||'No date'}</p>{s.notes&&<p>{s.notes}</p>}{s.url&&<a href={s.url} target="_blank" rel="noopener noreferrer">{s.url.replace(/^https:\/\//,'').slice(0,65)} ↗</a>}</div><button className="wk-button wk-outline" onClick={()=>setAssessment(a=>({...a,evidence:a.evidence.filter(x=>x.id!==s.id)}))} aria-label={'Remove source '+s.title}>Remove</button></article>)}
       </div>
-      <div className="wk-panel-actions"><button className="wk-button wk-outline" onClick={()=>setActiveTab('financials')}>← Valuation</button><button className="wk-button wk-primary" onClick={()=>setActiveTab('rating')}>Continue to score draft →</button></div>
+      <div className="wk-panel-actions"><button className="wk-button wk-outline" onClick={()=>setActiveTab('analysis')}>← Analysis</button><button className="wk-button wk-primary" onClick={()=>setActiveTab('rating')}>Continue to score draft →</button></div>
     </section>}
     {activeTab==='rating'&&<section className="wk-panel" id="wk-panel-rating" aria-labelledby="wk-tab-rating">
       <div className="wk-panel-head"><span className="wk-label">STEP 04 / INTERNAL SCORING DRAFT</span><h3>Apply a transparent score framework.</h3><p>The six categories have predefined research weights. Values are <strong>analyst-entered subjective assessments</strong> and cannot be published as a verified CREQOR rating until independent data validation and benchmarking are implemented.</p></div>
@@ -295,7 +304,11 @@ export default function AssessmentWorkbench(){
        {results.methods.map(m=><tr key={m.id}><th>{m.label}</th><td>{typeof m.equityValue==='number'?m.equityValue.toLocaleString('en-US',{maximumFractionDigits:2}):'—'}</td><td>{typeof m.enterpriseValue==='number'?m.enterpriseValue.toLocaleString('en-US',{maximumFractionDigits:2}):'—'}</td><td>{formatPerShare(m.impliedPerShare??null,assessment.currency)}</td><td>{m.status==='calculated'?'Calculated':m.detail}</td></tr>)}
       </tbody></table></div>
       <p className="wk-report-note">Weighted method result: {prettyMillions(results.blended,assessment.currency)}. Per-share estimate: {formatPerShare(results.blendedPerShare,assessment.currency)}. A weighted mean is an analyst-selected scenario comparison—not independent price discovery or a published private valuation.</p></div>
-      <div className="wk-report-section"><h3>Reported input assumptions</h3><div className="wk-input-audit">
+      <div className="wk-report-section"><h3>Analytical challenge and evidence readiness</h3>
+ <p className="wk-report-note">Across {readiness.range.count} calculated valuation methods, the analyst-model range is {readiness.range.minimum===null?'not available':prettyMillions(readiness.range.minimum,assessment.currency)} to {readiness.range.maximum===null?'not available':prettyMillions(readiness.range.maximum,assessment.currency)}. {readiness.range.spreadPct===null?'Dispersion cannot be interpreted from the available estimates.':'Model spread equals '+readiness.range.spreadPct.toFixed(1)+'% of the method median.'} All figures are user-entered or calculated, not independently verified.</p>
+ <div className="wk-readiness-report">{readiness.findings.filter(x=>x.level!=='informational').map(f=><div key={f.id}><strong>{f.level==='critical'?'CRITICAL':'REVIEW'}: {f.title}</strong><p>{f.detail}</p></div>)}{readiness.findings.every(f=>f.level==='informational')&&<p>No automatic completeness flags. This does not independently verify the issuer or its sources.</p>}</div>
+ </div>
+ <div className="wk-report-section"><h3>Reported input assumptions</h3><div className="wk-input-audit">
        {numberKeys.filter(k=>assessment.fields[k]!==null).map(k=><div key={k}><span>{fields.flatMap(s=>s.fields).find(f=>f.key===k)?.label||k}</span><strong>{assessment.fields[k]}</strong></div>)}
        {numberKeys.every(k=>assessment.fields[k]===null)&&<p>There are no financial inputs in this record.</p>}
       </div></div>
@@ -320,7 +333,8 @@ export default function AssessmentWorkbench(){
     <span className="wk-label">LATEST CALCULATION</span>
     <div className="wk-side-estimate">{prettyMillions(assessment.kind==='listed'?results.marketCap:results.blended,assessment.currency)}</div>
     <p className="wk-side-foot">User-entered values. This draft is not an observed market quote or independent valuation.</p>
-    <button className="wk-button wk-primary wk-side-report" onClick={()=>setActiveTab('report')}>Open report →</button>
+    <button className="wk-button wk-outline wk-side-report" onClick={()=>setActiveTab('analysis')}>Stress-test value ↗</button>
+     <button className="wk-button wk-primary wk-side-report" onClick={()=>setActiveTab('report')}>Open report →</button>
    </aside>
   </div>
   <div className="wk-final-disclosure"><strong>Data safety:</strong> Drafts are stored in your browser only; they are not a secure document vault. Do not enter confidential personal data. Export your record to retain a backup. Source classifications are manually entered and do not constitute verification.</div>
