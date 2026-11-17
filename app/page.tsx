@@ -10,6 +10,10 @@ const capabilities=[
 export default function Home(){
  return <>
   <HomeHero/>
+  <section className="wk-home-entry">
+    <div><span className="wk-label">WORKING VALUATION PLATFORM</span><h2>Not just information. <em>Build the assessment.</em></h2><p>Research any company using your own documented inputs. Calculate values across six financial methods, save source references, record a draft score and export a report.</p></div>
+    <Link className="wk-button wk-primary" href="/workbench">Open the company workbench <span>↗</span></Link>
+   </section>
   <section className="v2-principle-strip" aria-label="Product principles"><div><span>01 / SOURCE</span><strong>Know where it came from.</strong></div><div><span>02 / CALCULATE</span><strong>See how it was derived.</strong></div><div><span>03 / CHALLENGE</span><strong>Understand what could change.</strong></div></section>
   <section id="capabilities" className="v2-capabilities-section">
    <div className="v2-section-heading"><div><span className="eyebrow">AN INTEGRATED WORKSPACE</span><h2>From first search<br/><em>to better judgement.</em></h2></div><p>Three connected ways to see a business more clearly. Use the tools independently or follow the evidence from discovery through valuation.</p></div>
