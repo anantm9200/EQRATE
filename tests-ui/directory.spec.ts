@@ -66,7 +66,7 @@ test('upstream errors never invent company records',async({page})=>{
  });
  await page.goto('/directory');
  await page.getByRole('button',{name:'Japan'}).click();
- await expect(page.getByRole('alert')).toContainText('temporarily unavailable');
+ await expect(page.locator('.gd-feedback[role="alert"]')).toContainText('temporarily unavailable');
  await expect(page.locator('.gd-company')).toHaveCount(0);
  await expect(page.getByRole('button',{name:'Try again'})).toBeVisible();
 });
