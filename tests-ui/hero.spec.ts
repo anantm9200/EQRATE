@@ -57,8 +57,13 @@ test('company discovery, valuation and research journeys are reachable',async({p
 });
 test('keyboard command menu filters and navigates',async({page})=>{
  await page.goto('/');
- await page.keyboard.press('Control+k');
+ const open=page.getByRole('button',{name:'Search CREQOR tools'});
+ await open.click();
  const dialog=page.getByRole('dialog',{name:'Navigate CREQOR'});
+ await expect(dialog).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(dialog).toHaveCount(0);
+ await page.keyboard.press('Control+k');
  await expect(dialog).toBeVisible();
  await page.getByRole('textbox',{name:'Find a tool or page'}).fill('workbench');
  await expect(dialog.getByRole('button',{name:/Company workbench/i})).toBeVisible();

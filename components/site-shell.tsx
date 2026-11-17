@@ -9,7 +9,7 @@ import GlassMotion from '@/components/glass-motion';
 const primary=[
   {href:'/workbench',label:'Workbench'},
   {href:'/desk',label:'Research desk'},
-  {href:'/explore',label:'Explore'},
+  {href:'/directory',label:'Companies'},
   {href:'/lab',label:'Valuation lab'},
   {href:'/compare',label:'Compare'}
 ];
@@ -17,6 +17,7 @@ const menu=[
   {href:'/',label:'Overview',index:'01',detail:'A better way to know'},
   {href:'/workbench',label:'Company workbench',index:'02',detail:'Build a report from financial evidence'},
   {href:'/desk',label:'Research desk',index:'03',detail:'Compare and organise saved assessments'},
+  {href:'/directory',label:'Global companies',index:'04',detail:'Browse legal entities worldwide'},
   {href:'/explore',label:'Company explorer',index:'03',detail:'Start with the right identity'},
   {href:'/lab',label:'Valuation lab',index:'04',detail:'Test the assumptions'},
   {href:'/compare',label:'Compare companies',index:'05',detail:'Understand the differences'},
@@ -56,7 +57,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
     <div className="v2-menu-heading"><span className="eyebrow">Navigation / CREQOR</span><span className="v2-menu-heading-right">Research. Verify. Value.</span></div>
     <nav className="v2-menu-grid" aria-label="Full navigation">
       {menu.map((item,i)=><Link ref={i===0?firstLink:undefined} tabIndex={open?0:-1} onClick={()=>setOpen(false)} href={item.href} key={item.href} className={'v2-menu-item'+(path===item.href?' is-current':'')}>
-        <span className="v2-menu-index">{item.index}</span><span className="v2-menu-name">{item.label}<small>{item.detail}</small></span><span className="v2-menu-arrow">↗</span>
+        <span className="v2-menu-index">{String(i+1).padStart(2,'0')}</span><span className="v2-menu-name">{item.label}<small>{item.detail}</small></span><span className="v2-menu-arrow">↗</span>
       </Link>)}
     </nav>
     <div className="v2-menu-foot"><span>Independent by design.</span><span>Every number explained.</span></div>
@@ -69,7 +70,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
   </section>
   <footer className="v2-footer">
     <div className="v2-footer-top"><Brand/><p>Company intelligence built on evidence.<br/>Every number should withstand a second look.</p></div>
-    <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/workbench">Company workbench</Link><Link href="/desk">Research desk</Link><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link></div>
+    <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/workbench">Company workbench</Link><Link href="/desk">Research desk</Link><Link href="/directory">Global directory</Link><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link></div>
     <div><span className="v2-footer-label">RESEARCH</span><Link href="/intelligence">Market intelligence</Link><Link href="/research">Research centre</Link><Link href="/methodology">Methodology</Link><Link href="/verification">Verification</Link></div>
     <div className="v2-footer-statement"><span className="v2-footer-label">INDEPENDENCE MATTERS</span><p>CREQOR is a research and modelling platform—not a credit rating agency or an investment adviser. Estimates are not observable market prices. Claims and conclusions need traceable sources.</p></div></div>
     <div className="v2-footer-bottom"><span>© {new Date().getFullYear()} CREQOR</span><span>Designed for clarity. Built for scrutiny.</span><Link href="/status">System status ↗</Link></div>

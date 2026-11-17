@@ -9,7 +9,7 @@ export default function Explore(){return <>
  </section>
  <section className="lei-main">
   <div className="lei-main-header"><div><span className="command-mini">CONNECTED NOW / GLEIF</span><h2>Search registered legal entities.</h2><p>Actual, source-linked data. LEI coverage is substantial but not universal, especially among smaller private companies.</p></div><a href="https://search.gleif.org/" target="_blank" rel="noopener noreferrer">Original GLEIF Search ↗</a></div>
-  <GlobalCompanySearch/>
+  <GlobalCompanySearch/><div className="gd-explore-link"><Link href="/directory">Browse the global company directory and country listings ↗</Link></div>
  </section>
  <section className="lei-difference">
   <div><span className="command-mini">WHAT YOU'LL LEARN</span><h2>Identity is the beginning.<br/>Not the valuation.</h2><p>An LEI record can identify a legal entity and its registered details. It does not prove the entity is exchange-listed, provide audited financial statements, or establish what its shares are worth.</p><Link href="/workbench">Take an entity into the valuation workbench ↗</Link></div>
