@@ -18,6 +18,17 @@ export default function PlatformPreview(){
   baseFreeCashFlow:18,annualGrowth:.06,discountRate:discount/100,
   terminalGrowth:.02,forecastYears:5,netDebt:45
  }),[discount]);
+ const curve=useMemo(()=>{
+  const values=Array.from({length:21},(_,i)=>{
+   const rate=8+i*.5;
+   return {rate,value:calculateDcf({baseFreeCashFlow:18,annualGrowth:.06,discountRate:rate/100,terminalGrowth:.02,forecastYears:5,netDebt:45}).equityValue};
+  });
+  const low=Math.min(...values.map(p=>p.value)),high=Math.max(...values.map(p=>p.value));
+  const xy=values.map((p,i)=>({x:10+i*15,y:75-(p.value-low)/(high-low||1)*59}));
+  const line=xy.map((p,i)=>(i?'L':'M')+p.x+' '+p.y.toFixed(2)).join(' ');
+  const focus=xy[Math.round((discount-8)*2)];
+  return {line,area:line+' L310 82 L10 82 Z',focus};
+ },[discount]);
  const money=(n:number)=>new Intl.NumberFormat('en-US',{maximumFractionDigits:1,minimumFractionDigits:1}).format(n);
  const complete=checks.filter(Boolean).length;
  return <div className="ux-preview" aria-label="Interactive CREQOR research workflow preview">
@@ -41,6 +52,13 @@ export default function PlatformPreview(){
     <div className="ux-model-card">
      <div className="ux-model-head"><span>ILLUSTRATIVE EQUITY ESTIMATE</span><span>USD / MILLIONS</span></div>
      <div className="ux-model-value"><strong>${money(output.equityValue)}<small>m</small></strong><span>DCF model</span></div>
+     <div className="ux-live-curve"><div className="ux-curve-meta"><span>VALUE SENSITIVITY</span><span>8–18% DISCOUNT RATE</span></div><svg viewBox="0 0 320 88" preserveAspectRatio="none" role="img" aria-label="Calculated equity value decreases as the discount rate rises from 8 to 18 percent">
+       <defs><linearGradient id="ux-curve-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#32a266" stopOpacity=".24"/><stop offset="100%" stopColor="#32a266" stopOpacity="0"/></linearGradient></defs>
+       <path d={curve.area} fill="url(#ux-curve-fill)" className="fx-chart-area"/>
+       <path d={curve.line} fill="none" stroke="#24894e" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" className="fx-chart-line"/>
+       <line x1={curve.focus.x} x2={curve.focus.x} y1="8" y2="82" stroke="#2d8b51" strokeDasharray="3 5" strokeOpacity=".35"/>
+       <circle cx={curve.focus.x} cy={curve.focus.y} r="4.1" stroke="#fff" strokeWidth="2" fill="#247f4a" className="fx-chart-cursor"/>
+      </svg></div>
      <div className="ux-model-range"><div><label htmlFor="ux-discount">Discount rate</label><output htmlFor="ux-discount">{discount.toFixed(1)}%</output></div>
       <input id="ux-discount" aria-label="Illustrative DCF discount rate" type="range" min="8" max="18" step=".5" value={discount} onChange={e=>setDiscount(Number(e.target.value))}/><div className="ux-slider-ends"><span>8%</span><span>18%</span></div>
      </div>

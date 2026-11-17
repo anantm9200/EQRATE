@@ -4,6 +4,7 @@ import {usePathname} from 'next/navigation';
 import {useEffect,useRef,useState} from 'react';
 import Brand from '@/components/brand';
 import CommandPalette from '@/components/command-palette';
+import GlassMotion from '@/components/glass-motion';
 
 const primary=[
   {href:'/workbench',label:'Workbench'},
@@ -39,6 +40,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
   return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',onKey)};
  },[open]);
  return <>
+  <GlassMotion/>
   <a className="skip-link" href="#main-content">Skip to content</a>
   <header className="site-header v2-header">
    <Brand/>

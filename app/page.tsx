@@ -14,6 +14,7 @@ const journeys=[
 
 export default function Home(){return <>
  <section className="ux-hero" aria-labelledby="ux-hero-title">
+  <div className="fx-hero-atmosphere" aria-hidden="true"><span/><span/><span/></div>
   <div className="ux-hero-inner">
    <div className="ux-hero-copy">
     <span className="ux-eyebrow"><span className="ux-dot"/> CREQOR / COMPANY INTELLIGENCE</span>
