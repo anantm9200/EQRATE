@@ -24,7 +24,7 @@ export default function CompanySearch({variant='hero'}:{variant?:'hero'|'full'})
    },270);
    return()=>{clearTimeout(timer);controller.abort()};
  },[q]);
- return <div className={'company-search '+variant}>
+ return <div className={'company-search search-variant-'+variant}>
   <div className="search-input-wrap">
    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.3"/><path d="m16 16 5 5"/></svg>
    <input id={id} role="combobox" aria-expanded={open&&q.trim().length>=2} aria-controls={id+'-results'} aria-autocomplete="list"

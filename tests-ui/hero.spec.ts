@@ -19,6 +19,10 @@ for(const viewport of viewports){
   await expect(hero).toBeVisible();
   await expect(title).toBeVisible();
   await expect(search).toBeVisible();
+  const searchWidget=page.locator('.c3-hero-search .company-search');
+  await expect(searchWidget).toBeVisible();
+  const widgetHeight=await searchWidget.evaluate(node=>node.getBoundingClientRect().height);
+  expect(widgetHeight,'Search should not inherit full hero-section height').toBeLessThan(180);
   const bounds=await page.evaluate(()=>{
    const elements=[
     document.querySelector('.c3-hero h1'),
