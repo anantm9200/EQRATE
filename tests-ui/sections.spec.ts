@@ -23,11 +23,11 @@ for(const route of routes){
 }
 test('homepage supports the core company personas without excessive marketing scroll',async({page})=>{
  await page.setViewportSize({width:1440,height:900});await page.goto('/');
- await expect(page.locator('.command-job')).toHaveCount(3);
- await expect(page.locator('.command-routebar a')).toHaveCount(4);
- await expect(page.locator('.command-market-card')).toHaveCount(2);
- await expect(page.locator('.command-hero-actions').getByRole('link',{name:/Start a company assessment/i})).toBeVisible();
- await page.screenshot({path:'test-results/screenshots/command-home-full.png',fullPage:true});
+ await expect(page.locator('.ux-workflow-card')).toHaveCount(3);
+ await expect(page.locator('.ux-distinction-grid article')).toHaveCount(2);
+ await expect(page.locator('.ux-hero').getByRole('link',{name:/Build a valuation/i})).toBeVisible();
+ await expect(page.locator('.ux-preview-tabs button')).toHaveCount(3);
+ await page.screenshot({path:'test-results/screenshots/unified-home-full.png',fullPage:true});
 });
 test('source methodology FAQ opens through native details',async({page})=>{
  await page.goto('/methodology');
