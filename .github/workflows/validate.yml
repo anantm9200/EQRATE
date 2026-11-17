@@ -21,3 +21,27 @@ jobs:
         run: npm run typecheck
       - name: Production build
         run: npm run build
+  browser-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build site
+        run: npm run build
+      - name: Responsive browser checks and screenshots
+        run: npm run test:ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: creqor-responsive-captures
+          path: test-results/
+          retention-days: 7

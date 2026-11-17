@@ -1,4 +1,17 @@
 import CompanySearch from '@/components/search';
 import Link from 'next/link';
-export const metadata={title:'Company explorer',description:'Find official company entities and investigate their identity before valuation.'};
-export default function Explore(){return <><section className="page-hero"><span className="eyebrow">DISCOVER / IDENTIFY / INVESTIGATE</span><h1>Find the right company.<br/><em>Before the right number.</em></h1><p>Explore official company identities. Start with US-listed issuers from the SEC; other registries are being integrated source by source.</p></section><section className="body-wrap"><div className="panel" style={{maxWidth:940,margin:'auto'}}><span className="micro-label">LIVE REGISTRY ADAPTER / US SEC</span><h2 style={{marginBottom:24}}>Search companies</h2><CompanySearch variant="full"/><div className="panel-divider"/><div className="notice">This search resolves issuer names, CIKs, tickers and exchanges from the SEC registry when the adapter is configured. It does not imply a verified market price, valuation or credit rating.</div></div><div className="steps-grid"><div className="step"><span className="micro-label">01</span><h3>Resolve identity</h3><p>Match names, tickers and identifiers to an official legal record.</p></div><div className="step"><span className="micro-label">02</span><h3>Inspect sources</h3><p>Open a company record and follow its source to an official issuer filing.</p></div><div className="step"><span className="micro-label">03</span><h3>Model the value</h3><p>Use documented financial inputs to calculate independent valuation scenarios.</p></div></div><p className="source-note">India, UAE and African data connectors are planned; they are not presented as live until authorised source integration is complete. <Link href="/methodology" style={{textDecoration:'underline'}}>Read the methodology.</Link></p></section></>}
+export const metadata={title:'Company explorer',description:'Find official company identities before assessing financial information.'};
+export default function Explore(){return <>
+ <section className="page-hero v2-page-hero">
+  <div className="v2-page-topline"><span className="eyebrow">01 / COMPANY DISCOVERY</span><span>VERIFY THE ENTITY / THEN THE NUMBERS</span></div>
+  <div className="v2-page-hero-grid">
+   <div><h1>Every analysis begins<br/><em>with the right company.</em></h1><p>Resolve a company's official identity before drawing a conclusion. One issuer, one canonical starting point.</p></div>
+   <div className="v2-page-art v2-explore-art" aria-hidden="true"><div className="v2-explore-art-node">◇</div><span className="v2-art-orbit o1"/><span className="v2-art-orbit o2"/><span className="v2-art-orbit o3"/><span className="v2-art-chip a">IDENTITY</span><span className="v2-art-chip b">SOURCE</span></div>
+  </div>
+ </section>
+ <section className="body-wrap v2-explore-body">
+  <div className="v2-explore-search-panel"><div className="v2-explore-search-head"><div><span className="eyebrow">OFFICIAL ISSUER DIRECTORY</span><h2>Find a company.</h2></div><span className="v2-registry-status">DATA SOURCE / US SEC</span></div><CompanySearch variant="full"/></div>
+  <div className="v2-explore-steps"><article><span>01</span><h3>Resolve the name.</h3><p>Match a company to official CIK, ticker and exchange records.</p></article><article><span>02</span><h3>Inspect the filing.</h3><p>Open reported financial highlights with source dates and official links.</p></article><article><span>03</span><h3>Question the value.</h3><p>Develop an independent scenario instead of guessing a market cap.</p></article></div>
+  <div className="v2-explore-bottom"><p>Coverage currently begins with SEC-recorded US companies. India, UAE and African registries need approved source integration. An unavailable metric is never silently represented as zero.</p><Link href="/compare">Compare two issuers <span>↗</span></Link></div>
+ </section>
+ </>}

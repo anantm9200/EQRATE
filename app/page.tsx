@@ -1,30 +1,31 @@
 import Link from 'next/link';
-import Orbit from '@/components/orbit';
-import CompanySearch from '@/components/search';
+import HomeHero from '@/components/home-hero';
+
+const capabilities=[
+ {number:'01',eyebrow:'DISCOVER',title:'Find the company, not just the name.',copy:'Resolve issuer identities, aliases and identifiers before assessing the financial story.',href:'/explore',visual:'identity'},
+ {number:'02',eyebrow:'VALUE',title:'A number you can take apart.',copy:'Build scenarios, challenge growth assumptions and understand the enterprise-to-equity bridge.',href:'/lab',visual:'valuation'},
+ {number:'03',eyebrow:'VERIFY',title:'Make evidence the advantage.',copy:'Separate official filings, company claims and model estimates—with clear limitations.',href:'/verification',visual:'proof'}
+];
 export default function Home(){
- const tools=[
-  {number:'01 / DISCOVER',title:'Know the company.',copy:'Resolve entities, identifiers and corporate relationships before drawing conclusions.',url:'/explore',art:'orbit'},
-  {number:'02 / VALUE',title:'Make numbers explainable.',copy:'Model valuation assumptions and see exactly where each estimate comes from.',url:'/lab',art:'plot'},
-  {number:'03 / QUESTION',title:'Look beyond the headline.',copy:'Private AI research with evidence boundaries and explicit uncertainty.',url:'/analyst',art:'bars'}
- ];
  return <>
- <section className="hero"><div className="hero-layout">
-   <div className="hero-copy"><div className="pill"><span className="status-dot"/> THE NEXT STANDARD IN COMPANY INTELLIGENCE</div>
-   <h1>Every company<br/>has a story.<br/><em>Find the truth in it.</em></h1>
-   <p className="hero-subcopy">Discover. Verify. Value. A clearer way to understand what a business is worth — and why.</p>
-   <div className="hero-search-wrap"><CompanySearch/></div>
-   <div className="hero-cta"><Link className="text-link" href="/lab">Enter the valuation lab <span>↗</span></Link><Link className="ghost-link" href="/methodology">How CREQOR works ↗</Link></div>
-   </div><Orbit/></div><div className="hero-floor"><span>EVIDENCE FIRST</span><span>MODELS, NOT GUESSWORK</span><span>INDEPENDENT ANALYSIS</span></div>
- </section>
- <section className="feature-strip" aria-label="Our principles"><div><span>01 / IDENTIFY</span><strong>One company. One identity.</strong></div><div><span>02 / VALIDATE</span><strong>Sources you can inspect.</strong></div><div><span>03 / VALUE</span><strong>Calculations you can challenge.</strong></div><div><span>04 / EXPLAIN</span><strong>Intelligence with context.</strong></div></section>
- <section className="section-pad"><div className="section-heading"><div><span className="eyebrow muted">AN INTELLIGENCE WORKSPACE</span><h2>Go deeper.<br/><em>Without the noise.</em></h2></div><p className="section-lead">A focused research environment built to turn complex financial questions into clear, traceable analysis.</p></div><div className="explore-grid">
- {tools.map(t=><Link href={t.url} key={t.title} className={'feature-card '+(t.art==='orbit'?'primary':'')}><span className="card-index">{t.number}</span><span className="card-arrow">↗</span>{t.art==='orbit'&&<div className="card-art"/>}{t.art==='plot'&&<svg className="sparkline" viewBox="0 0 350 130" fill="none"><path d="M0 105 42 80 80 90 122 54 165 64 213 40 257 48 290 22 350 3" stroke="currentColor" strokeWidth="2"/><path d="M0 105 42 80 80 90 122 54 165 64 213 40 257 48 290 22 350 3v130H0Z" fill="currentColor" fillOpacity=".08"/></svg>}{t.art==='bars'&&<div className="mini-bars"><i/><i/><i/><i/><i/><i/></div>}<h3>{t.title}</h3><p>{t.copy}</p></Link>)}
- </div></section>
- <section className="section-pad trust-section"><div className="trust-heading"><div><span className="eyebrow" style={{color:'#91dca9'}}>BUILT ON WHAT MATTERS</span><h2>Trust isn't a badge.<br/><em>It's a trail of evidence.</em></h2></div><p className="section-lead">The strongest number is one you can reproduce. Every method must withstand a second look.</p></div>
- <div className="trust-grid"><div className="trust-tile"><span>01 / PROVENANCE</span><div className="trust-graphic">⌁</div><h3>Trace the source.</h3><p>Distinguish official filings, third-party sources and reported estimates.</p></div><div className="trust-tile"><span>02 / TRANSPARENCY</span><div className="trust-graphic two">◇</div><h3>See the assumptions.</h3><p>Explore the model, inputs, timing and sensitivity behind a valuation.</p></div><div className="trust-tile"><span>03 / INDEPENDENCE</span><div className="trust-graphic three">✓</div><h3>Question the result.</h3><p>Separate verified facts, model output and AI interpretations.</p></div></div>
- <Link className="method-link" href="/methodology">Explore our methodology <span>↗</span></Link>
- </section>
- <section className="section-pad" style={{background:'#eaf5ec'}}><div className="section-heading"><div><span className="eyebrow muted">NEXT-GENERATION RESEARCH</span><h2>Powered by intelligence.<br/><em>Grounded in evidence.</em></h2></div><p className="section-lead">CREQOR's private research gateway is designed for the DGX, while financial calculations remain deterministic and independently testable.</p></div>
- <div className="content-grid"><Link className="panel" href="/analyst"><span className="micro-label">PRIVATE INFERENCE</span><div className="hero-viz"><span>✳</span></div><h3 style={{marginTop:25}}>Ask a harder question. ↗</h3><p>Surface contradictions, research gaps and competing interpretations.</p></Link><Link className="panel" href="/lab"><span className="micro-label">VALUATION ENGINE</span><div className="hero-viz"><svg viewBox="0 0 350 160" width="80%" aria-hidden="true"><path d="M0 130 80 115 130 125 180 82 220 90 270 39 350 15" fill="none" stroke="#b9f9c7" strokeWidth="3"/><circle cx="270" cy="39" r="5" fill="#b9f9c7"/></svg></div><h3 style={{marginTop:25}}>Move the assumptions. ↗</h3><p>Study how changing financial inputs changes enterprise and equity value.</p></Link></div></section>
+  <HomeHero/>
+  <section className="v2-principle-strip" aria-label="Product principles"><div><span>01 / SOURCE</span><strong>Know where it came from.</strong></div><div><span>02 / CALCULATE</span><strong>See how it was derived.</strong></div><div><span>03 / CHALLENGE</span><strong>Understand what could change.</strong></div></section>
+  <section id="capabilities" className="v2-capabilities-section">
+   <div className="v2-section-heading"><div><span className="eyebrow">AN INTEGRATED WORKSPACE</span><h2>From first search<br/><em>to better judgement.</em></h2></div><p>Three connected ways to see a business more clearly. Use the tools independently or follow the evidence from discovery through valuation.</p></div>
+   <div className="v2-capability-grid">{capabilities.map(x=><Link href={x.href} key={x.number} className={'v2-capability v2-capability-'+x.visual}>
+     <div className="v2-capability-top"><span>{x.number} / {x.eyebrow}</span><span className="v2-card-arrow">↗</span></div>
+     {x.visual==='identity'?<div className="v2-card-viz v2-identity-viz"><div className="v2-viz-entity"><span className="v2-shape-logo">◇</span><span>ENTITY RESOLUTION<small>Registration / identifier / issuer</small></span><span>✓</span></div><div className="v2-viz-branches"><span/><span/><span/></div></div>:x.visual==='valuation'?<div className="v2-card-viz v2-valuation-viz"><div className="v2-viz-axis">VALUE / MODEL SCENARIOS</div><svg viewBox="0 0 330 118" aria-hidden="true"><path d="M0 94H330M0 50H330" stroke="#B3D1BD" strokeOpacity=".3" strokeDasharray="4 5"/><path d="M0 100 49 91 96 82 143 91 188 54 237 64 277 32 330 12" stroke="#79D5A0" strokeWidth="2.8" fill="none"/><path d="M0 100 49 91 96 82 143 91 188 54 237 64 277 32 330 12V118H0Z" fill="#79D5A0" fillOpacity=".1"/><circle cx="277" cy="32" r="4.5" fill="#B8FFCB"/></svg><div className="v2-viz-scenarios"><span>BEAR</span><span>BASE</span><span>BULL</span></div></div>:<div className="v2-card-viz v2-proof-viz"><div className="v2-proof-stack"><span className="v2-proof-paper first"/><span className="v2-proof-paper second"/><span className="v2-proof-paper third"><span>✓</span></span></div><span className="v2-proof-label">CLAIM → SOURCE → REVIEW</span></div>}
+     <div className="v2-capability-copy"><h3>{x.title}</h3><p>{x.copy}</p></div>
+   </Link>)}</div>
+  </section>
+  <section className="v2-evidence-section">
+   <div className="v2-evidence-intro"><span className="eyebrow">THE CREQOR STANDARD</span><h2>Less noise.<br/><em>More knowing.</em></h2><p>Financial research should never ask you to trust an unexplained number. We put the evidence and assumptions where they belong: in view.</p><Link href="/methodology">Explore our research methodology <span>↗</span></Link></div>
+   <div className="v2-evidence-right">
+     <div className="v2-evidence-row"><span>01</span><div><h3>Official source before opinion</h3><p>Company identities and financial records come from identifiable, dated sources.</p></div><b>↗</b></div>
+     <div className="v2-evidence-row"><span>02</span><div><h3>Deterministic valuation</h3><p>Models calculate the numbers; AI helps ask better questions about them.</p></div><b>↗</b></div>
+     <div className="v2-evidence-row"><span>03</span><div><h3>Uncertainty is information</h3><p>Missing inputs and conflicting evidence are made visible, not disguised as certainty.</p></div><b>↗</b></div>
+   </div>
+  </section>
+  <section className="v2-intelligence-cta"><div className="v2-cta-copy"><span className="eyebrow">PRIVATE INTELLIGENCE / DGX ARCHITECTURE</span><h2>Ask the harder question.<br/><em>Demand a clearer answer.</em></h2><p>Use the private analyst to interrogate financial assumptions and uncover missing evidence. The gateway is securely disabled until configured.</p><Link href="/analyst" className="v2-primary-cta">Enter AI analyst <span>↗</span></Link></div><div className="v2-cta-glyph" aria-hidden="true"><span>✳</span><i/><i/><i/></div></section>
  </>;
 }
