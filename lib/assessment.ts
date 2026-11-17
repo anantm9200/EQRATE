@@ -167,7 +167,7 @@ export function parseAssessment(value:unknown):Assessment{
   const values=o.fields as Record<string,unknown>;
   for(const k of numberKeys){const n=values[k];a.fields[k]=typeof n==='number'&&Number.isFinite(n)?n:null;}
  }
- if(Array.isArray(o.active))a.active=o.active.filter((x):x is Method=>typeof x==='string'&&x in methodNames).slice(0,6);
+ if(Array.isArray(o.active))a.active=o.active.filter((x):x is Method=>typeof x==='string'&&Object.prototype.hasOwnProperty.call(methodNames,x)).slice(0,6);
  if(o.weights&&typeof o.weights==='object'&&!Array.isArray(o.weights)){
   const weights=o.weights as Record<string,unknown>;
   for(const k of Object.keys(methodNames) as Method[]){const n=weights[k];a.weights[k]=typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=100?n:1;}

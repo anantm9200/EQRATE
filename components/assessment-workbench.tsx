@@ -195,7 +195,7 @@ export default function AssessmentWorkbench(){
   </div>
   {notice&&<div className="wk-notice wk-no-print" role="status"><span>{notice}</span><button type="button" aria-label="Dismiss message" onClick={()=>setNotice('')}>×</button></div>}
   <div className="wk-shell">
-   <nav className="wk-tab-nav wk-no-print" aria-label="Assessment sections">
+   <nav role="tablist" className="wk-tab-nav wk-no-print" aria-label="Assessment sections">
     {tabs.map(t=><button key={t.id} role="tab" id={'wk-tab-'+t.id} aria-controls={'wk-panel-'+t.id} aria-selected={activeTab===t.id} className={activeTab===t.id?'is-selected':''} onClick={()=>setActiveTab(t.id)}><small>{t.number}</small><span>{t.label}</span></button>)}
    </nav>
    <div className="wk-body">
