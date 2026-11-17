@@ -7,6 +7,7 @@ import './creqor-hero.css';
 import './creqor-controls.css';
 import './creqor-editorial.css';
 import './workbench.css';
+import './research-upgrade.css';
 import './creqor-command.css';
 import './creqor-operations.css';
 import './creqor-lei.css';
