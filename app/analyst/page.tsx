@@ -1,0 +1,3 @@
+import AnalystClient from '@/components/analyst-client';
+export const metadata={title:'Private AI analyst',description:'Source-grounded financial questions through the protected CREQOR DGX intelligence gateway.'};
+export default function Analyst(){return <><section className="page-hero"><span className="eyebrow">PRIVATE RESEARCH / DGX POWERED</span><h1>Think beyond<br/><em>the obvious.</em></h1><p>Question financial claims. Challenge assumptions. Find what is missing. Intelligence built to explain uncertainty, not hide it.</p></section><section className="body-wrap"><AnalystClient/></section></>}

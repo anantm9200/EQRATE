@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function NotFound(){return <section className="notfound"><span className="eyebrow muted">404 / NO RECORD</span><h1>We couldn't find that page.</h1><p style={{maxWidth:490,marginBottom:25}}>Try the company explorer or return to the intelligence workspace.</p><Link href="/explore" className="primary-button">Explore companies ↗</Link></section>}
