@@ -53,7 +53,7 @@ test('all assessment tabs work without horizontal overflow on mobile',async({pag
 });
 test('workbench is reachable from site navigation and homepage',async({page})=>{
  await page.goto('/');
- await expect(page.getByRole('link',{name:/Open the company workbench/i})).toBeVisible();
- await page.getByRole('link',{name:/Open the company workbench/i}).click();
+ await expect(page.locator('.command-hero-actions').getByRole('link',{name:/Start a company assessment/i})).toBeVisible();
+ await page.locator('.command-hero-actions').getByRole('link',{name:/Start a company assessment/i}).click();
  await expect(page).toHaveURL(/\/workbench$/);
 });

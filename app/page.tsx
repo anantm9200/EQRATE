@@ -1,38 +1,70 @@
-import {HomeSections} from '@/components/sections-primary';
 import Link from 'next/link';
-import HomeHero from '@/components/home-hero';
+import QuickValuation from '@/components/quick-valuation';
 
-const capabilities=[
- {number:'01',eyebrow:'DISCOVER',title:'Find the company, not just the name.',copy:'Resolve issuer identities, aliases and identifiers before assessing the financial story.',href:'/explore',visual:'identity'},
- {number:'02',eyebrow:'VALUE',title:'A number you can take apart.',copy:'Build scenarios, challenge growth assumptions and understand the enterprise-to-equity bridge.',href:'/lab',visual:'valuation'},
- {number:'03',eyebrow:'VERIFY',title:'Make evidence the advantage.',copy:'Separate official filings, company claims and model estimates—with clear limitations.',href:'/verification',visual:'proof'}
+const jobs=[
+ {n:'01',title:'Investors',headline:'An issuer worth understanding.',text:'Inspect the correct legal entity, source its financial records and challenge the assumptions behind its value.',href:'/explore',action:'Find the issuer',icon:'⌕'},
+ {n:'02',title:'Founders & advisers',headline:'A private business worth defending.',text:'Estimate equity value using cash flows, transaction evidence, peer multiples and documented assumptions.',href:'/workbench',action:'Build an assessment',icon:'◇'},
+ {n:'03',title:'Research teams',headline:'A model somebody can audit.',text:'Save analysis, maintain evidence references and export reproducible draft assessment reports.',href:'/compare',action:'Compare the evidence',icon:'⌁'}
 ];
-export default function Home(){
- return <>
-  <HomeHero/>
-  <section className="wk-home-entry">
-    <div><span className="wk-label">WORKING VALUATION PLATFORM</span><h2>Not just information. <em>Build the assessment.</em></h2><p>Research any company using your own documented inputs. Calculate values across six financial methods, save source references, record a draft score and export a report.</p></div>
-    <Link className="wk-button wk-primary" href="/workbench">Open the company workbench <span>↗</span></Link>
-   </section>
-  <section className="v2-principle-strip" aria-label="Product principles"><div><span>01 / SOURCE</span><strong>Know where it came from.</strong></div><div><span>02 / CALCULATE</span><strong>See how it was derived.</strong></div><div><span>03 / CHALLENGE</span><strong>Understand what could change.</strong></div></section>
-  <section id="capabilities" className="v2-capabilities-section">
-   <div className="v2-section-heading"><div><span className="eyebrow">AN INTEGRATED WORKSPACE</span><h2>From first search<br/><em>to better judgement.</em></h2></div><p>Three connected ways to see a business more clearly. Use the tools independently or follow the evidence from discovery through valuation.</p></div>
-   <div className="v2-capability-grid">{capabilities.map(x=><Link href={x.href} key={x.number} className={'v2-capability v2-capability-'+x.visual}>
-     <div className="v2-capability-top"><span>{x.number} / {x.eyebrow}</span><span className="v2-card-arrow">↗</span></div>
-     {x.visual==='identity'?<div className="v2-card-viz v2-identity-viz"><div className="v2-viz-entity"><span className="v2-shape-logo">◇</span><span>ENTITY RESOLUTION<small>Registration / identifier / issuer</small></span><span>✓</span></div><div className="v2-viz-branches"><span/><span/><span/></div></div>:x.visual==='valuation'?<div className="v2-card-viz v2-valuation-viz"><div className="v2-viz-axis">VALUE / MODEL SCENARIOS</div><svg viewBox="0 0 330 118" aria-hidden="true"><path d="M0 94H330M0 50H330" stroke="#B3D1BD" strokeOpacity=".3" strokeDasharray="4 5"/><path d="M0 100 49 91 96 82 143 91 188 54 237 64 277 32 330 12" stroke="#79D5A0" strokeWidth="2.8" fill="none"/><path d="M0 100 49 91 96 82 143 91 188 54 237 64 277 32 330 12V118H0Z" fill="#79D5A0" fillOpacity=".1"/><circle cx="277" cy="32" r="4.5" fill="#B8FFCB"/></svg><div className="v2-viz-scenarios"><span>BEAR</span><span>BASE</span><span>BULL</span></div></div>:<div className="v2-card-viz v2-proof-viz"><div className="v2-proof-stack"><span className="v2-proof-paper first"/><span className="v2-proof-paper second"/><span className="v2-proof-paper third"><span>✓</span></span></div><span className="v2-proof-label">CLAIM → SOURCE → REVIEW</span></div>}
-     <div className="v2-capability-copy"><h3>{x.title}</h3><p>{x.copy}</p></div>
-   </Link>)}</div>
-  </section>
-  <section className="v2-evidence-section">
-   <div className="v2-evidence-intro"><span className="eyebrow">THE CREQOR STANDARD</span><h2>Less noise.<br/><em>More knowing.</em></h2><p>Financial research should never ask you to trust an unexplained number. We put the evidence and assumptions where they belong: in view.</p><Link href="/methodology">Explore our research methodology <span>↗</span></Link></div>
-   <div className="v2-evidence-right">
-     <div className="v2-evidence-row"><span>01</span><div><h3>Official source before opinion</h3><p>Company identities and financial records come from identifiable, dated sources.</p></div><b>↗</b></div>
-     <div className="v2-evidence-row"><span>02</span><div><h3>Deterministic valuation</h3><p>Models calculate the numbers; AI helps ask better questions about them.</p></div><b>↗</b></div>
-     <div className="v2-evidence-row"><span>03</span><div><h3>Uncertainty is information</h3><p>Missing inputs and conflicting evidence are made visible, not disguised as certainty.</p></div><b>↗</b></div>
+const steps=[
+ {n:'01',tag:'IDENTIFY',head:'Know the exact entity',body:'Legal name, market, security identifier and reporting currency.'},
+ {n:'02',tag:'DOCUMENT',head:'Record the sources',body:'Source URL, financial claim, document date and review limitations.'},
+ {n:'03',tag:'CALCULATE',head:'Make the value explainable',body:'Six deterministic valuation methods, sensitivity and assumptions.'},
+ {n:'04',tag:'DELIVER',head:'Take the report with you',body:'Save locally, export data or print an audit-ready draft.'}
+];
+export const metadata={title:'Company intelligence and valuation',description:'CREQOR helps analysts value listed and unlisted companies with transparent financial methods and traceable evidence.'};
+export default function Home(){return <>
+ <section className="command-hero" aria-labelledby="command-title">
+  <div className="command-backdrop" aria-hidden="true"><i/><i/><i/></div>
+  <div className="command-hero-main">
+   <div className="command-hero-copy">
+    <div className="command-eyebrow"><span className="command-signal"/> CREQOR / FINANCIAL INTELLIGENCE <span className="command-eyebrow-line"/></div>
+    <h1 id="command-title">Value the business.<br/><em>Show your work.</em></h1>
+    <p className="command-lead">Listed or private. Move from financial assumptions to explainable calculations, documented evidence and an assessment you can actually use.</p>
+    <div className="command-hero-actions">
+     <Link className="command-main-cta" href="/workbench">Start a company assessment <span>↗</span></Link>
+     <Link className="command-outline-cta" href="/explore">Explore companies <span>↗</span></Link>
+    </div>
+    <div className="command-credibility"><div><strong>06</strong><span>Valuation methods</span></div><div><strong>03</strong><span>Export formats</span></div><div><strong>01</strong><span>Evidence register</span></div></div>
+    <p className="command-footnote">NO UNSOURCED PRICES · NO INVENTED RATINGS</p>
    </div>
-  </section>
-  <section className="v2-intelligence-cta"><div className="v2-cta-copy"><span className="eyebrow">PRIVATE INTELLIGENCE / DGX ARCHITECTURE</span><h2>Ask the harder question.<br/><em>Demand a clearer answer.</em></h2><p>Use the private analyst to interrogate financial assumptions and uncover missing evidence. The gateway is securely disabled until configured.</p><Link href="/analyst" className="v2-primary-cta">Enter AI analyst <span>↗</span></Link></div><div className="v2-cta-glyph" aria-hidden="true"><span>✳</span><i/><i/><i/></div></section>
- 
- <HomeSections/>
- </>;
-}
+   <div className="command-hero-utility"><QuickValuation/></div>
+  </div>
+  <div className="command-bottom"><span><span className="command-signal"/> INDEPENDENT THINKING. TRACEABLE NUMBERS.</span><Link href="#for-whom">EXPLORE THE PLATFORM ↓</Link></div>
+ </section>
+ <nav className="command-routebar" aria-label="Direct access to CREQOR tools">
+  <Link href="/workbench"><span>START HERE</span><strong>Company workbench</strong><i>↗</i></Link>
+  <Link href="/lab"><span>MODEL</span><strong>DCF laboratory</strong><i>↗</i></Link>
+  <Link href="/compare"><span>COMPARE</span><strong>Peer research</strong><i>↗</i></Link>
+  <Link href="/verification"><span>TRUST</span><strong>Evidence standards</strong><i>↗</i></Link>
+ </nav>
+ <section className="command-section command-jobs" id="for-whom">
+  <div className="command-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Different questions.<br/>One serious workspace.</h2></div><p>A founder, analyst and investor need different answers. CREQOR puts the tools first and the explanation next.</p></div>
+  <div className="command-jobs-grid">{jobs.map(j=><Link key={j.n} href={j.href} className="command-job">
+    <div className="command-job-top"><span>{j.n} / {j.title.toUpperCase()}</span><b>↗</b></div>
+    <div className="command-job-symbol" aria-hidden="true">{j.icon}<i/><i/></div>
+    <div className="command-job-text"><h3>{j.headline}</h3><p>{j.text}</p><span>{j.action} <b>↗</b></span></div>
+  </Link>)}</div>
+ </section>
+ <section className="command-section command-method">
+  <div className="command-method-intro"><span className="command-mini">THE RESEARCH LOOP</span><h2>More evidence.<br/><em>Less hand-waving.</em></h2><p>Every important number should be traceable: a legal entity, specific financial inputs, a reproducible calculation and a source you can inspect.</p><Link href="/methodology">See our methodology ↗</Link></div>
+  <div className="command-method-flow">{steps.map(s=><article key={s.n} className="command-step"><div><span>{s.n}</span><small>{s.tag}</small></div><h3>{s.head}</h3><p>{s.body}</p></article>)}</div>
+ </section>
+ <section className="command-section command-markets">
+  <div className="command-intro"><div><span className="command-mini">LISTED ≠ UNLISTED</span><h2>Two markets.<br/>Different definitions.</h2></div><p>Observed share prices and estimated business values are not interchangeable. The distinction stays visible in every model.</p></div>
+  <div className="command-market-grid">
+   <article className="command-market-card"><div className="command-market-top"><span>01 / LISTED</span><span>PUBLIC EQUITY</span></div><h3>Market capitalisation</h3><p>Applicable shares × dated market price. We can calculate it from entered figures; live licensed quotes are not yet connected.</p><div className="command-formula"><small>CALCULATION</small><strong>Price × Shares</strong></div><Link href="/workbench">Calculate market cap ↗</Link></article>
+   <article className="command-market-card private"><div className="command-market-top"><span>02 / UNLISTED</span><span>PRIVATE EQUITY</span></div><h3>Estimated equity value</h3><p>DCF, comparables, net assets, funding and stake transactions produce estimates that depend on source quality.</p><div className="command-formula"><small>VALUATION</small><strong>Models + Evidence</strong></div><Link href="/workbench">Build an equity estimate ↗</Link></article>
+  </div>
+ </section>
+ <section className="command-section command-availability">
+  <div><span className="command-mini">PRODUCT READINESS</span><h2>Functional where it counts.<br/><em>Clear where it isn't.</em></h2><p>Calculations, browser-saved drafts, source registers and exports work without market-data subscriptions. We don't claim that the SEC connection, global prices, DGX inference or regulated ratings are already running.</p></div>
+  <div className="command-status-list">
+   <div><span className="command-live"/> <strong>Valuations, draft reports, local save</strong><small>AVAILABLE</small></div>
+   <div><span className="command-muted-dot"/> <strong>Official US issuer records</strong><small>CONFIGURATION REQUIRED</small></div>
+   <div><span className="command-muted-dot"/> <strong>Private DGX analyst</strong><small>CONFIGURATION REQUIRED</small></div>
+   <div><span className="command-muted-dot"/> <strong>Global prices & published ratings</strong><small>NOT YET CONNECTED</small></div>
+  </div>
+ </section>
+ <section className="command-final"><div><span className="command-mini">START WITH THE WORK</span><h2>Stop guessing.<br/><em>Start investigating.</em></h2><p>Use the assessment workspace, question every assumption and take your research with you.</p></div><Link href="/workbench" className="command-main-cta">Open the workbench ↗</Link></section>
+ </>;}
