@@ -18,21 +18,21 @@ export default function Home(){return <>
  <section className="sweet-hero" aria-labelledby="sweet-title">
   <div className="sweet-hero-halo" aria-hidden="true"/>
   <div className="sweet-hero-copy">
-   <span className="sweet-eyebrow"><i/> CREQOR / COMPANY INTELLIGENCE</span>
-   <h1 id="sweet-title">The bigger picture.<br/><em>Behind every number.</em></h1>
-   <p>Discover companies. Understand what drives their value. Build research you can explain, challenge and take forward.</p>
-   <div className="sweet-hero-actions"><Link className="sweet-primary" href="/explore">Explore companies <span>↗</span></Link><Link className="sweet-outline" href="/workbench">Start an assessment <span>↗</span></Link></div>
+   <span className="sweet-eyebrow"><i/> A CLEARER VIEW OF COMPANY VALUE</span>
+   <h1 id="sweet-title">See the whole story.<br/><em>Not just the number.</em></h1>
+   <p>From first discovery to final valuation. Clear thinking, visible evidence, and every assumption within reach.</p>
+   <div className="sweet-hero-actions"><Link className="sweet-primary" href="/explore">Discover companies <span>↗</span></Link><Link className="sweet-outline" href="/workbench">Open the workbench <span>↗</span></Link></div>
    <div className="sweet-hero-trust"><span>01 / FIND THE ENTITY</span><span>02 / TEST THE VALUE</span><span>03 / TRACE THE EVIDENCE</span></div>
   </div>
-  <div className="sweet-showcase"><div className="sweet-showcase-label"><span>THE INTELLIGENCE INTERFACE</span><span>ANALYSIS, NOT A MARKET QUOTE</span></div><IntelligenceCanvas/></div>
+  <div className="sweet-showcase"><div className="sweet-showcase-label"><span>A DIFFERENT PERSPECTIVE</span><span>ANALYSIS, NOT A MARKET QUOTE</span></div><IntelligenceCanvas/></div>
   <Link className="sweet-scroll" href="#research-path">EXPLORE THE EXPERIENCE <span>↓</span></Link>
  </section>
  <section className="sweet-journey-section" id="research-path">
-  <div className="sweet-section-head"><span className="sweet-kicker">YOUR RESEARCH, YOUR WAY</span><h2>One platform.<br/><em>Many ways to understand.</em></h2><p>Choose what you want to do. CREQOR takes you to the right workspace, without making you navigate through a maze.</p></div>
+  <div className="sweet-section-head"><span className="sweet-kicker">YOUR RESEARCH, YOUR WAY</span><h2>Your next insight.<br/><em>One click away.</em></h2><p>Find the right company. Challenge the valuation. Keep the evidence close. Your research, beautifully connected.</p></div>
   <ResearchJourney/>
  </section>
  <section className="sweet-insight-section">
-  <div className="sweet-section-head"><span className="sweet-kicker">FROM QUESTION TO EVIDENCE</span><h2>Good research isn't<br/><em>a single number.</em></h2><p>Explore a business, challenge its assumptions and keep the reasoning attached to the result.</p></div>
+  <div className="sweet-section-head"><span className="sweet-kicker">FROM QUESTION TO EVIDENCE</span><h2>Clarity changes<br/><em>everything.</em></h2><p>Every important conclusion deserves a clear path back to the facts.</p></div>
   <div className="sweet-insight-grid">
    <article className="sweet-insight-card"><div className="sweet-insight-icon">⌕</div><span>01 / DISCOVERY</span><h3>Know exactly who you're looking at.</h3><p>Start with issuer identity and company records before you interpret financial data.</p><Link href="/explore">Explore company identities ↗</Link></article>
    <article className="sweet-insight-card"><div className="sweet-insight-icon">◈</div><span>02 / ANALYSIS</span><h3>Put assumptions under pressure.</h3><p>Compare deterministic valuation methods, scenarios and sensitivity—not just a headline estimate.</p><Link href="/workbench">Open valuation analysis ↗</Link></article>
@@ -46,7 +46,7 @@ export default function Home(){return <>
   <Link href="/verification"><span>TRUST</span><strong>Evidence standards</strong><i>↗</i></Link>
  </nav>
  <section className="command-section command-jobs" id="for-whom">
-  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Different questions.<br/>One serious workspace.</h2></div><p>Purpose-built research journeys for people who need more than a headline number.</p></div>
+  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Made for the<br/>curious and decisive.</h2></div><p>The tools you need to ask better questions—and find answers worth trusting.</p></div>
   <div className="command-jobs-grid">{jobs.map(j=><Link key={j.n} href={j.href} className="command-job">
     <div className="command-job-top"><span>{j.n} / {j.title.toUpperCase()}</span><b>↗</b></div>
     <div className="command-job-symbol" aria-hidden="true">{j.icon}<i/><i/></div>
@@ -54,11 +54,11 @@ export default function Home(){return <>
   </Link>)}</div>
  </section>
  <section className="command-section command-method">
-  <div className="command-method-intro sweet-method-intro"><span className="command-mini">THE RESEARCH LOOP</span><h2>More evidence.<br/><em>Less hand-waving.</em></h2><p>Every important number should be traceable: a legal entity, specific financial inputs, a reproducible calculation and a source you can inspect.</p><Link href="/methodology">See our methodology ↗</Link></div>
+  <div className="command-method-intro sweet-method-intro"><span className="command-mini">THE RESEARCH LOOP</span><h2>Every assumption.<br/><em>Out in the open.</em></h2><p>Every important number should be traceable: a legal entity, specific financial inputs, a reproducible calculation and a source you can inspect.</p><Link href="/methodology">See our methodology ↗</Link></div>
   <div className="command-method-flow">{steps.map(s=><article key={s.n} className="command-step"><div><span>{s.n}</span><small>{s.tag}</small></div><h3>{s.head}</h3><p>{s.body}</p></article>)}</div>
  </section>
  <section className="command-section command-markets">
-  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">LISTED ≠ UNLISTED</span><h2>Two markets.<br/>Different definitions.</h2></div><p>Observed share prices and estimated business values are not interchangeable. The distinction stays visible in every model.</p></div>
+  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">LISTED ≠ UNLISTED</span><h2>Two worlds.<br/>One clear distinction.</h2></div><p>Observed share prices and estimated business values are not interchangeable. The distinction stays visible in every model.</p></div>
   <div className="command-market-grid">
    <article className="command-market-card"><div className="command-market-top"><span>01 / LISTED</span><span>PUBLIC EQUITY</span></div><h3>Market capitalisation</h3><p>Applicable shares × dated market price. We can calculate it from entered figures; live licensed quotes are not yet connected.</p><div className="command-formula"><small>CALCULATION</small><strong>Price × Shares</strong></div><Link href="/workbench">Calculate market cap ↗</Link></article>
    <article className="command-market-card private"><div className="command-market-top"><span>02 / UNLISTED</span><span>PRIVATE EQUITY</span></div><h3>Estimated equity value</h3><p>DCF, comparables, net assets, funding and stake transactions produce estimates that depend on source quality.</p><div className="command-formula"><small>VALUATION</small><strong>Models + Evidence</strong></div><Link href="/workbench">Build an equity estimate ↗</Link></article>
@@ -73,5 +73,5 @@ export default function Home(){return <>
    <div><span className="command-muted-dot"/> <strong>Global prices & published ratings</strong><small>NOT YET CONNECTED</small></div>
   </div>
  </section>
- <section className="command-final"><div><span className="command-mini">START WITH THE WORK</span><h2>Stop guessing.<br/><em>Start investigating.</em></h2><p>Use the assessment workspace, question every assumption and take your research with you.</p></div><Link href="/workbench" className="command-main-cta">Open the workbench ↗</Link></section>
+ <section className="command-final"><div><span className="command-mini">START WITH THE WORK</span><h2>Know more.<br/><em>Decide better.</em></h2><p>Use the assessment workspace, question every assumption and take your research with you.</p></div><Link href="/workbench" className="command-main-cta">Open the workbench ↗</Link></section>
  </>;}
