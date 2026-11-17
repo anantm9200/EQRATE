@@ -76,7 +76,7 @@ export type LeiDirectoryPage={
 export function directoryUrl(filters:LeiDirectoryFilters):URL{
  const q=(filters.q||'').trim();
  const country=(filters.country||'').trim().toUpperCase();
- const page=filters.page||1;
+ const page=filters.page??1;
  if(q.length>90||(q.length>0&&q.length<2))throw new Error('INVALID_QUERY');
  if(country!==''&&!/^[A-Z]{2}$/.test(country))throw new Error('INVALID_COUNTRY');
  if(!Number.isSafeInteger(page)||page<1||page*DIRECTORY_PAGE_SIZE>10000)throw new Error('INVALID_PAGE');
