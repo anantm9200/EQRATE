@@ -1,0 +1,4 @@
+/* CREQOR typography: Montserrat headings, Inter UI/body. */
+:root{--font-poppins:var(--font-montserrat);--font-heading:var(--font-montserrat);--font-body:var(--font-inter)}
+html,body,button,input,select,textarea{font-family:var(--font-inter),sans-serif!important}
+h1,h2,h3,h4,h5,h6,.sweet-hero h1,.sweet-section-head h2,.sweet-journey-copy h3,.atlas-hero h1,.atlas-visual-heading h2,.command-intro h2,.command-method-intro h2,.command-final h2,.command-job h3,.sweet-insight-card h3,.v2-prefooter h2,.v2-page-hero h1,.page-hero h1,.wk-page-hero h1,.rd-hero h1,.lei-explore-hero h1,[class*="hero"] h1,[class*="section"] h2,[class*="card"] h3{font-family:var(--font-montserrat),sans-serif!important}

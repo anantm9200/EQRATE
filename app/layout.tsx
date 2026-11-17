@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import {Poppins,Inter} from 'next/font/google';
+import {Montserrat,Inter} from 'next/font/google';
 import './globals.css';
 import './creqor-v2.css';
 import './creqor-pages.css';
@@ -15,8 +15,9 @@ import './creqor-atlas.css';
 import './creqor-light.css';
 import './creqor-sweet.css';
 import './creqor-glass.css';
+import './creqor-fonts.css';
 import SiteShell from '@/components/site-shell';
-const poppins=Poppins({subsets:['latin'],weight:['400','500','600','700'],variable:'--font-poppins',display:'swap'});
+const montserrat=Montserrat({subsets:['latin'],weight:['400','500','600','700'],variable:'--font-montserrat',display:'swap'});
 const inter=Inter({subsets:['latin'],variable:'--font-inter',display:'swap'});
 export const metadata:Metadata={
  title:{default:'CREQOR — Know what the number means',template:'%s | CREQOR'},
@@ -26,4 +27,4 @@ export const metadata:Metadata={
  openGraph:{type:'website',siteName:'CREQOR',title:'CREQOR — Know what the number means',description:'Company intelligence grounded in evidence.'},
  robots:process.env.VERCEL_ENV==='production'||Boolean(process.env.NEXT_PUBLIC_SITE_URL)?{index:true,follow:true}:{index:false,follow:false}
 };
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body className={poppins.variable+' '+inter.variable}><SiteShell>{children}</SiteShell></body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body className={montserrat.variable+' '+inter.variable}><SiteShell>{children}</SiteShell></body></html>}
