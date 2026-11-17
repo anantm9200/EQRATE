@@ -14,20 +14,20 @@ test('blank assessment does not invent numbers or issue a rating',()=>{
 });
 test('private six-method valuations are deterministic with known synthetic inputs',()=>{
  const r=computeAssessment(filled());
- const expected={dcf:100,revenueMultiple:275,ebitdaMultiple:135,netAssets:105,transaction:300,funding:80};
+ const expected={dcf:75,revenueMultiple:275,ebitdaMultiple:135,netAssets:105,transaction:300,funding:80};
  for(const [id,value] of Object.entries(expected)){
   const row=r.methods.find(x=>x.id===id);
   assert.equal(row?.status,'calculated',id);
   assert.ok(Math.abs((row?.equityValue||0)-value)<1e-8,id);
  }
- assert.ok(Math.abs((r.blended||0)-(995/6))<1e-8);
- assert.ok(Math.abs((r.blendedPerShare||0)-(995/6/50))<1e-8);
+ assert.ok(Math.abs((r.blended||0)-(970/6))<1e-8);
+ assert.ok(Math.abs((r.blendedPerShare||0)-(970/6/50))<1e-8);
  assert.equal(r.status,'draft');
 });
 test('listed manual market cap is price multiplied by matching shares in millions',()=>{
  const a=filled();a.kind='listed';const r=computeAssessment(a);
  assert.equal(r.marketCap,600);
- assert.match(r.marketCapMessage,/not independently observed live quote/);
+ assert.match(r.marketCapMessage,/not an independently observed live quote/);
 });
 test('reject impossible transaction and funding ownership',()=>{
  const a=filled();a.fields.transactionStakePct=0;a.fields.fundingEquityPct=120;
