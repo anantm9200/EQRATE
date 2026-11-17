@@ -73,6 +73,7 @@ export default function AssessmentWorkbench(){
  const [notice,setNotice]=useState('');
  const [loaded,setLoaded]=useState(false);
  const [sourceForm,setSourceForm]=useState<Omit<Evidence,'id'>>({title:'',url:'',kind:'user_provided',claim:'financials',asOf:'',notes:''});
+ const [editingSourceId,setEditingSourceId]=useState<string|null>(null);
  const fileInput=useRef<HTMLInputElement>(null);
  useEffect(()=>{
   try{
@@ -156,17 +157,29 @@ export default function AssessmentWorkbench(){
    localStorage.setItem(storeKey,JSON.stringify(rest));setSaved(rest);setNotice('Saved copy deleted from this browser.');
   }catch{setNotice('Unable to update local storage.');}
  }
+ function resetSourceForm(){
+  setEditingSourceId(null);setSourceForm({title:'',url:'',kind:'user_provided',claim:'financials',asOf:'',notes:''});
+ }
+ function editSource(source:Evidence){
+  setSourceForm({title:source.title,url:source.url,kind:source.kind,claim:source.claim,asOf:source.asOf,notes:source.notes});
+  setEditingSourceId(source.id);
+  document.querySelector('.wk-evidence-form')?.scrollIntoView({behavior:'smooth',block:'center'});
+ }
  function addSource(e:React.FormEvent){
   e.preventDefault();
   if(!sourceForm.title.trim()||!sourceForm.url.trim()||!sourceForm.asOf){setNotice('Each source needs a title, HTTPS URL and date.');return;}
   try{
    const url=new URL(sourceForm.url);
-   if(url.protocol!=='https:')throw new Error();
-  }catch{setNotice('Evidence links must use HTTPS.');return;}
-  const entry:Evidence={...sourceForm,id:'src-'+Math.random().toString(36).slice(2,12),title:sourceForm.title.trim(),url:sourceForm.url.trim(),notes:sourceForm.notes.trim()};
-  setAssessment(old=>({...old,evidence:[...old.evidence,entry].slice(0,80)}));
-  setSourceForm({title:'',url:'',kind:'user_provided',claim:'financials',asOf:'',notes:''});
-  setNotice('Source recorded as user-supplied evidence. It has not been independently verified.');
+   if(url.protocol!=='https:'||url.username||url.password)throw new Error();
+  }catch{setNotice('Use an HTTPS evidence URL without embedded credentials.');return;}
+  if(assessment.evidence.some(x=>x.id!==editingSourceId&&x.url===sourceForm.url.trim()&&x.claim===sourceForm.claim&&x.asOf===sourceForm.asOf)){
+   setNotice('This source URL, claim category and document date already exist in the register. Edit that entry instead.');return;
+  }
+  if(!editingSourceId&&assessment.evidence.length>=80){setNotice('The local evidence register has a maximum of 80 records. Export your research before adding more.');return;}
+  const entry:Evidence={...sourceForm,id:editingSourceId||'src-'+Math.random().toString(36).slice(2,12),title:sourceForm.title.trim(),url:sourceForm.url.trim(),notes:sourceForm.notes.trim()};
+  setAssessment(old=>({...old,evidence:editingSourceId?old.evidence.map(x=>x.id===editingSourceId?entry:x):[...old.evidence,entry],updatedAt:new Date().toISOString()}));
+  setNotice(editingSourceId?'Evidence reference updated. The document and its claims have not been independently checked.':'Source recorded as user-supplied evidence. It has not been independently verified.');
+  resetSourceForm();
  }
  function exportJson(){
   if(!hasName){setNotice('Add a company name to export the record.');return;}
@@ -271,17 +284,17 @@ export default function AssessmentWorkbench(){
     {activeTab==='analysis'&&<section className="wk-panel" id="wk-panel-analysis" aria-labelledby="wk-tab-analysis"><AnalysisCockpit assessment={assessment} onChangeInputs={patchInputs} onOpenValuation={()=>setActiveTab('financials')} onOpenEvidence={()=>setActiveTab('evidence')} onOpenReport={()=>setActiveTab('report')}/><div className="wk-panel-actions"><button className="wk-button wk-outline" onClick={()=>setActiveTab('financials')}>← Valuation</button><button className="wk-button wk-primary" onClick={()=>setActiveTab('evidence')}>Continue to evidence →</button></div></section>}
      {activeTab==='evidence'&&<section className="wk-panel" id="wk-panel-evidence" aria-labelledby="wk-tab-evidence">
       <div className="wk-panel-head"><span className="wk-label">STEP 03 / PROVENANCE</span><h3>Build the evidence register.</h3><p>Record each document, link and claim it supports. Entries remain user-submitted and <strong>are not automatically verified</strong>, even when categorised as an official filing.</p></div>
-      <form onSubmit={addSource} className="wk-evidence-form"><div className="wk-form-grid">
+      <form onSubmit={addSource} className="wk-evidence-form"><div className="wk-source-editor-head"><strong>{editingSourceId?'Edit existing evidence record':'Add a source record'}</strong>{editingSourceId&&<button className="wk-button wk-outline" type="button" onClick={resetSourceForm}>Cancel edit</button>}</div><div className="wk-form-grid">
        <Field label="Document title"><input value={sourceForm.title} maxLength={250} required onChange={e=>setSourceForm(s=>({...s,title:e.target.value}))} placeholder="e.g. FY2025 audited accounts"/></Field>
        <Field label="Source URL (HTTPS only)"><input value={sourceForm.url} type="url" maxLength={1200} required placeholder="https://…" onChange={e=>setSourceForm(s=>({...s,url:e.target.value}))}/></Field>
        <Field label="Source category"><select value={sourceForm.kind} onChange={e=>setSourceForm(s=>({...s,kind:e.target.value as SourceKind}))}>{(Object.entries(sourceKinds) as [SourceKind,string][]).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></Field>
        <Field label="Claim / metric supported"><select value={sourceForm.claim} onChange={e=>setSourceForm(s=>({...s,claim:e.target.value as ClaimType}))}>{(Object.entries(claimTypes) as [ClaimType,string][]).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></Field>
        <Field label="Document / publication date"><input type="date" required value={sourceForm.asOf} onChange={e=>setSourceForm(s=>({...s,asOf:e.target.value}))}/></Field>
        <Field label="Page, table or notes"><input value={sourceForm.notes} maxLength={500} onChange={e=>setSourceForm(s=>({...s,notes:e.target.value}))} placeholder="Page 34; cash flow statement"/></Field>
-      </div><div className="wk-panel-actions"><span className="wk-muted">No document files or confidential statements are uploaded to a server.</span><button className="wk-button wk-primary" type="submit">+ Record evidence</button></div></form>
+      </div><div className="wk-panel-actions"><span className="wk-muted">No document files or confidential statements are uploaded to a server.</span><button className="wk-button wk-primary" type="submit">{editingSourceId?'Save evidence changes':' + Record evidence'}</button></div></form>
       <div className="wk-evidence-list"><h4>Source register <span>({assessment.evidence.length})</span></h4>
        {assessment.evidence.length===0?<p className="wk-empty">No source records yet. Financial calculations may be performed, but a defensible company valuation cannot be independently established without documented evidence.</p>:
-       assessment.evidence.map((s,i)=><article className="wk-evidence-row" key={s.id}><span className="wk-evidence-index">{String(i+1).padStart(2,'0')}</span><div><h5>{s.title}</h5><p>{sourceKinds[s.kind]} · {claimTypes[s.claim]} · {s.asOf||'No date'}</p>{s.notes&&<p>{s.notes}</p>}{s.url&&<a href={s.url} target="_blank" rel="noopener noreferrer">{s.url.replace(/^https:\/\//,'').slice(0,65)} ↗</a>}</div><button className="wk-button wk-outline" onClick={()=>setAssessment(a=>({...a,evidence:a.evidence.filter(x=>x.id!==s.id)}))} aria-label={'Remove source '+s.title}>Remove</button></article>)}
+       assessment.evidence.map((s,i)=><article className="wk-evidence-row" key={s.id}><span className="wk-evidence-index">{String(i+1).padStart(2,'0')}</span><div><h5>{s.title}</h5><p>{sourceKinds[s.kind]} · {claimTypes[s.claim]} · {s.asOf||'No date'}</p>{s.notes&&<p>{s.notes}</p>}{s.url&&<a href={s.url} target="_blank" rel="noopener noreferrer">{s.url.replace(/^https:\/\//,'').slice(0,65)} ↗</a>}</div><div className="wk-evidence-actions"><button type="button" className="wk-button wk-outline" onClick={()=>editSource(s)} aria-label={'Edit source '+s.title}>Edit</button><button type="button" className="wk-button wk-danger" onClick={()=>{setAssessment(a=>({...a,evidence:a.evidence.filter(x=>x.id!==s.id),updatedAt:new Date().toISOString()}));if(editingSourceId===s.id)resetSourceForm()}} aria-label={'Remove source '+s.title}>Remove</button></div></article>)}
       </div>
       <div className="wk-panel-actions"><button className="wk-button wk-outline" onClick={()=>setActiveTab('analysis')}>← Analysis</button><button className="wk-button wk-primary" onClick={()=>setActiveTab('rating')}>Continue to score draft →</button></div>
     </section>}
