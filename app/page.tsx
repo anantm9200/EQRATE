@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import CompanySearch from '@/components/search';
-import IntelligenceVisual from '@/components/intelligence-visual';
+import HomeHero from '@/components/home-hero';
 
 const capabilities=[
  {number:'01',eyebrow:'DISCOVER',title:'Find the company, not just the name.',copy:'Resolve issuer identities, aliases and identifiers before assessing the financial story.',href:'/explore',visual:'identity'},
@@ -9,20 +8,9 @@ const capabilities=[
 ];
 export default function Home(){
  return <>
-  <section className="v2-home-hero">
-    <div className="v2-hero-copy">
-      <div className="v2-kicker"><span className="v2-dot"/> FINANCIAL INTELLIGENCE / REIMAGINED</div>
-      <h1>Understand the company.<br/><em>Not just its valuation.</em></h1>
-      <p className="v2-hero-desc">An independent workspace to discover, analyse and question businesses. Real evidence. Transparent models. Better decisions.</p>
-      <div className="v2-home-search"><CompanySearch/></div>
-      <div className="v2-hero-links"><Link href="/lab" className="v2-primary-cta">Explore valuation lab <span>↗</span></Link><Link href="/methodology" className="v2-quiet-cta">Our approach <span>→</span></Link></div>
-      <div className="v2-hero-facts"><span>IDENTITY FIRST</span><span>EVIDENCE BEFORE ESTIMATES</span><span>NO UNSOURCED NUMBERS</span></div>
-    </div>
-    <div className="v2-hero-visual"><IntelligenceVisual/></div>
-    <div className="v2-hero-side-label">CREQOR / FINANCIAL RESEARCH INFRASTRUCTURE</div>
-  </section>
+  <HomeHero/>
   <section className="v2-principle-strip" aria-label="Product principles"><div><span>01 / SOURCE</span><strong>Know where it came from.</strong></div><div><span>02 / CALCULATE</span><strong>See how it was derived.</strong></div><div><span>03 / CHALLENGE</span><strong>Understand what could change.</strong></div></section>
-  <section className="v2-capabilities-section">
+  <section id="capabilities" className="v2-capabilities-section">
    <div className="v2-section-heading"><div><span className="eyebrow">AN INTEGRATED WORKSPACE</span><h2>From first search<br/><em>to better judgement.</em></h2></div><p>Three connected ways to see a business more clearly. Use the tools independently or follow the evidence from discovery through valuation.</p></div>
    <div className="v2-capability-grid">{capabilities.map(x=><Link href={x.href} key={x.number} className={'v2-capability v2-capability-'+x.visual}>
      <div className="v2-capability-top"><span>{x.number} / {x.eyebrow}</span><span className="v2-card-arrow">↗</span></div>
