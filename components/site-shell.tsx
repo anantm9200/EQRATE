@@ -16,16 +16,16 @@ const menu=[
   {href:'/',label:'Overview',index:'01',detail:'A better way to know'},
   {href:'/workbench',label:'Company workbench',index:'02',detail:'Build a report from financial evidence'},
   {href:'/desk',label:'Research desk',index:'03',detail:'Compare and organise saved assessments'},
-  {href:'/explore',label:'Company explorer',index:'03',detail:'Start with the right identity'},
-  {href:'/lab',label:'Valuation lab',index:'04',detail:'Test the assumptions'},
-  {href:'/compare',label:'Compare companies',index:'05',detail:'Understand the differences'},
-  {href:'/analyst',label:'AI analyst',index:'06',detail:'Question the evidence'},
-  {href:'/intelligence',label:'Market intelligence',index:'07',detail:'See the bigger picture'},
-  {href:'/research',label:'Research centre',index:'08',detail:'The work behind the numbers'},
-  {href:'/verification',label:'Verification',index:'09',detail:'Separate claims from proof'},
-  {href:'/methodology',label:'Methodology',index:'10',detail:'Our standards and limitations'},
-  {href:'/watchlist',label:'My watchlist',index:'11',detail:'Return to your research'},
-  {href:'/status',label:'System readiness',index:'12',detail:'Check configured integrations'}
+  {href:'/explore',label:'Company explorer',index:'04',detail:'Start with the right identity'},
+  {href:'/lab',label:'Valuation lab',index:'05',detail:'Test the assumptions'},
+  {href:'/compare',label:'Compare companies',index:'06',detail:'Understand the differences'},
+  {href:'/analyst',label:'AI analyst',index:'07',detail:'Question the evidence'},
+  {href:'/intelligence',label:'Market intelligence',index:'08',detail:'See the bigger picture'},
+  {href:'/research',label:'Research centre',index:'09',detail:'The work behind the numbers'},
+  {href:'/verification',label:'Verification',index:'10',detail:'Separate claims from proof'},
+  {href:'/methodology',label:'Methodology',index:'11',detail:'Our standards and limitations'},
+  {href:'/watchlist',label:'My watchlist',index:'12',detail:'Return to your research'},
+  {href:'/status',label:'System readiness',index:'13',detail:'Check configured integrations'}
 ];
 export default function SiteShell({children}:{children:React.ReactNode}) {
  const path=usePathname();const [open,setOpen]=useState(false);const menuButton=useRef<HTMLButtonElement>(null);const firstLink=useRef<HTMLAnchorElement>(null);
