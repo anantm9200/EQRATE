@@ -5,6 +5,7 @@ import './creqor-v2.css';
 import './creqor-pages.css';
 import './creqor-hero.css';
 import './creqor-controls.css';
+import './creqor-editorial.css';
 import SiteShell from '@/components/site-shell';
 const poppins=Poppins({subsets:['latin'],weight:['400','500','600','700'],variable:'--font-poppins',display:'swap'});
 const inter=Inter({subsets:['latin'],variable:'--font-inter',display:'swap'});
