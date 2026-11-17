@@ -7,7 +7,7 @@ export const metadata={
 };
 
 const journeys=[
- {number:'01',title:'Discover',headline:'Start with the right company.',copy:'Search legal entities and examine the identity behind a name before you study its value.',href:'/explore',action:'Explore companies',mark:'⌕'},
+ {number:'01',title:'Discover',headline:'Start with the right company.',copy:'Search legal entities and examine the identity behind a name before you study its value.',href:'/directory',action:'Browse global companies',mark:'⌕'},
  {number:'02',title:'Value',headline:'See what drives the estimate.',copy:'Work with six valuation methods, test scenarios and see how assumptions change the outcome.',href:'/workbench',action:'Open the workbench',mark:'◈'},
  {number:'03',title:'Review',headline:'Keep the reasoning together.',copy:'Capture source references, revisit saved assessments and export work for a closer look.',href:'/desk',action:'Open the research desk',mark:'≋'}
 ];
@@ -21,7 +21,7 @@ export default function Home(){return <>
     <h1 id="ux-hero-title">Know the company.<br/><em>Understand the value.</em></h1>
     <p>Find the business behind the name. Test the numbers behind the valuation. Keep the evidence behind every conclusion.</p>
     <div className="ux-hero-actions">
-     <Link href="/explore" className="ux-button ux-button-primary">Explore companies <span aria-hidden="true">↗</span></Link>
+     <Link href="/directory" className="ux-button ux-button-primary">Explore companies <span aria-hidden="true">↗</span></Link>
      <Link href="/workbench" className="ux-button ux-button-secondary">Build a valuation <span aria-hidden="true">↗</span></Link>
     </div>
    </div>
@@ -29,6 +29,8 @@ export default function Home(){return <>
    <div className="ux-hero-end"><span>DISCOVER <i/> MODEL <i/> DOCUMENT</span><a href="#workflows">EXPLORE THE PLATFORM <span aria-hidden="true">↓</span></a></div>
   </div>
  </section>
+
+ <section className="gd-home-links" aria-label="Global company directory"><div><strong>Explore companies globally.</strong><small>Source-linked legal entities from the GLEIF registry.</small></div><div className="gd-home-countries"><Link href="/directory">Worldwide ↗</Link><Link href="/directory?country=US">United States</Link><Link href="/directory?country=IN">India</Link><Link href="/directory?country=AE">UAE</Link><Link href="/directory?country=GB">United Kingdom</Link><Link href="/directory?country=NA">Namibia</Link></div></section>
 
  <section className="ux-section ux-workflows" id="workflows" aria-labelledby="ux-workflows-title">
   <div className="ux-section-heading">
