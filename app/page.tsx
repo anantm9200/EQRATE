@@ -4,7 +4,7 @@ import QuickValuation from '@/components/quick-valuation';
 const jobs=[
  {n:'01',title:'Investors',headline:'An issuer worth understanding.',text:'Inspect the correct legal entity, source its financial records and challenge the assumptions behind its value.',href:'/explore',action:'Find the issuer',icon:'⌕'},
  {n:'02',title:'Founders & advisers',headline:'A private business worth defending.',text:'Estimate equity value using cash flows, transaction evidence, peer multiples and documented assumptions.',href:'/workbench',action:'Build an assessment',icon:'◇'},
- {n:'03',title:'Research teams',headline:'A model somebody can audit.',text:'Save analysis, maintain evidence references and export reproducible draft assessment reports.',href:'/compare',action:'Compare the evidence',icon:'⌁'}
+ {n:'03',title:'Research teams',headline:'A model somebody can audit.',text:'Save analysis, maintain evidence references and export reproducible draft assessment reports.',href:'/desk',action:'Open the research desk',icon:'⌁'}
 ];
 const steps=[
  {n:'01',tag:'IDENTIFY',head:'Know the exact entity',body:'Legal name, market, security identifier and reporting currency.'},
@@ -25,7 +25,7 @@ export default function Home(){return <>
      <Link className="command-main-cta" href="/workbench">Start a company assessment <span>↗</span></Link>
      <Link className="command-outline-cta" href="/explore">Explore companies <span>↗</span></Link>
     </div>
-    <div className="command-credibility"><div><strong>06</strong><span>Valuation methods</span></div><div><strong>03</strong><span>Export formats</span></div><div><strong>01</strong><span>Evidence register</span></div></div>
+    <div className="command-credibility"><div><strong>06</strong><span>Valuation methods</span></div><div><strong>03</strong><span>Export formats</span></div><div><strong>05</strong><span>Review stages</span></div></div>
     <p className="command-footnote">NO UNSOURCED PRICES · NO INVENTED RATINGS</p>
    </div>
    <div className="command-hero-utility"><QuickValuation/></div>
@@ -35,7 +35,7 @@ export default function Home(){return <>
  <nav className="command-routebar" aria-label="Direct access to CREQOR tools">
   <Link href="/workbench"><span>START HERE</span><strong>Company workbench</strong><i>↗</i></Link>
   <Link href="/lab"><span>MODEL</span><strong>DCF laboratory</strong><i>↗</i></Link>
-  <Link href="/compare"><span>COMPARE</span><strong>Peer research</strong><i>↗</i></Link>
+  <Link href="/desk"><span>YOUR WORK</span><strong>Research desk</strong><i>↗</i></Link>
   <Link href="/verification"><span>TRUST</span><strong>Evidence standards</strong><i>↗</i></Link>
  </nav>
  <section className="command-section command-jobs" id="for-whom">
@@ -60,7 +60,7 @@ export default function Home(){return <>
  <section className="command-section command-availability">
   <div><span className="command-mini">PRODUCT READINESS</span><h2>Functional where it counts.<br/><em>Clear where it isn't.</em></h2><p>Calculations, browser-saved drafts, source registers and exports work without market-data subscriptions. We don't claim that the SEC connection, global prices, DGX inference or regulated ratings are already running.</p></div>
   <div className="command-status-list">
-   <div><span className="command-live"/> <strong>Valuations, draft reports, local save</strong><small>AVAILABLE</small></div>
+   <div><span className="command-live"/> <strong>Valuation cockpit, local research desk, exports</strong><small>AVAILABLE</small></div>
    <div><span className="command-muted-dot"/> <strong>Official US issuer records</strong><small>CONFIGURATION REQUIRED</small></div>
    <div><span className="command-muted-dot"/> <strong>Private DGX analyst</strong><small>CONFIGURATION REQUIRED</small></div>
    <div><span className="command-muted-dot"/> <strong>Global prices & published ratings</strong><small>NOT YET CONNECTED</small></div>

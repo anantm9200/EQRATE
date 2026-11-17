@@ -3,6 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 const items=[
  {href:'/workbench',name:'Company workbench',subtitle:'Build listed or private valuations',keys:'assess company valuation report model founder'},
+ {href:'/desk',name:'Research desk',subtitle:'Manage, compare and export saved company drafts',keys:'workspace portfolio research saved local company'},
  {href:'/explore',name:'Discover a company',subtitle:'Search SEC issuer identities',keys:'find ticker cik search explore'},
  {href:'/lab',name:'DCF laboratory',subtitle:'Cash flows, scenarios and sensitivity',keys:'growth wacc terminal discount dcf finance'},
  {href:'/compare',name:'Company comparison',subtitle:'Compare available SEC financial facts',keys:'peers ratio compare'},
