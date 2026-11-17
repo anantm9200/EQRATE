@@ -1,0 +1,49 @@
+/* CREQOR Typography / Montserrat + Inter only.
+   Type tokens provide one predictable visual rhythm across 13 application routes.
+   Source files have been updated to remove Poppins / Georgia references entirely. */
+:root{
+ --type-display:clamp(2.55rem,5vw,4.75rem);
+ --type-page:clamp(2rem,3.35vw,3.35rem);
+ --type-section:clamp(1.65rem,2.6vw,2.55rem);
+ --type-card:clamp(1rem,1.23vw,1.2rem);
+ --type-body:.875rem;
+ --type-body-lg:.94rem;
+ --type-ui:.8125rem;
+ --type-micro:.7rem;
+ --type-caption:.75rem;
+ --type-metric:clamp(1.6rem,2.2vw,2.35rem);
+ --type-leading:1.75;
+}
+html{font-size:16px}
+body{font-family:var(--font-inter),sans-serif!important;font-size:var(--type-body);font-weight:400;line-height:1.65}
+em,i{font-family:inherit}
+h1,h2,h3,h4,h5,h6{font-family:var(--font-montserrat),sans-serif!important;font-style:normal;font-weight:600!important;text-wrap:balance}
+h1{line-height:1.2}h2{line-height:1.28}h3,h4{line-height:1.38}
+:where(p,li,blockquote){font-family:var(--font-inter),sans-serif;font-size:var(--type-body);line-height:var(--type-leading)}
+:where(a,button,input,select,textarea,label,summary){font-family:var(--font-inter),sans-serif!important}
+:where(button,[role="tab"],.wk-button,.ux-button,.v2-menu-text,.command-open,.rd-entry-actions button){font-size:var(--type-ui)!important;font-weight:600}
+:where(input:not([type="checkbox"]):not([type="range"]),textarea,select){font-size:var(--type-ui)!important;line-height:1.55}
+:where(.eyebrow,.ux-eyebrow,.ux-kicker,.wk-label,.wk-page-kicker,.v2-page-topline,.rd-hero-tag,.command-mini,.command-eyebrow,.cx-kicker,.v2-footer-label,.ux-preview-overline,.ux-card-header,.ux-preview-demo,.rd-entity-kind){font-family:var(--font-inter),sans-serif!important;font-size:var(--type-micro)!important;letter-spacing:.105em!important;font-weight:650!important;line-height:1.55}
+:where(.ux-hero-copy>p,.ux-section-heading>p,.ux-method-intro>p,.ux-integrity-copy>p,.ux-card-body>p,.ux-distinction-grid article>p,.cx-intro-row>p,.cx-split-lead,.page-hero>p,.wk-dashboard-header>p,.wk-panel-head>p){font-family:var(--font-inter),sans-serif!important;font-size:var(--type-body-lg)!important;line-height:1.8!important}
+:where(.ux-workflow-card p,.ux-method-steps p,.ux-identity-card,.ux-evidence-card,.ux-model-card,.v2-footer-middle a,.v2-footer-top p,.v2-footer-statement p,.wk-input-group small,.wk-field small,.rd-entry-company p,.rd-entry-tags span,.wk-panel p,.ic-block p,.cx-card-bottom p){font-family:var(--font-inter),sans-serif!important;font-size:var(--type-caption)!important;line-height:1.7}
+:where(.ux-hero h1){font-size:var(--type-display);letter-spacing:-.065em;font-weight:600!important}
+:where(.ux-section-heading h2,.ux-method-intro h2,.ux-integrity-copy h2){font-size:var(--type-section);letter-spacing:-.053em}
+:where(.ux-card-body h3,.ux-distinction-grid article h3,.cx-card-bottom h3,.wk-panel-head h3,.ic-section-title h4){font-family:var(--font-montserrat),sans-serif!important;font-size:var(--type-card);font-weight:600!important;letter-spacing:-.032em}
+:where(.ux-model-value strong,.wk-side-number,.wk-side-estimate,.ic-kpis strong,.rd-entry-value strong,.wk-report-kpis strong){font-family:var(--font-montserrat),sans-serif!important;font-variant-numeric:tabular-nums}
+:where(.v2-top-nav a,.v2-menu-name small,.v2-footer-middle a){font-family:var(--font-inter),sans-serif!important;font-size:.8rem!important}
+.v2-menu-name{font-family:var(--font-montserrat),sans-serif!important;font-size:1.08rem;letter-spacing:-.025em}
+.v2-menu-name small{font-weight:400}
+:where(.wk-tab-nav button,.wk-tab-nav button span,.rd-entry-actions button,.wk-field>span,.ux-preview-tabs button,.ux-model-range label,.ux-model-range output){font-family:var(--font-inter),sans-serif!important;font-size:var(--type-ui)!important}
+:where(.ux-model-foot,.ux-model-head,.ux-preview-foot,.ux-preview-brand small,.ux-evidence-head,.ux-identity-head,.ux-preview-brand strong){font-family:var(--font-inter),sans-serif!important;font-size:var(--type-caption)!important}
+:where(.ux-model-foot strong,.ux-model-head strong,.ux-preview-brand strong,.ux-identity-card strong,.ux-evidence-card strong){font-weight:600}
+:where(.wk-report-kpis span,.wk-report-note,.wk-evidence-row p,.wk-rating-field small,.wk-method-hint,.rd-entry-value small,.rd-stats small,.ic-method small,.ic-review-item p,.ic-scenario p){font-size:var(--type-caption)!important;line-height:1.6}
+:where(.wk-table-wrap table th,.wk-table-wrap table td,.rd-compare-table table th,.rd-compare-table table td,.cx-table th,.cx-table td){font-family:var(--font-inter),sans-serif!important;font-size:.75rem!important;line-height:1.6}
+:where(.brand-word){font-family:var(--font-montserrat),sans-serif!important;font-weight:700!important;letter-spacing:.04em}
+@media(max-width:650px){
+ :root{--type-display:clamp(2.2rem,8.65vw,3.7rem);--type-page:clamp(1.85rem,7.3vw,2.6rem);--type-section:clamp(1.55rem,6.3vw,2.15rem);--type-card:1.02rem;--type-body-lg:.875rem;--type-ui:.78rem}
+ .ux-hero h1{line-height:1.2;letter-spacing:-.052em}
+ :where(.ux-section-heading h2,.ux-method-intro h2,.ux-integrity-copy h2){line-height:1.3}
+ :where(.v2-menu-name){font-size:.99rem}
+ :where(.ux-preview-demo){font-size:.65rem}
+}
+@media print{body{font-family:var(--font-inter),sans-serif!important}}

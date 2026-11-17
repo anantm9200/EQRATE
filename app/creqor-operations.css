@@ -14,7 +14,7 @@
 .command-palette-kicker{font-size:.56rem;color:#6f9780;letter-spacing:.13em;font-weight:750;display:block;margin:0 0 12px 8px}
 .command-palette-result{width:100%;border:1px solid transparent;background:transparent;border-radius:7px;padding:11px 12px;display:grid;grid-template-columns:28px 1fr 20px;gap:11px;align-items:center;text-align:left;cursor:pointer;color:#235237}
 .command-palette-result:hover,.command-palette-result.selected{background:#e5f3e9;border-color:#c9e1d1}
-.command-palette-result strong{display:block;font:.76rem var(--font-poppins),sans-serif;font-weight:600}
+.command-palette-result strong{display:block;font:.76rem var(--font-montserrat),sans-serif;font-weight:600}
 .command-palette-result small{display:block;color:#789180;font-size:.66rem;margin-top:5px;line-height:1.3}
 .command-palette-icon{font-size:.6rem;color:#55916b}
 .command-palette-arrow{color:#468f5d}
@@ -23,8 +23,8 @@
 /* Functional source configuration status page */
 .status-page{background:#f6faf7}
 .status-head{background:radial-gradient(ellipse at 83% 30%,#174734,#071e17 70%);padding:73px 3% 78px;color:#e7fff1}
-.status-head h1{margin:20px 0 13px;font:500 clamp(1.95rem,3.4vw,3.15rem)/1.25 var(--font-poppins),sans-serif}
-.status-head h1 em{font-style:normal;font-family:var(--font-poppins),sans-serif;color:#b9f7c5}
+.status-head h1{margin:20px 0 13px;font:500 clamp(1.95rem,3.4vw,3.15rem)/1.25 var(--font-montserrat),sans-serif}
+.status-head h1 em{font-style:normal;font-family:var(--font-montserrat),sans-serif;color:#b9f7c5}
 .status-head>p{max-width:650px;color:#b2ccb7;font-size:.83rem;line-height:1.85}
 .status-head-actions{display:flex;align-items:center;gap:11px;margin-top:24px;flex-wrap:wrap}
 .status-head-actions>*{border-radius:8px!important;padding:12px 16px;font-size:.72rem;border:1px solid rgba(196,251,211,.32);color:#e9fff0;background:transparent;cursor:pointer}
@@ -33,7 +33,7 @@
 .status-error{color:#ffd7c9!important;margin-top:17px}
 .status-list-section{padding:72px 3%}
 .status-intro{margin-bottom:27px}
-.status-intro h2,.status-foot h2{font:500 clamp(1.5rem,2.55vw,2.35rem)/1.3 var(--font-poppins),sans-serif;letter-spacing:-.045em;margin:12px 0}
+.status-intro h2,.status-foot h2{font:500 clamp(1.5rem,2.55vw,2.35rem)/1.3 var(--font-montserrat),sans-serif;letter-spacing:-.045em;margin:12px 0}
 .status-intro>p,.status-foot>p{max-width:660px;color:#738878;font-size:.78rem;line-height:1.8}
 .status-check-list{border-top:1px solid #d3e2d7}
 .status-check-list article{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:17px;align-items:center;border-bottom:1px solid #d3e2d7;padding:19px 0}

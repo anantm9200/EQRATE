@@ -7,7 +7,7 @@
 .cx-section-dark .cx-kicker,.cx-statement .cx-kicker{color:#9dddba}
 .cx-intro{margin:0 0 34px}
 .cx-intro-row{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-top:18px}
-.cx-intro-row h2,.cx-split h2,.cx-statement h2{font:500 clamp(1.65rem,2.45vw,2.55rem)/1.25 var(--font-poppins),sans-serif;letter-spacing:-.045em;max-width:670px;margin:0}
+.cx-intro-row h2,.cx-split h2,.cx-statement h2{font:500 clamp(1.65rem,2.45vw,2.55rem)/1.25 var(--font-montserrat),sans-serif;letter-spacing:-.045em;max-width:670px;margin:0}
 .cx-intro-row p{max-width:385px;font-size:.82rem;line-height:1.85;color:#658172;margin:0}
 .cx-intro-light .cx-intro-row p{color:#9abdab}
 .cx-gallery-grid{display:grid;gap:15px;grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -95,7 +95,7 @@ a.cx-card:hover{transform:translateY(-4px);border-color:#9bcdb0;box-shadow:0 24p
 .cx-questions{background:#fff}
 .cx-question-list{max-width:1080px;margin:0 auto;border-top:1px solid #d9e6dd}
 .cx-question-list details{border-bottom:1px solid #d9e6dd}
-.cx-question-list summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:29px minmax(0,1fr) 24px;gap:16px;align-items:center;min-height:79px;padding:20px 8px;color:#143e25;font-family:var(--font-poppins),sans-serif;font-size:clamp(.83rem,1.1vw,.99rem);font-weight:500}
+.cx-question-list summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:29px minmax(0,1fr) 24px;gap:16px;align-items:center;min-height:79px;padding:20px 8px;color:#143e25;font-family:var(--font-montserrat),sans-serif;font-size:clamp(.83rem,1.1vw,.99rem);font-weight:500}
 .cx-question-list summary::-webkit-details-marker{display:none}
 .cx-question-list summary:hover{color:#327e4f}
 .cx-faq-index{font:700 .6rem var(--font-inter),sans-serif;letter-spacing:.12em;color:#4b9863}
@@ -108,7 +108,7 @@ a.cx-card:hover{transform:translateY(-4px);border-color:#9bcdb0;box-shadow:0 24p
 .cx-route:hover{transform:translateY(-3px);border-color:#92c4a3}
 .cx-route-n{font-size:.61rem;color:#399057;font-weight:700}
 .cx-route-label{flex:1;min-width:0}
-.cx-route-label strong{display:block;font:550 .95rem/1.35 var(--font-poppins),sans-serif;color:#1a442c}
+.cx-route-label strong{display:block;font:550 .95rem/1.35 var(--font-montserrat),sans-serif;color:#1a442c}
 .cx-route-label small{font-size:.7rem;line-height:1.7;color:#718d79;display:block;margin-top:8px}
 .cx-route-arrow{font-size:1.1rem;color:#3c8958}
 .cx-status-list{border-top:1px solid #d8e5db}
