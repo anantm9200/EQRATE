@@ -10,8 +10,13 @@ for(const route of routes){
  test(route.slug+' deep research route remains mobile-responsive',async({page})=>{
   await page.setViewportSize({width:375,height:812});
   await page.goto(route.path);
-  await expect(page.locator('.cx-section').first()).toBeVisible();
-  expect(await page.locator('.cx-section').count()).toBeGreaterThanOrEqual(route.min);
+  if(route.slug==='explore'){
+   await expect(page.locator('.lei-main')).toBeVisible();
+   await expect(page.getByRole('combobox',{name:/Search global LEI legal entity records/i})).toBeVisible();
+  }else{
+   await expect(page.locator('.cx-section').first()).toBeVisible();
+   expect(await page.locator('.cx-section').count()).toBeGreaterThanOrEqual(route.min);
+  }
   const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
   expect(size.scroll,route.path+' horizontal overflow').toBeLessThanOrEqual(size.viewport+2);
  });
@@ -21,7 +26,7 @@ test('homepage supports the core company personas without excessive marketing sc
  await expect(page.locator('.command-job')).toHaveCount(3);
  await expect(page.locator('.command-routebar a')).toHaveCount(4);
  await expect(page.locator('.command-market-card')).toHaveCount(2);
- await expect(page.getByRole('link',{name:/Start a company assessment/i})).toBeVisible();
+ await expect(page.locator('.command-hero-actions').getByRole('link',{name:/Start a company assessment/i})).toBeVisible();
  await page.screenshot({path:'test-results/screenshots/command-home-full.png',fullPage:true});
 });
 test('source methodology FAQ opens through native details',async({page})=>{

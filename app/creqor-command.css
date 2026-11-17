@@ -231,3 +231,8 @@
  .command-bottom{font-size:.44rem}
 }
 @media(prefers-reduced-motion:reduce){.command-backdrop i{animation:none}.command-job,.command-main-cta,.terminal-bridge i{transition:none}}
+
+/* Respect OS reduced-motion even for the specificity of decorative orbit nodes. */
+@media (prefers-reduced-motion: reduce) {
+ .command-backdrop i:first-child, .command-backdrop i:nth-child(2), .command-backdrop i:last-child { animation: none!important; transition: none!important; }
+}

@@ -126,3 +126,5 @@
  .lei-start-actions>div{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){.lei-explore-symbol>span{animation:none}}
+
+@media (prefers-reduced-motion: reduce) { .lei-explore-symbol>span {animation:none!important;} }

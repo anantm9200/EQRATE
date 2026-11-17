@@ -59,7 +59,7 @@ test('clear calculator inputs stops output and protects against false data',asyn
  await page.getByRole('button',{name:/Clear inputs/i}).click();
  await expect(page.locator('.terminal-primary-figure')).toContainText(/Awaiting inputs/);
  await page.getByRole('button',{name:/Continue in workbench/i}).click();
- await expect(page.getByRole('alert')).toContainText(/Enter the required/i);
+ await expect(page.locator('.terminal-warning')).toContainText(/Enter the required/i);
 });
 test('keyboard command menu filters and navigates',async({page})=>{
  await page.goto('/');
