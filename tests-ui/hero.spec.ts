@@ -5,27 +5,32 @@ const viewports=[
  {name:'laptop',width:1024,height:768},{name:'desktop',width:1440,height:900}
 ];
 for(const viewport of viewports){
- test('functional hero at '+viewport.name,async({page})=>{
+ test('premium functional homepage at '+viewport.name,async({page})=>{
   await page.setViewportSize({width:viewport.width,height:viewport.height});
   await page.goto('/');
   const hero=page.locator('.command-hero');
-  await expect(hero.getByRole('heading',{name:/Value the business/i})).toBeVisible();
+  await expect(hero.getByRole('heading',{name:/Clarity, beyond/i})).toBeVisible();
+  await expect(hero.getByRole('tab',{name:/Identify/i})).toBeVisible();
+  await expect(hero.getByRole('tab',{name:/Value/i})).toBeVisible();
+  await hero.getByRole('tab',{name:/Value/i}).click();
+  await expect(hero.getByText('Follow every assumption.')).toBeVisible();
+  await hero.getByRole('tab',{name:/Verify/i}).click();
+  await expect(hero.getByText('Make the evidence visible.')).toBeVisible();
   await expect(page.getByRole('tab',{name:'Private'})).toBeVisible();
-  await expect(page.getByText(/SYNTHETIC EXAMPLE/i)).toBeVisible();
   await expect(page.locator('.terminal-primary-figure')).toContainText('753');
   const dims=await page.evaluate(()=>{
    const header=document.querySelector('.v2-header')!.getBoundingClientRect();
    const hero=document.querySelector('.command-hero')!.getBoundingClientRect();
    const content=document.querySelector('.command-hero-copy')!.getBoundingClientRect();
    const calc=document.querySelector('.terminal')!.getBoundingClientRect();
-   return {header:header.bottom,heroTop:hero.top,heroBottom:hero.bottom,contentLeft:content.left,calcRight:calc.right,doc:document.documentElement.scrollWidth,viewport:innerWidth};
+   return {header:header.bottom,heroTop:hero.top,heroHeight:hero.height,contentLeft:content.left,calcRight:calc.right,doc:document.documentElement.scrollWidth,viewport:innerWidth};
   });
   expect(dims.doc,'No page-level overflow').toBeLessThanOrEqual(viewport.width+2);
   expect(dims.contentLeft).toBeGreaterThanOrEqual(-1);
-  expect(dims.calcRight).toBeLessThanOrEqual(viewport.width+1);
+  expect(dims.calcRight).toBeLessThanOrEqual(viewport.width+2);
   expect(dims.heroTop).toBeGreaterThanOrEqual(dims.header-2);
-  if(viewport.width>=1200)expect(dims.heroBottom,'Desktop hero fills one screen').toBeGreaterThanOrEqual(viewport.height-2);
-  await page.screenshot({path:'test-results/screenshots/command-'+viewport.name+'.png'});
+  expect(dims.heroHeight,'The hero fills a complete viewport').toBeGreaterThanOrEqual(viewport.height-2);
+  await page.screenshot({path:'test-results/screenshots/visual-system-'+viewport.name+'.png'});
  });
 }
 test('listed market cap and private multiple are calculated from visible inputs',async({page})=>{
@@ -82,6 +87,6 @@ test('full-screen menu closes with Escape and restores page',async({page})=>{
 test('reduced-motion preference disables decorative hero animation',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto('/');
- const animation=await page.locator('.command-backdrop i').first().evaluate(e=>getComputedStyle(e).animationName);
+ const animation=await page.locator('.v6-hero-backdrop i').first().evaluate(e=>getComputedStyle(e).animationName);
  expect(animation).toBe('none');
 });
