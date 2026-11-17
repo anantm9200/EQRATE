@@ -1,8 +1,8 @@
 /* Real global LEI discovery and legal-entity record */
 .lei-explore-hero,.lei-record-hero{color:#ecfff1;background:radial-gradient(circle at 88% 46%,#1a5036,#072117 65%);padding:66px 3% 59px;overflow:hidden;position:relative}
 .lei-explore-top{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);align-items:center;gap:7%;margin-top:18px}
-.lei-explore-top h1,.lei-record-hero h1{font:500 clamp(2.05rem,3.35vw,3.4rem)/1.25 var(--font-poppins),sans-serif;letter-spacing:-.054em}
-.lei-explore-top h1 em{font-family:var(--font-poppins),sans-serif;font-style:normal;color:#b0f6c2}
+.lei-explore-top h1,.lei-record-hero h1{font:500 clamp(2.05rem,3.35vw,3.4rem)/1.25 var(--font-montserrat),sans-serif;letter-spacing:-.054em}
+.lei-explore-top h1 em{font-family:var(--font-montserrat),sans-serif;font-style:normal;color:#b0f6c2}
 .lei-explore-top p,.lei-record-hero p{max-width:590px;font-size:.84rem;line-height:1.86;color:#a8c4b2;margin-top:17px}
 .lei-explore-stats{display:flex;gap:15px;align-items:center;flex-wrap:wrap;font-size:.58rem;letter-spacing:.1em;color:#86b596;margin-top:27px}
 .lei-explore-stats i{width:3px;height:3px;background:#9bc6a8;border-radius:50%}
@@ -12,7 +12,7 @@
 .lei-explore-symbol i:last-child{width:255px;height:255px;opacity:.43;border-style:dashed}
 .lei-main{padding:64px 3% 74px;background:#eef7f0;position:relative;z-index:2}
 .lei-main-header{display:flex;align-items:end;justify-content:space-between;gap:23px;margin-bottom:27px}
-.lei-main-header h2{font:500 clamp(1.43rem,2.2vw,2.05rem)/1.3 var(--font-poppins),sans-serif;margin:12px 0}
+.lei-main-header h2{font:500 clamp(1.43rem,2.2vw,2.05rem)/1.3 var(--font-montserrat),sans-serif;margin:12px 0}
 .lei-main-header p{font-size:.77rem;color:#708674;max-width:580px;line-height:1.8}
 .lei-main-header>a{font-size:.72rem;color:#277345;font-weight:700;white-space:nowrap}
 .lei-search-widget{background:#fff;border:1px solid #cee1d2;border-radius:9px;min-width:0;box-shadow:0 28px 56px rgba(46,90,57,.065);position:relative}
@@ -38,7 +38,7 @@
 .lei-result-empty{padding:24px 20px;color:#668773;font-size:.77rem;line-height:1.75}
 .lei-result-empty a{display:inline-block;margin-left:8px;color:#2b8650;font-weight:700}
 .lei-difference{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:9%;align-items:center;padding:76px 3%;background:#fff}
-.lei-difference h2,.lei-sec-section h2,.lei-block-header h2,.lei-record-aside h2{font:500 clamp(1.5rem,2.4vw,2.28rem)/1.28 var(--font-poppins),sans-serif;letter-spacing:-.048em;margin:14px 0}
+.lei-difference h2,.lei-sec-section h2,.lei-block-header h2,.lei-record-aside h2{font:500 clamp(1.5rem,2.4vw,2.28rem)/1.28 var(--font-montserrat),sans-serif;letter-spacing:-.048em;margin:14px 0}
 .lei-difference>div:first-child>p,.lei-sec-section p,.lei-record-aside>p{font-size:.79rem;color:#718977;max-width:540px;line-height:1.88}
 .lei-difference>div:first-child>a{display:inline-block;margin-top:23px;color:#2c8951;font-weight:700;font-size:.72rem}
 .lei-proof-layers{border:1px solid #d7e7db;border-radius:9px;overflow:hidden}

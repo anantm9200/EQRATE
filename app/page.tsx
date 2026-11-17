@@ -1,78 +1,87 @@
 import Link from 'next/link';
-import IntelligenceCanvas from '@/components/intelligence-canvas';
-import ResearchJourney from '@/components/research-journey';
-import MotionObserver from '@/components/motion-observer';
+import PlatformPreview from '@/components/platform-preview';
 
-const jobs=[
- {n:'01',title:'Investors',headline:'An issuer worth understanding.',text:'Inspect the correct legal entity, source its financial records and challenge the assumptions behind its value.',href:'/explore',action:'Find the issuer',icon:'⌕'},
- {n:'02',title:'Founders & advisers',headline:'A private business worth defending.',text:'Estimate equity value using cash flows, transaction evidence, peer multiples and documented assumptions.',href:'/workbench',action:'Build an assessment',icon:'◇'},
- {n:'03',title:'Research teams',headline:'A model somebody can audit.',text:'Save analysis, maintain evidence references and export reproducible draft assessment reports.',href:'/desk',action:'Open the research desk',icon:'⌁'}
+export const metadata={
+ title:'Company intelligence, made clear',
+ description:'Explore legal entities, model company valuations and document evidence with CREQOR. Built for transparent listed and private-company research.'
+};
+
+const journeys=[
+ {number:'01',title:'Discover',headline:'Start with the right company.',copy:'Search legal entities and examine the identity behind a name before you study its value.',href:'/explore',action:'Explore companies',mark:'⌕'},
+ {number:'02',title:'Value',headline:'See what drives the estimate.',copy:'Work with six valuation methods, test scenarios and see how assumptions change the outcome.',href:'/workbench',action:'Open the workbench',mark:'◈'},
+ {number:'03',title:'Review',headline:'Keep the reasoning together.',copy:'Capture source references, revisit saved assessments and export work for a closer look.',href:'/desk',action:'Open the research desk',mark:'≋'}
 ];
-const steps=[
- {n:'01',tag:'IDENTIFY',head:'Know the exact entity',body:'Legal name, market, security identifier and reporting currency.'},
- {n:'02',tag:'DOCUMENT',head:'Record the sources',body:'Source URL, financial claim, document date and review limitations.'},
- {n:'03',tag:'CALCULATE',head:'Make the value explainable',body:'Six deterministic valuation methods, sensitivity and assumptions.'},
- {n:'04',tag:'DELIVER',head:'Take the report with you',body:'Save locally, export data or print an audit-ready draft.'}
-];
-export const metadata={title:'Company intelligence and valuation',description:'CREQOR helps analysts value listed and unlisted companies with transparent financial methods and traceable evidence.'};
-export default function Home(){return <><MotionObserver/>
- <section className="sweet-hero" aria-labelledby="sweet-title">
-  <div className="sweet-hero-halo" aria-hidden="true"/>
-  <div className="sweet-hero-copy">
-   <span className="sweet-eyebrow"><i/> A CLEARER VIEW OF COMPANY VALUE</span>
-   <h1 id="sweet-title">See the whole story.<br/><em>Not just the number.</em></h1>
-   <p>From first discovery to final valuation. Clear thinking, visible evidence, and every assumption within reach.</p>
-   <div className="sweet-hero-actions"><Link className="sweet-primary" href="/explore">Discover companies <span>↗</span></Link><Link className="sweet-outline" href="/workbench">Open the workbench <span>↗</span></Link></div>
-   <div className="sweet-hero-trust"><span>01 / FIND THE ENTITY</span><span>02 / TEST THE VALUE</span><span>03 / TRACE THE EVIDENCE</span></div>
-  </div>
-  <div className="sweet-showcase"><div className="sweet-showcase-label"><span>A DIFFERENT PERSPECTIVE</span><span>ANALYSIS, NOT A MARKET QUOTE</span></div><IntelligenceCanvas/></div>
-  <Link className="sweet-scroll" href="#research-path">EXPLORE THE EXPERIENCE <span>↓</span></Link>
- </section>
- <section className="sweet-journey-section" id="research-path">
-  <div className="sweet-section-head"><span className="sweet-kicker">YOUR RESEARCH, YOUR WAY</span><h2>Your next insight.<br/><em>One click away.</em></h2><p>Find the right company. Challenge the valuation. Keep the evidence close. Your research, beautifully connected.</p></div>
-  <ResearchJourney/>
- </section>
- <section className="sweet-insight-section">
-  <div className="sweet-section-head"><span className="sweet-kicker">FROM QUESTION TO EVIDENCE</span><h2>Clarity changes<br/><em>everything.</em></h2><p>Every important conclusion deserves a clear path back to the facts.</p></div>
-  <div className="sweet-insight-grid">
-   <article className="sweet-insight-card"><div className="sweet-insight-icon">⌕</div><span>01 / DISCOVERY</span><h3>Know exactly who you're looking at.</h3><p>Start with issuer identity and company records before you interpret financial data.</p><Link href="/explore">Explore company identities ↗</Link></article>
-   <article className="sweet-insight-card"><div className="sweet-insight-icon">◈</div><span>02 / ANALYSIS</span><h3>Put assumptions under pressure.</h3><p>Compare deterministic valuation methods, scenarios and sensitivity—not just a headline estimate.</p><Link href="/workbench">Open valuation analysis ↗</Link></article>
-   <article className="sweet-insight-card"><div className="sweet-insight-icon">≋</div><span>03 / EVIDENCE</span><h3>Make every claim traceable.</h3><p>Record dated source links, document limitations and export research for review.</p><Link href="/desk">Open your research desk ↗</Link></article>
+
+export default function Home(){return <>
+ <section className="ux-hero" aria-labelledby="ux-hero-title">
+  <div className="ux-hero-inner">
+   <div className="ux-hero-copy">
+    <span className="ux-eyebrow"><span className="ux-dot"/> CREQOR / COMPANY INTELLIGENCE</span>
+    <h1 id="ux-hero-title">Know the company.<br/><em>Understand the value.</em></h1>
+    <p>Find the business behind the name. Test the numbers behind the valuation. Keep the evidence behind every conclusion.</p>
+    <div className="ux-hero-actions">
+     <Link href="/explore" className="ux-button ux-button-primary">Explore companies <span aria-hidden="true">↗</span></Link>
+     <Link href="/workbench" className="ux-button ux-button-secondary">Build a valuation <span aria-hidden="true">↗</span></Link>
+    </div>
+   </div>
+   <PlatformPreview/>
+   <div className="ux-hero-end"><span>DISCOVER <i/> MODEL <i/> DOCUMENT</span><a href="#workflows">EXPLORE THE PLATFORM <span aria-hidden="true">↓</span></a></div>
   </div>
  </section>
-  <nav className="command-routebar" aria-label="Direct access to CREQOR tools">
-  <Link href="/workbench"><span>START HERE</span><strong>Company workbench</strong><i>↗</i></Link>
-  <Link href="/lab"><span>MODEL</span><strong>DCF laboratory</strong><i>↗</i></Link>
-  <Link href="/desk"><span>YOUR WORK</span><strong>Research desk</strong><i>↗</i></Link>
-  <Link href="/verification"><span>TRUST</span><strong>Evidence standards</strong><i>↗</i></Link>
- </nav>
- <section className="command-section command-jobs" id="for-whom">
-  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Made for the<br/>curious and decisive.</h2></div><p>The tools you need to ask better questions—and find answers worth trusting.</p></div>
-  <div className="command-jobs-grid">{jobs.map(j=><Link key={j.n} href={j.href} className="command-job">
-    <div className="command-job-top"><span>{j.n} / {j.title.toUpperCase()}</span><b>↗</b></div>
-    <div className="command-job-symbol" aria-hidden="true">{j.icon}<i/><i/></div>
-    <div className="command-job-text"><h3>{j.headline}</h3><p>{j.text}</p><span>{j.action} <b>↗</b></span></div>
-  </Link>)}</div>
- </section>
- <section className="command-section command-method">
-  <div className="command-method-intro sweet-method-intro"><span className="command-mini">THE RESEARCH LOOP</span><h2>Every assumption.<br/><em>Out in the open.</em></h2><p>Every important number should be traceable: a legal entity, specific financial inputs, a reproducible calculation and a source you can inspect.</p><Link href="/methodology">See our methodology ↗</Link></div>
-  <div className="command-method-flow">{steps.map(s=><article key={s.n} className="command-step"><div><span>{s.n}</span><small>{s.tag}</small></div><h3>{s.head}</h3><p>{s.body}</p></article>)}</div>
- </section>
- <section className="command-section command-markets">
-  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">LISTED ≠ UNLISTED</span><h2>Two worlds.<br/>One clear distinction.</h2></div><p>Observed share prices and estimated business values are not interchangeable. The distinction stays visible in every model.</p></div>
-  <div className="command-market-grid">
-   <article className="command-market-card"><div className="command-market-top"><span>01 / LISTED</span><span>PUBLIC EQUITY</span></div><h3>Market capitalisation</h3><p>Applicable shares × dated market price. We can calculate it from entered figures; live licensed quotes are not yet connected.</p><div className="command-formula"><small>CALCULATION</small><strong>Price × Shares</strong></div><Link href="/workbench">Calculate market cap ↗</Link></article>
-   <article className="command-market-card private"><div className="command-market-top"><span>02 / UNLISTED</span><span>PRIVATE EQUITY</span></div><h3>Estimated equity value</h3><p>DCF, comparables, net assets, funding and stake transactions produce estimates that depend on source quality.</p><div className="command-formula"><small>VALUATION</small><strong>Models + Evidence</strong></div><Link href="/workbench">Build an equity estimate ↗</Link></article>
+
+ <section className="ux-section ux-workflows" id="workflows" aria-labelledby="ux-workflows-title">
+  <div className="ux-section-heading">
+   <span className="ux-kicker">MADE FOR THE WAY YOU RESEARCH</span>
+   <h2 id="ux-workflows-title">Clarity at every stage.</h2>
+   <p>Three connected ways to move from a company name to a research decision.</p>
+  </div>
+  <div className="ux-workflow-grid">
+   {journeys.map(item=><Link className="ux-workflow-card" href={item.href} key={item.number}>
+    <div className="ux-card-header"><span>{item.number} / {item.title.toUpperCase()}</span><span className="ux-card-arrow" aria-hidden="true">↗</span></div>
+    <div className="ux-card-art" aria-hidden="true"><span>{item.mark}</span><i/><i/></div>
+    <div className="ux-card-body"><h3>{item.headline}</h3><p>{item.copy}</p><span className="ux-card-action">{item.action} <span aria-hidden="true">↗</span></span></div>
+   </Link>)}
   </div>
  </section>
- <section className="command-section command-availability">
-  <div><span className="command-mini">PRODUCT READINESS</span><h2>Designed for real decisions.<br/><em>Honest about the limits.</em></h2><p>Calculations, browser-saved drafts, source registers and exports work without market-data subscriptions. We don't claim that the SEC connection, global prices, DGX inference or regulated ratings are already running.</p></div>
-  <div className="command-status-list">
-   <div><span className="command-live"/> <strong>Valuation cockpit, local research desk, exports</strong><small>AVAILABLE</small></div>
-   <div><span className="command-muted-dot"/> <strong>Official US issuer records</strong><small>CONFIGURATION REQUIRED</small></div>
-   <div><span className="command-muted-dot"/> <strong>Private DGX analyst</strong><small>CONFIGURATION REQUIRED</small></div>
-   <div><span className="command-muted-dot"/> <strong>Global prices & published ratings</strong><small>NOT YET CONNECTED</small></div>
+
+ <section className="ux-section ux-method" aria-labelledby="ux-method-title">
+  <div className="ux-method-intro">
+   <span className="ux-kicker">BUILT AROUND THE EVIDENCE</span>
+   <h2 id="ux-method-title">A number means more<br/>when you can explain it.</h2>
+   <p>CREQOR separates the company, the financial assumptions, the calculation and the supporting records. Each remains visible to the person reviewing the work.</p>
+   <Link href="/methodology" className="ux-text-link">Explore the methodology <span aria-hidden="true">↗</span></Link>
+  </div>
+  <div className="ux-method-steps">
+   <div><span>01</span><strong>Identify</strong><p>Know which legal entity and security you're researching.</p></div>
+   <div><span>02</span><strong>Calculate</strong><p>Use transparent methods and inspect how each input affects the result.</p></div>
+   <div><span>03</span><strong>Substantiate</strong><p>Keep dated documents, assumptions and unresolved questions together.</p></div>
+   <div><span>04</span><strong>Export</strong><p>Produce a reviewable draft with source references and model limits.</p></div>
   </div>
  </section>
- <section className="command-final"><div><span className="command-mini">START WITH THE WORK</span><h2>Know more.<br/><em>Decide better.</em></h2><p>Use the assessment workspace, question every assumption and take your research with you.</p></div><Link href="/workbench" className="command-main-cta">Open the workbench ↗</Link></section>
+
+ <section className="ux-section ux-distinction" aria-labelledby="ux-distinction-title">
+  <div className="ux-section-heading">
+   <span className="ux-kicker">PRECISION MATTERS</span>
+   <h2 id="ux-distinction-title">Two kinds of value.<br/>One important distinction.</h2>
+   <p>A publicly traded market capitalisation and an estimated private-company equity value are different measures. We keep them that way.</p>
+  </div>
+  <div className="ux-distinction-grid">
+   <article><div className="ux-card-header"><span>LISTED COMPANIES</span><span>01</span></div><h3>Market capitalisation</h3><p>Share price multiplied by applicable shares outstanding. It needs a dated, properly sourced quote and a matched share count.</p><div className="ux-equation"><span>Observed-price calculation</span><strong>Price × Shares</strong></div><Link href="/workbench" className="ux-text-link">Calculate from your inputs ↗</Link></article>
+   <article><div className="ux-card-header"><span>PRIVATE COMPANIES</span><span>02</span></div><h3>Estimated equity value</h3><p>Build a reasoned estimate from cash flows, comparable businesses, assets or documented transactions—and show the assumptions.</p><div className="ux-equation"><span>Model-based estimate</span><strong>Methods + Evidence</strong></div><Link href="/workbench" className="ux-text-link">Model a private company ↗</Link></article>
+  </div>
+ </section>
+
+ <section className="ux-section ux-integrity" aria-labelledby="ux-integrity-title">
+  <div className="ux-integrity-copy">
+   <span className="ux-kicker">TRANSPARENCY, BY DESIGN</span>
+   <h2 id="ux-integrity-title">Useful intelligence.<br/>Without invented certainty.</h2>
+   <p>Valuation calculations, local research drafts and reports are available today. Live global prices, independent published ratings and the private AI gateway require additional integrations.</p>
+   <Link href="/status" className="ux-text-link">See what's connected <span aria-hidden="true">↗</span></Link>
+  </div>
+  <div className="ux-integrity-list">
+   <div><span className="ux-status-dot is-live"/><strong>Valuation modelling and sensitivity</strong><small>AVAILABLE</small></div>
+   <div><span className="ux-status-dot is-live"/><strong>Saved research drafts and exports</strong><small>AVAILABLE</small></div>
+   <div><span className="ux-status-dot is-pending"/><strong>Licensed prices and private AI analysis</strong><small>NOT FULLY CONNECTED</small></div>
+  </div>
+ </section>
  </>;}
