@@ -38,7 +38,7 @@ test('evidence register accepts HTTPS records and preserves status as user suppl
  await page.getByRole('button',{name:'+ Record evidence'}).click();
  await expect(page.getByText('Synthetic audited accounts')).toBeVisible();
  await expect(page.getByRole('status')).toContainText(/not been independently verified/i);
- await page.getByRole('button',{name:/05 Report/i}).click();
+ await page.getByRole('tab',{name:/05 Report/i}).click();
  await expect(page.locator('.wk-report-sources')).toContainText('Synthetic audited accounts');
 });
 test('all assessment tabs work without horizontal overflow on mobile',async({page})=>{
