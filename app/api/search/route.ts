@@ -14,6 +14,6 @@ export async function GET(request:NextRequest){
     return NextResponse.json({results,source:'US Securities and Exchange Commission',market:'US',note:'Entity data, not market prices.'},{headers:{'Cache-Control':'public,max-age=120,stale-while-revalidate=300'}});
   }catch(e){
     const issue=e instanceof Error?e.message:'UNKNOWN';
-    return NextResponse.json({results:[],message:issue==='SEC_NOT_CONFIGURED'?'Official US company search requires SEC_USER_AGENT.':'Official registry is temporarily unavailable.'},{status:503});
+    return NextResponse.json({results:[],code:issue==='SEC_NOT_CONFIGURED'?'REGISTRY_NOT_CONFIGURED':'REGISTRY_UNAVAILABLE',message:issue==='SEC_NOT_CONFIGURED'?'CREQOR’s SEC search connection has not been configured yet.':'The official US registry is temporarily unavailable.'},{status:503});
   }
 }
