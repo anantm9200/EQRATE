@@ -2,6 +2,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 const items=[
+ {href:'/directory',name:'Global company directory',subtitle:'Browse source-linked legal entities worldwide',keys:'global companies browse directory lei country worldwide'},
  {href:'/workbench',name:'Company workbench',subtitle:'Build listed or private valuations',keys:'assess company valuation report model founder'},
  {href:'/desk',name:'Research desk',subtitle:'Manage, compare and export saved company drafts',keys:'workspace portfolio research saved local company'},
  {href:'/explore',name:'Discover a company',subtitle:'Search SEC issuer identities',keys:'find ticker cik search explore'},
