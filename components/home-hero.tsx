@@ -11,7 +11,7 @@ export default function HomeHero(){
       <h1 id="creqor-hero-title">Know the company.<br/><em>Question the value.</em></h1>
       <p className="c3-lead">Discover the business behind the numbers. Trace the evidence. Test every assumption.</p>
       <div className="c3-hero-search">
-        <div className="c3-search-top"><span>START WITH A COMPANY</span><Link href="/explore">Open explorer <span aria-hidden="true">↗</span></Link></div>
+        <div className="c3-search-top"><span>SEARCH OFFICIAL US ISSUERS</span><Link href="/workbench">Build a company report <span aria-hidden="true">↗</span></Link></div>
         <CompanySearch/>
       </div>
     </div>
