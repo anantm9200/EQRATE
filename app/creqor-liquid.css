@@ -1,0 +1,147 @@
+/* CREQOR · Liquid Glass / Motion System
+   Optically layered surfaces over a white canvas. Interaction is progressive,
+   readable without animation, and disabled for reduced motion.
+*/
+:root{
+ --fx-ease:cubic-bezier(.22,1,.36,1);
+ --fx-glass:rgba(255,255,255,.73);
+ --fx-stroke:rgba(255,255,255,.95);
+ --fx-shade:0 1px 2px rgba(26,74,42,.025),0 16px 45px rgba(26,74,42,.07);
+}
+.fx-scroll-progress{position:fixed;top:0;left:0;right:0;height:2px;transform:scaleX(0);transform-origin:left center;pointer-events:none;z-index:1000;background:linear-gradient(90deg,#1e7f46,#73ce94,#b7f2c9);will-change:transform}
+
+/* Hero lighting occupies actual space behind the translucent interface */
+.ux-hero{isolation:isolate;background:radial-gradient(ellipse at 50% 7%,#fff 0%,#f9fcfa 52%,#f7fbf8 100%)!important;overflow:hidden}
+.ux-hero:before{height:auto;inset:0;background:radial-gradient(ellipse at 49% 4%,rgba(189,234,207,.42),transparent 50%),radial-gradient(ellipse at 15% 83%,rgba(222,237,252,.26),transparent 49%)!important;z-index:-2}
+.fx-hero-atmosphere{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.fx-hero-atmosphere span{position:absolute;display:block;border-radius:50%;mix-blend-mode:multiply;will-change:transform,opacity}
+.fx-hero-atmosphere span:nth-child(1){width:min(52vw,740px);height:min(52vw,740px);top:18%;left:-16%;background:radial-gradient(circle,rgba(154,220,182,.31),rgba(197,239,215,.12) 48%,transparent 69%);animation:fx-orbit-one 19s ease-in-out infinite alternate}
+.fx-hero-atmosphere span:nth-child(2){width:min(52vw,720px);height:min(52vw,720px);top:3%;right:-13%;background:radial-gradient(circle,rgba(190,224,250,.30),rgba(204,242,218,.18) 43%,transparent 69%);animation:fx-orbit-two 23s ease-in-out infinite alternate}
+.fx-hero-atmosphere span:nth-child(3){width:min(43vw,580px);height:min(43vw,580px);top:45%;left:35%;background:radial-gradient(circle,rgba(198,243,208,.28),rgba(217,246,231,.16) 45%,transparent 70%);animation:fx-orbit-three 25s ease-in-out infinite alternate}
+@keyframes fx-orbit-one{from{transform:translate3d(-1%,2%,0) scale(.96)}to{transform:translate3d(20%,-12%,0) scale(1.15)}}
+@keyframes fx-orbit-two{from{transform:translate3d(6%,-8%,0) scale(1.09)}to{transform:translate3d(-20%,16%,0) scale(.97)}}
+@keyframes fx-orbit-three{from{transform:translate3d(-8%,-10%,0) scale(.96)}to{transform:translate3d(18%,18%,0) scale(1.13)}}
+
+/* Frosted sticky nav / search, retaining crisp foreground contrast */
+.site-header.v2-header{position:sticky!important;top:0;z-index:150;background:rgba(255,255,255,.68)!important;border-bottom:1px solid rgba(255,255,255,.75)!important;box-shadow:0 1px 0 rgba(33,93,54,.045),0 9px 30px rgba(36,75,50,.038)!important;backdrop-filter:blur(28px) saturate(145%);-webkit-backdrop-filter:blur(28px) saturate(145%)}
+.command-open,.v2-menu-button{background:rgba(255,255,255,.52)!important;border:1px solid rgba(255,255,255,.94)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 5px 20px rgba(35,100,56,.07)!important;backdrop-filter:blur(16px) saturate(130%);-webkit-backdrop-filter:blur(16px) saturate(130%)}
+.v2-menu-button{background:rgba(223,244,228,.74)!important}
+.command-open:hover,.v2-menu-button:hover{box-shadow:inset 0 1px 0 #fff,0 9px 26px rgba(35,100,56,.12)!important}
+.v2-menu-panel{background:rgba(250,253,251,.92)!important;backdrop-filter:blur(34px) saturate(150%);-webkit-backdrop-filter:blur(34px) saturate(150%)}
+.command-palette-dialog{background:rgba(255,255,255,.94)!important;backdrop-filter:blur(32px) saturate(135%);-webkit-backdrop-filter:blur(32px) saturate(135%)}
+
+/* A proper reflective glass surface, not green boxes or excessive rounding */
+.ux-preview{position:relative;isolation:isolate;background:linear-gradient(137deg,rgba(255,255,255,.87),rgba(255,255,255,.57) 48%,rgba(240,249,243,.75) 100%)!important;border:1px solid rgba(255,255,255,.98)!important;border-radius:8px!important;box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.9),0 2px 6px rgba(24,76,40,.035),0 27px 70px rgba(32,87,48,.12)!important;backdrop-filter:blur(36px) saturate(155%);-webkit-backdrop-filter:blur(36px) saturate(155%);transition:box-shadow .45s var(--fx-ease);will-change:auto}
+.ux-preview:hover{box-shadow:inset 0 1px 0 #fff,0 4px 9px rgba(24,76,40,.035),0 36px 85px rgba(32,87,48,.17)!important}
+.ux-preview::after,.ux-workflow-card::after,.ux-distinction-grid article::after,.wk-panel::after,.ic-block::after,.rd-entry::after,.cx-card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;background:radial-gradient(470px circle at var(--fx-x,50%) var(--fx-y,40%),rgba(255,255,255,.88),rgba(211,242,224,.13) 48%,transparent 75%);transition:opacity .45s var(--fx-ease);z-index:0}
+.ux-preview:hover::after,.ux-workflow-card:hover::after,.ux-distinction-grid article:hover::after,.wk-panel:hover::after,.ic-block:hover::after,.rd-entry:hover::after,.cx-card:hover::after{opacity:.52}
+.ux-preview>*{position:relative;z-index:1}
+.ux-preview-top,.ux-preview-foot{background:rgba(255,255,255,.45)!important;border-color:rgba(187,216,194,.42)!important}
+.ux-preview-tabs{background:rgba(241,249,244,.47)!important;border-color:rgba(192,222,200,.55)!important}
+.ux-preview-tabs button{transition:background .28s var(--fx-ease),color .28s var(--fx-ease),box-shadow .28s var(--fx-ease)}
+.ux-preview-tabs button.is-active{background:rgba(255,255,255,.86)!important;box-shadow:inset 0 1px 0 #fff,0 5px 17px rgba(30,90,49,.07)}
+.ux-model-card,.ux-identity-card,.ux-evidence-card{background:linear-gradient(145deg,rgba(255,255,255,.83),rgba(236,248,240,.59))!important;border:1px solid rgba(255,255,255,.95)!important;box-shadow:inset 0 1px 0 #fff,0 8px 26px rgba(30,89,47,.06);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+.ux-preview-mark{background:linear-gradient(130deg,#fff,rgba(220,245,229,.72))!important;box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(21,91,48,.07)}
+.ux-model-value strong{font-variant-numeric:tabular-nums}
+.ux-model-range input{accent-color:#20824c}
+.ux-model-range output{display:inline-block;min-width:48px;text-align:right;transition:color .2s}
+.ux-preview-content{animation:fx-content-enter .48s var(--fx-ease) both}
+@keyframes fx-content-enter{from{opacity:0;transform:translateY(10px);filter:blur(4px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+
+/* A calculated DCF curve, tied to the live slider. Not an invented share-price chart. */
+.ux-live-curve{margin:3px 0 14px;padding:7px 9px 2px;background:linear-gradient(180deg,rgba(232,246,236,.44),rgba(255,255,255,.28));border-radius:6px;border:1px solid rgba(216,235,221,.62)}
+.ux-curve-meta{display:flex;justify-content:space-between;gap:12px;font-size:.57rem;color:#679378;letter-spacing:.065em;font-weight:600}
+.ux-live-curve svg{display:block;width:100%;height:76px;overflow:visible;margin:2px 0}
+.fx-chart-line{stroke-dasharray:600;stroke-dashoffset:0;animation:fx-draw 1.5s var(--fx-ease) both}
+.fx-chart-area{animation:fx-opacity .7s ease-out both}
+.fx-chart-cursor{transition:cx .22s var(--fx-ease),cy .22s var(--fx-ease);filter:drop-shadow(0 1px 3px rgba(22,104,50,.32))}
+@keyframes fx-draw{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+@keyframes fx-opacity{from{opacity:.1}to{opacity:1}}
+
+/* More physical depth on cards, forms and internal application workspaces */
+.ux-workflows{background:radial-gradient(ellipse at 10% 6%,rgba(218,244,226,.75),transparent 55%),radial-gradient(ellipse at 90% 85%,rgba(224,236,250,.55),transparent 55%),#f9fcfa!important}
+.ux-distinction{background:radial-gradient(ellipse at 90% 10%,rgba(217,242,226,.62),transparent 57%),#f8fbf9!important}
+.ux-method{background:radial-gradient(ellipse at 5% 50%,rgba(237,249,241,.7),transparent 60%),#fff!important}
+.ux-workflow-card,.ux-distinction-grid article,.ux-method-steps>div,.ic-block,.rd-entry,.wk-panel,.rd-comparison,.cx-card,.cx-route{
+ position:relative;
+ background:linear-gradient(130deg,rgba(255,255,255,.89),rgba(255,255,255,.64))!important;
+ border:1px solid rgba(255,255,255,.95)!important;
+ border-radius:8px!important;
+ box-shadow:inset 0 1px 0 #fff,0 1px 3px rgba(30,79,42,.035),0 12px 35px rgba(32,86,48,.065)!important;
+ backdrop-filter:blur(22px) saturate(130%);
+ -webkit-backdrop-filter:blur(22px) saturate(130%);
+}
+.ux-workflow-card{transform:perspective(1100px) rotateX(var(--fx-rx,0deg)) rotateY(var(--fx-ry,0deg));transition:transform .38s var(--fx-ease),box-shadow .38s var(--fx-ease),border-color .38s var(--fx-ease)}
+.ux-workflow-card:hover{border-color:rgba(189,226,202,.98)!important;box-shadow:inset 0 1px 0 #fff,0 5px 13px rgba(31,88,51,.05),0 28px 58px rgba(31,88,51,.13)!important}
+.ux-workflow-card>*{position:relative;z-index:1}
+.ux-card-art{background:radial-gradient(ellipse at 50% 44%,rgba(223,248,232,.76),rgba(248,253,249,.51))!important;border:1px solid rgba(255,255,255,.84)}
+.ux-card-art>span{transition:transform .6s var(--fx-ease),filter .6s var(--fx-ease)}
+.ux-workflow-card:hover .ux-card-art>span{transform:scale(1.14) rotate(-6deg);filter:drop-shadow(0 12px 15px rgba(40,112,60,.13))}
+.ux-card-art i{transition:transform 1s var(--fx-ease),opacity .6s}
+.ux-workflow-card:hover .ux-card-art i:first-of-type{transform:scale(1.22) rotate(15deg)}
+.ux-workflow-card:hover .ux-card-art i:last-of-type{transform:scale(1.09) rotate(-18deg)}
+.ux-distinction-grid article,.wk-panel,.ic-block,.rd-entry,.cx-card{transition:box-shadow .34s var(--fx-ease),border-color .34s var(--fx-ease)}
+.ux-distinction-grid article:hover,.wk-panel:hover,.rd-entry:hover,.ic-block:hover{box-shadow:inset 0 1px 0 #fff,0 19px 50px rgba(24,80,39,.1)!important}
+.ux-distinction-grid article>*{position:relative;z-index:1}
+.ux-method-steps>div{transition:transform .35s var(--fx-ease),box-shadow .35s var(--fx-ease)}
+.ux-method-steps>div:hover{transform:translateY(-4px);box-shadow:0 18px 43px rgba(36,91,52,.1)!important}
+.ux-hero-actions .ux-button,.ux-preview-foot a,.ux-text-link{transition:transform .3s var(--fx-ease),box-shadow .3s var(--fx-ease),color .3s var(--fx-ease),gap .3s var(--fx-ease)}
+.ux-button-secondary{background:rgba(255,255,255,.62)!important;border:1px solid rgba(255,255,255,.94)!important;box-shadow:inset 0 1px 0 #fff,0 5px 18px rgba(31,80,47,.06)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.ux-button-primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 6px 17px rgba(30,104,57,.13)}
+.ux-button-primary:hover{box-shadow:0 10px 26px rgba(30,104,57,.21)!important}
+.ux-text-link:hover{transform:translateX(3px)}
+.ux-preview-foot a:hover{color:#135d34}
+
+/* Frosted interior shells, keep fields white for sustained financial data-entry readability */
+.wk-root,.rd-root,.body-wrap,.lei-main{background:radial-gradient(ellipse at 86% 0%,rgba(218,242,226,.42),transparent 55%),radial-gradient(ellipse at 0 55%,rgba(235,244,250,.32),transparent 57%),#fbfdfb!important}
+.wk-side,.ic-kpis>div,.rd-stats>div{background:rgba(242,249,244,.79)!important;border-color:rgba(255,255,255,.91)!important;box-shadow:inset 0 1px 0 #fff,0 9px 28px rgba(31,88,45,.05)!important}
+.wk-tab-nav,.rd-toolbar{background:rgba(250,253,251,.75)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.wk-tab-nav button.is-selected{box-shadow:inset 0 -2px 0 #258d53,inset 0 1px 0 #fff}
+.wk-field :is(input,select,textarea),.rd-toolbar :is(input,select),.ic-controls select{background:rgba(255,255,255,.94)!important;border:1px solid #cbdcd0!important;box-shadow:inset 0 1px 2px rgba(31,62,44,.025)!important}
+.wk-field :is(input,select,textarea):focus,.rd-toolbar :is(input,select):focus{border-color:#469c68!important;box-shadow:0 0 0 3px rgba(78,169,106,.14)!important}
+.v2-prefooter{background:radial-gradient(ellipse at 85% 20%,rgba(206,238,218,.7),transparent 52%),rgba(248,252,249,.94)!important}
+.v2-footer{background:rgba(255,255,255,.86)!important}
+
+/* Progressive scroll reveals: content is NOT hidden until JS opts in. */
+.fx-motion-ready .fx-reveal{opacity:0;translate:0 25px;transition:opacity .8s var(--fx-ease),translate .8s var(--fx-ease)}
+.fx-motion-ready .fx-reveal.fx-visible{opacity:1;translate:0 0}
+.ux-workflow-grid .fx-reveal:nth-child(2),.ux-method-steps .fx-reveal:nth-child(2){transition-delay:.08s}
+.ux-workflow-grid .fx-reveal:nth-child(3),.ux-method-steps .fx-reveal:nth-child(3){transition-delay:.16s}
+.ux-method-steps .fx-reveal:nth-child(4){transition-delay:.22s}
+.ux-hero-copy{animation:fx-enter .95s var(--fx-ease) both}
+.ux-preview{animation:fx-enter 1.05s .11s var(--fx-ease) both}
+@keyframes fx-enter{from{opacity:0;translate:0 19px}to{opacity:1;translate:0 0}}
+
+/* Feature parity and reasonable GPU use on touch & reduced-transparency devices */
+@media(max-width:800px){
+ .fx-hero-atmosphere span:nth-child(1){width:87vw;height:87vw;top:14%;left:-35%}
+ .fx-hero-atmosphere span:nth-child(2){width:86vw;height:86vw;top:32%;right:-38%}
+ .fx-hero-atmosphere span:nth-child(3){width:73vw;height:73vw;top:70%;left:17%}
+ .ux-preview,.ux-workflow-card,.wk-panel,.rd-entry{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+ .ux-workflow-card{transform:none!important}
+ .ux-live-curve svg{height:69px}
+}
+@media(max-width:600px){
+ .ux-hero{overflow:clip}
+ .ux-preview{box-shadow:inset 0 1px 0 #fff,0 12px 33px rgba(32,87,48,.09)!important}
+ .ux-preview-content{animation-duration:.26s}
+ .fx-hero-atmosphere span{animation-duration:32s;opacity:.65}
+ .ux-live-curve{margin-bottom:12px}
+ .ux-curve-meta{font-size:.53rem}
+}
+@media(prefers-reduced-transparency:reduce){
+ .ux-preview,.ux-workflow-card,.ux-distinction-grid article,.wk-panel,.ic-block,.rd-entry,.cx-card,.ux-model-card,.ux-identity-card,.ux-evidence-card,.site-header.v2-header{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#fff!important}
+ .fx-hero-atmosphere{opacity:.25}
+}
+@media(prefers-reduced-motion:reduce){
+ .fx-hero-atmosphere span,.fx-chart-line,.fx-chart-area,.ux-hero-copy,.ux-preview,.ux-preview-content{animation:none!important}
+ .fx-hero-atmosphere span{transform:none!important}
+ .fx-motion-ready .fx-reveal{opacity:1!important;translate:none!important;transition:none!important}
+ .ux-workflow-card,.ux-method-steps>div,.ux-button,.ux-text-link,.fx-chart-cursor{transform:none!important;transition:none!important}
+ .fx-scroll-progress{display:none}
+}
+@media print{
+ .fx-hero-atmosphere,.fx-scroll-progress{display:none!important}
+ .ux-preview,.wk-panel,.ic-block,.rd-entry{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;background:#fff!important}
+ .fx-motion-ready .fx-reveal{opacity:1!important;translate:none!important}
+}

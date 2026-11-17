@@ -12,6 +12,7 @@ import './creqor-operations.css';
 import './creqor-lei.css';
 import './creqor-system.css';
 import './creqor-typography.css';
+import './creqor-liquid.css';
 import SiteShell from '@/components/site-shell';
 const montserrat=Montserrat({subsets:['latin'],weight:['400','500','600','700'],variable:'--font-montserrat',display:'swap'});
 const inter=Inter({subsets:['latin'],variable:'--font-inter',display:'swap'});
