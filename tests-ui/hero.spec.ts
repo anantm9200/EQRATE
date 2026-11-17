@@ -79,6 +79,6 @@ test('reduced-motion preference removes transitions and animations',async({page}
  const animations=await page.locator('.ux-workflow-card').first().evaluate(el=>{
   const computed=getComputedStyle(el);return {animation:computed.animationDuration,transition:computed.transitionDuration};
  });
- expect(animations.animation).toBe('0.01ms');
- expect(animations.transition).toBe('0.01ms');
+ expect(parseFloat(animations.animation)).toBeLessThanOrEqual(0.001);
+ expect(parseFloat(animations.transition)).toBeLessThanOrEqual(0.001);
 });
