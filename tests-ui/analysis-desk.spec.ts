@@ -8,7 +8,7 @@ test('analysis cockpit recalculates DCF matrix and exports values',async({page})
  await expect(matrix.locator('tr')).toHaveCount(5);
  await expect(page.locator('.ic-matrix-cell.is-base')).not.toHaveText('n/a');
  await page.getByRole('button',{name:/Export sensitivity CSV/}).click();
- await expect(page.getByRole('status')).toContainText(/exported/i);
+ await expect(page.locator('.ic-message')).toContainText(/exported/i);
 });
 test('scenario application updates exact financial assumptions with explicit confirmation',async({page})=>{
  page.on('dialog',d=>d.accept());

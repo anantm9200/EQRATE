@@ -23,7 +23,7 @@ for(const viewport of viewports){
    const hero=document.querySelector('.command-hero')!.getBoundingClientRect();
    const content=document.querySelector('.command-hero-copy')!.getBoundingClientRect();
    const calc=document.querySelector('.terminal')!.getBoundingClientRect();
-   return {header:header.bottom,heroTop:hero.top,heroHeight:hero.height,contentLeft:content.left,calcRight:calc.right,doc:document.documentElement.scrollWidth,viewport:innerWidth};
+   return {header:header.bottom,heroTop:hero.top+window.scrollY,heroHeight:hero.height,contentLeft:content.left,calcRight:calc.right,doc:document.documentElement.scrollWidth,viewport:innerWidth};
   });
   expect(dims.doc,'No page-level overflow').toBeLessThanOrEqual(viewport.width+2);
   expect(dims.contentLeft).toBeGreaterThanOrEqual(-1);
