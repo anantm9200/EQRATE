@@ -1,3 +1,4 @@
+import {LabSections} from '@/components/sections-primary';
 import LabClient from '@/components/lab-client';
 export const metadata={title:'Valuation lab',description:'Interactive DCF calculator with clearly marked hypothetical inputs, scenarios and sensitivity analysis.'};
 export default function Lab(){return <>
@@ -10,4 +11,6 @@ export default function Lab(){return <>
    <div className="v2-lab-disclaimer"><span>● DEMONSTRATION MODEL</span><p>The starting figures are entirely hypothetical. Replace inputs with documented financials before using the analysis for any real company.</p></div>
    <LabClient/>
  </section>
+ 
+ <LabSections/>
  </>}

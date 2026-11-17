@@ -1,3 +1,4 @@
+import {HomeSections} from '@/components/sections-primary';
 import Link from 'next/link';
 import HomeHero from '@/components/home-hero';
 
@@ -27,5 +28,7 @@ export default function Home(){
    </div>
   </section>
   <section className="v2-intelligence-cta"><div className="v2-cta-copy"><span className="eyebrow">PRIVATE INTELLIGENCE / DGX ARCHITECTURE</span><h2>Ask the harder question.<br/><em>Demand a clearer answer.</em></h2><p>Use the private analyst to interrogate financial assumptions and uncover missing evidence. The gateway is securely disabled until configured.</p><Link href="/analyst" className="v2-primary-cta">Enter AI analyst <span>↗</span></Link></div><div className="v2-cta-glyph" aria-hidden="true"><span>✳</span><i/><i/><i/></div></section>
+ 
+ <HomeSections/>
  </>;
 }

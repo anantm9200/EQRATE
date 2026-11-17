@@ -1,3 +1,4 @@
+import {AnalystSections} from '@/components/sections-secondary';
 import AnalystClient from '@/components/analyst-client';
 export const metadata={title:'Private AI analyst',description:'Evidence-aware financial questioning through a protected DGX intelligence gateway.'};
 export default function Analyst(){return <>
@@ -7,4 +8,6 @@ export default function Analyst(){return <>
   <div className="v2-page-art v2-analyst-art" aria-hidden="true"><span>✳</span><div/><div/></div></div>
  </section>
  <section className="body-wrap v2-analyst-body"><AnalystClient/></section>
+ 
+ <AnalystSections/>
  </>}
