@@ -43,6 +43,8 @@ const fields:{section:string;fields:{key:NumberKey;label:string;hint:string}[]}[
  ]}
 ];
 const storeKey='creqor.assessment-workspace.v1';
+const draftKey='creqor.assessment-active-draft.v1';
+const handoffKey='creqor.workbench.handoff.v1';
 function safeFileName(s:string){return (s||'company').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-+|-+$/g,'').slice(0,60)||'company';}
 function textToCsv(v:string|number|null|undefined){
  const raw=v===null||v===undefined?'':String(v);
@@ -76,8 +78,24 @@ export default function AssessmentWorkbench(){
     if(Array.isArray(items))setSaved(items.slice(0,30).map(x=>{try{return parseAssessment(x)}catch{return null}}).filter((x):x is Assessment=>x!==null));
    }
   }catch{setNotice('Saved assessments could not be read from this browser.');}
+  try{
+   const transferred=sessionStorage.getItem(handoffKey);
+   const draft=sessionStorage.getItem(draftKey);
+   if(transferred){
+    const item=parseAssessment(JSON.parse(transferred));
+    setAssessment(item);setActiveTab('financials');
+    setNotice('Calculator inputs transferred. Add company identity and evidence before exporting a defensible assessment.');
+    sessionStorage.removeItem(handoffKey);
+   }else if(draft){
+    setAssessment(parseAssessment(JSON.parse(draft)));
+   }
+  }catch{setNotice('A previous local draft could not be restored. You can start a new assessment.');}
   setLoaded(true);
  },[]);
+ useEffect(()=>{
+  if(!loaded)return;
+  try{sessionStorage.setItem(draftKey,JSON.stringify(assessment));}catch{}
+ },[assessment,loaded]);
  const results=useMemo(()=>computeAssessment(assessment),[assessment]);
  const hasName=assessment.name.trim().length>0;
  const meaningfulEvidence=assessment.evidence.filter(s=>s.title.trim()&&s.url.trim()&&s.asOf.trim()).length;
@@ -106,6 +124,18 @@ export default function AssessmentWorkbench(){
  }
  function load(id:string){
   const value=saved.find(a=>a.id===id);if(value){setAssessment(parseAssessment(value));setNotice('Saved assessment opened. Changes are not saved until you click Save.');setActiveTab('company');}
+ }
+ function loadSyntheticExample(){
+  if(hasName&&!confirm('Load a synthetic example? Your unsaved edits will be replaced.'))return;
+  const a=createAssessment(new Date().toISOString().slice(0,10));
+  a.name='Example Company (synthetic)';
+  a.identifier='';a.kind='unlisted';a.country='Example / not real';a.industry='Manufacturing';
+  a.fields.revenue=180;a.fields.ebitda=24;a.fields.netDebt=15;
+  a.fields.freeCashFlow=13;a.fields.growthPct=6;a.fields.discountPct=13;a.fields.terminalPct=3;a.fields.forecastYears=5;
+  a.fields.assets=120;a.fields.liabilities=42;a.fields.revenueMultiple=2.1;a.fields.ebitdaMultiple=8;
+  a.active=['dcf','revenueMultiple','ebitdaMultiple','netAssets'];
+  a.analystNotes='SYNTHETIC DEMONSTRATION ONLY — these are made-up arithmetic inputs, not a real company or independent report.';
+  setAssessment(a);setActiveTab('financials');setNotice('Synthetic example loaded. Replace every input and attach sources before real-world use.');
  }
  function newAssessment(){
   if(hasName&&!confirm('Start a new assessment? Unsaved changes will be lost.'))return;
@@ -182,6 +212,7 @@ export default function AssessmentWorkbench(){
       {saved.map(a=><option key={a.id} value={a.id}>{a.name} — {a.asOf||'undated'}</option>)}
      </select>
      <button type="button" onClick={newAssessment} className="wk-button wk-outline">+ New assessment</button>
+     <button type="button" onClick={loadSyntheticExample} className="wk-button wk-outline">Try sample data</button>
      <button type="button" onClick={save} className="wk-button wk-primary">Save locally</button>
     </div>
     <div className="wk-toolbar-end">

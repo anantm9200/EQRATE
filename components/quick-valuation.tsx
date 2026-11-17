@@ -1,7 +1,7 @@
 'use client';
 import {useMemo,useState} from 'react';
 import {useRouter} from 'next/navigation';
-import {createAssessment,computeAssessment,formatMillions,formatPerShare,type Assessment,type NumberKey,type Method} from '@/lib/assessment';
+import {createAssessment,computeAssessment,formatMillions,type Assessment,type NumberKey} from '@/lib/assessment';
 
 type Mode='listed'|'revenue'|'dcf';
 type Inputs={price:string;shares:string;revenue:string;multiple:string;netDebt:string;fcf:string;growth:string;wacc:string;terminal:string;years:string};
@@ -42,11 +42,14 @@ export default function QuickValuation(){
   a.currency=currency;
   a.active=mode==='listed'?[]:[mode==='revenue'?'revenueMultiple':'dcf'];
   const assign=(key:NumberKey,source:keyof Inputs)=>{a.fields[key]=toNumber(inputs[source]);};
-  assign('sharePrice','price');assign('sharesMillions','shares');
-  assign('revenue','revenue');assign('revenueMultiple','multiple');
-  assign('netDebt','netDebt');assign('freeCashFlow','fcf');
-  assign('growthPct','growth');assign('discountPct','wacc');
-  assign('terminalPct','terminal');assign('forecastYears','years');
+  if(mode==='listed'){
+   assign('sharePrice','price');assign('sharesMillions','shares');
+  }else if(mode==='revenue'){
+   assign('revenue','revenue');assign('revenueMultiple','multiple');assign('netDebt','netDebt');
+  }else{
+   assign('freeCashFlow','fcf');assign('growthPct','growth');assign('discountPct','wacc');
+   assign('terminalPct','terminal');assign('forecastYears','years');assign('netDebt','netDebt');
+  }
   const result=computeAssessment(a);
   const method=result.methods.find(m=>m.status==='calculated');
   const record=result.methods[0];
@@ -105,6 +108,6 @@ export default function QuickValuation(){
   <button className="terminal-method-toggle" type="button" aria-expanded={displayDetails} onClick={()=>setDisplayDetails(v=>!v)}>
     {displayDetails?'Hide':'Show'} calculation details <span>{displayDetails?'−':'+'}</span>
   </button>
-  {displayDetails&&<div className="terminal-details"><p><strong>{active.desc}:</strong> {detail}.</p><p>All inputs shown are user-entered or explicitly synthetic. The platform has no licence-connected price feed or independent issuer verification in this calculator. No investment recommendation or credit rating is generated.</p><p>Transfer the inputs into the full workbench to attach evidence and export a draft report.</p></div>}
+  {displayDetails&&<div className="terminal-details"><p><strong>{active.desc}:</strong> {detail}.</p><p>All inputs shown are user-entered or explicitly synthetic. Currency selection relabels inputs without converting them; confirm that all figures are expressed in the chosen currency. The platform has no licence-connected price feed or independent issuer verification in this calculator. No investment recommendation or credit rating is generated.</p><p>Transfer the inputs into the full workbench to attach evidence and export a draft report.</p></div>}
  </section>;
 }
