@@ -36,3 +36,21 @@ See [architecture and known limits](docs/ARCHITECTURE.md) and [schema](db/schema
 CREQOR is **not** presenting itself as a licensed credit rating agency. No live trading prices, source-backed private valuations, company scores, M&A events or fabricated financial stories are included. Live market-data coverage, verified financial facts, regulated research, subscriptions and multi-agent RAG remain future implementation stages. Do not publish unsupported market-cap, ranking, or acquisition claims.
 
 No Vercel project was created or deployed by this commit. The GitHub repository is ready for later import.
+## Research workflows (November 2026)
+
+- **Global company discovery:** GLEIF legal entity search with company identity prefill for the assessment workspace; no claim of financial verification from LEI status
+- **Company workbench:** six deterministic valuation methods, listed-market-cap arithmetic for entered price/share inputs, source claim register with editing, draft scoring and report printing
+- **Analysis cockpit:** WACC/terminal-growth 5×5 sensitivity grid, bear/base/bull scenarios, analyst-applied adjustments, method divergence and data-completeness review; exportable DCF matrix CSV
+- **Research desk:** up to 30 local assessment drafts, search, filters, sorting, duplication, reopening, two-company comparison, JSON bundle backup/import and CSV index
+- **Reports:** editable assumptions, analyst source links, open risks and caveats; browser Print can save PDF
+- **Runtime:** Vercel Cron invokes `/api/ops/smoke` hourly using `CRON_SECRET` (server setting). Review Vercel production logs for `CREQOR_HOURLY_SMOKE` or failures
+
+### Build and validation
+
+`npm run build` runs `npm test` before `next build`. Vercel Git deployments therefore run deterministic numerical, data-provider and import-safety tests before releasing a build. Playwright tests in `tests-ui/` may be run separately using `npm run test:ui` with a local server; these are not automatically run by the Vercel build.
+
+**No GitHub Actions:** This repository intentionally contains no `.github/workflows` files. Do not recreate them.
+
+### Important limits
+
+Browser localStorage is not a secure encrypted repository, shared workspace or account system. Uploaded evidence files are not accepted; only HTTPS source references and claims are stored locally. Global exchange prices, audited private-company datasets, secure team persistence, independent company ratings, and the private DGX AI service all require separately authorised providers or infrastructure. A method calculation, subjective draft score or registered LEI record is not a verified valuation, credit rating or investment recommendation.

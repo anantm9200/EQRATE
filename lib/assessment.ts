@@ -163,11 +163,17 @@ export function parseAssessment(value:unknown):Assessment{
   if(typeof o[k]==='string') (a as unknown as Record<string,unknown>)[k]=(o[k] as string).slice(0,k==='analystNotes'?5000:250);
  }
  a.kind=o.kind;
+ // Preserve saved audit chronology. A malformed imported timestamp must not break sorting.
+ if(typeof o.updatedAt==='string'&&/^\d{4}-\d\d-\d\dT/.test(o.updatedAt)&&Number.isFinite(Date.parse(o.updatedAt)))
+   a.updatedAt=o.updatedAt.slice(0,35);
+ if(!/^[A-Z]{3}$/.test(a.currency))a.currency='USD';
+ if(!/^\d{4}-\d\d-\d\d$/.test(a.asOf)||Number.isNaN(Date.parse(a.asOf)))
+   a.asOf=new Date().toISOString().slice(0,10);
  if(o.fields&&typeof o.fields==='object'&&!Array.isArray(o.fields)){
   const values=o.fields as Record<string,unknown>;
   for(const k of numberKeys){const n=values[k];a.fields[k]=typeof n==='number'&&Number.isFinite(n)?n:null;}
  }
- if(Array.isArray(o.active))a.active=o.active.filter((x):x is Method=>typeof x==='string'&&Object.prototype.hasOwnProperty.call(methodNames,x)).slice(0,6);
+ if(Array.isArray(o.active))a.active=Array.from(new Set(o.active.filter((x):x is Method=>typeof x==='string'&&Object.prototype.hasOwnProperty.call(methodNames,x)))).slice(0,6);
  if(o.weights&&typeof o.weights==='object'&&!Array.isArray(o.weights)){
   const weights=o.weights as Record<string,unknown>;
   for(const k of Object.keys(methodNames) as Method[]){const n=weights[k];a.weights[k]=typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=100?n:1;}

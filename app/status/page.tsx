@@ -31,7 +31,7 @@ export default function StatusPage(){
  const checks=[
   {name:'Application API',active:health?.status==='online',value:health?.status==='online'?'Reachable':'Cannot confirm',detail:'Checks that the CREQOR health route responds; not a full provider availability test.'},
   {name:'Company valuation engine',active:true,value:'Available',detail:'Deterministic methods run in the browser. Values are based on manually entered inputs.'},
-  {name:'Draft evidence & exports',active:true,value:'Available',detail:'Source records and draft reports are stored and exported locally, without server authentication.'},
+  {name:'Research desk, draft evidence & exports',active:true,value:'Available',detail:'Source records and draft reports are stored and exported locally, without server authentication.'},
   {name:'Global LEI legal-entity discovery',active:leiReachable===true,value:leiReachable===null?'Checking source…':leiReachable?'GLEIF responding':'GLEIF unavailable',detail:'Live source test against the GLEIF reference-data API, not an audit or exchange-price verification.'},
   {name:'Official US SEC company search',active:health?.officialRegistryConfigured===true,value:health?.officialRegistryConfigured?'Configured':'Not configured',detail:'Official company records require the SEC_USER_AGENT connection and the remote data source to respond.'},
   {name:'Private DGX analyst',active:health?.privateIntelligenceConfigured===true,value:health?.privateIntelligenceConfigured?'Gateway configured':'Not configured',detail:'Server gateway must be enabled with model endpoint and access credentials before inference can work.'},
