@@ -2,7 +2,7 @@ import Link from 'next/link';
 import AssessmentWorkbench from '@/components/assessment-workbench';
 export const metadata={
  title:'Company Valuation Workbench',
- description:'Build an auditable company assessment with verified-source references, deterministic valuation models, scoring drafts, local persistence and exportable reports.'
+ description:'Build an auditable company assessment with traceable source references, deterministic valuation models, scoring drafts, local persistence and exportable reports.'
 };
 export default function WorkbenchPage(){
  return <>
