@@ -75,3 +75,16 @@ test('import rejects unknown shape and drops invalid numeric fields',()=>{
 test('input record has required financial fields and currency formatting',()=>{
  assert.ok(numberKeys.includes('sharesMillions'));assert.match(formatMillions(1.25,'USD'),/1\.25/);
 });
+
+test('import preserves update chronology for saved research and validates currency',()=>{
+ const a=filled();
+ a.updatedAt='2024-05-14T08:13:19.000Z';
+ const restored=parseAssessment(JSON.parse(JSON.stringify(a)));
+ assert.equal(restored.updatedAt,a.updatedAt);
+ const raw=JSON.parse(JSON.stringify(a));
+ raw.currency='<script>';raw.asOf='NOT_A_DATE';raw.active=['dcf','dcf','revenueMultiple'];
+ const safe=parseAssessment(raw);
+ assert.equal(safe.currency,'USD');
+ assert.equal(safe.active.filter(x=>x==='dcf').length,1);
+ assert.match(safe.asOf,/^\\d{4}-\\d{2}-\\d{2}$/);
+});
