@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import IntelligenceCanvas from '@/components/intelligence-canvas';
+import ResearchJourney from '@/components/research-journey';
 
 const jobs=[
  {n:'01',title:'Investors',headline:'An issuer worth understanding.',text:'Inspect the correct legal entity, source its financial records and challenge the assumptions behind its value.',href:'/explore',action:'Find the issuer',icon:'⌕'},
@@ -14,31 +15,38 @@ const steps=[
 ];
 export const metadata={title:'Company intelligence and valuation',description:'CREQOR helps analysts value listed and unlisted companies with transparent financial methods and traceable evidence.'};
 export default function Home(){return <>
- <section className="atlas-hero" aria-labelledby="atlas-title">
-  <div className="atlas-ambient" aria-hidden="true"/>
-  <div className="atlas-hero-grid">
-   <div className="atlas-copy">
-    <div className="atlas-eyebrow"><span className="atlas-eyebrow-line"/> INDEPENDENT COMPANY INTELLIGENCE <span className="atlas-edition">EST. 2026 / GLOBAL</span></div>
-    <h1 id="atlas-title">Every company<br/>has a story.<br/><span>Find the truth</span><br/>in the numbers<span className="atlas-period">.</span></h1>
-    <p className="atlas-lead">Understand the business. Challenge the valuation. Follow the evidence. A sharper way to research listed and private companies.</p>
-    <div className="atlas-actions">
-     <Link className="atlas-primary" href="/explore">Explore companies <span aria-hidden="true">↗</span></Link>
-     <Link className="atlas-secondary" href="/workbench">Build a valuation <span aria-hidden="true">↗</span></Link>
-    </div>
-    <div className="atlas-proof"><span><i/> Transparent models</span><span><i/> Traceable sources</span><span><i/> No invented ratings</span></div>
-   </div>
-   <IntelligenceCanvas/>
+ <section className="sweet-hero" aria-labelledby="sweet-title">
+  <div className="sweet-hero-halo" aria-hidden="true"/>
+  <div className="sweet-hero-copy">
+   <span className="sweet-eyebrow"><i/> CREQOR / COMPANY INTELLIGENCE</span>
+   <h1 id="sweet-title">The bigger picture.<br/><em>Behind every number.</em></h1>
+   <p>Discover companies. Understand what drives their value. Build research you can explain, challenge and take forward.</p>
+   <div className="sweet-hero-actions"><Link className="sweet-primary" href="/explore">Explore companies <span>↗</span></Link><Link className="sweet-outline" href="/workbench">Start an assessment <span>↗</span></Link></div>
+   <div className="sweet-hero-trust"><span>01 / FIND THE ENTITY</span><span>02 / TEST THE VALUE</span><span>03 / TRACE THE EVIDENCE</span></div>
   </div>
-  <div className="atlas-bottom"><div><span className="atlas-bottom-number">01 / 04</span><span>RESEARCH WITH CONVICTION</span></div><Link href="#for-whom">DISCOVER THE PLATFORM <span aria-hidden="true">↓</span></Link><span className="atlas-bottom-caption">CREQOR — INTELLIGENCE, RECONSIDERED.</span></div>
+  <div className="sweet-showcase"><div className="sweet-showcase-label"><span>THE INTELLIGENCE INTERFACE</span><span>ANALYSIS, NOT A MARKET QUOTE</span></div><IntelligenceCanvas/></div>
+  <Link className="sweet-scroll" href="#research-path">EXPLORE THE EXPERIENCE <span>↓</span></Link>
  </section>
- <nav className="command-routebar" aria-label="Direct access to CREQOR tools">
+ <section className="sweet-journey-section" id="research-path">
+  <div className="sweet-section-head"><span className="sweet-kicker">YOUR RESEARCH, YOUR WAY</span><h2>One platform.<br/><em>Many ways to understand.</em></h2><p>Choose what you want to do. CREQOR takes you to the right workspace, without making you navigate through a maze.</p></div>
+  <ResearchJourney/>
+ </section>
+ <section className="sweet-insight-section">
+  <div className="sweet-section-head"><span className="sweet-kicker">FROM QUESTION TO EVIDENCE</span><h2>Good research isn't<br/><em>a single number.</em></h2><p>Explore a business, challenge its assumptions and keep the reasoning attached to the result.</p></div>
+  <div className="sweet-insight-grid">
+   <article className="sweet-insight-card"><div className="sweet-insight-icon">⌕</div><span>01 / DISCOVERY</span><h3>Know exactly who you're looking at.</h3><p>Start with issuer identity and company records before you interpret financial data.</p><Link href="/explore">Explore company identities ↗</Link></article>
+   <article className="sweet-insight-card"><div className="sweet-insight-icon">◈</div><span>02 / ANALYSIS</span><h3>Put assumptions under pressure.</h3><p>Compare deterministic valuation methods, scenarios and sensitivity—not just a headline estimate.</p><Link href="/workbench">Open valuation analysis ↗</Link></article>
+   <article className="sweet-insight-card"><div className="sweet-insight-icon">≋</div><span>03 / EVIDENCE</span><h3>Make every claim traceable.</h3><p>Record dated source links, document limitations and export research for review.</p><Link href="/desk">Open your research desk ↗</Link></article>
+  </div>
+ </section>
+  <nav className="command-routebar" aria-label="Direct access to CREQOR tools">
   <Link href="/workbench"><span>START HERE</span><strong>Company workbench</strong><i>↗</i></Link>
   <Link href="/lab"><span>MODEL</span><strong>DCF laboratory</strong><i>↗</i></Link>
   <Link href="/desk"><span>YOUR WORK</span><strong>Research desk</strong><i>↗</i></Link>
   <Link href="/verification"><span>TRUST</span><strong>Evidence standards</strong><i>↗</i></Link>
  </nav>
  <section className="command-section command-jobs" id="for-whom">
-  <div className="command-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Different questions.<br/>One serious workspace.</h2></div><p>Purpose-built research journeys for people who need more than a headline number.</p></div>
+  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">BUILT FOR DECISION MAKERS</span><h2>Different questions.<br/>One serious workspace.</h2></div><p>Purpose-built research journeys for people who need more than a headline number.</p></div>
   <div className="command-jobs-grid">{jobs.map(j=><Link key={j.n} href={j.href} className="command-job">
     <div className="command-job-top"><span>{j.n} / {j.title.toUpperCase()}</span><b>↗</b></div>
     <div className="command-job-symbol" aria-hidden="true">{j.icon}<i/><i/></div>
@@ -46,11 +54,11 @@ export default function Home(){return <>
   </Link>)}</div>
  </section>
  <section className="command-section command-method">
-  <div className="command-method-intro"><span className="command-mini">THE RESEARCH LOOP</span><h2>More evidence.<br/><em>Less hand-waving.</em></h2><p>Every important number should be traceable: a legal entity, specific financial inputs, a reproducible calculation and a source you can inspect.</p><Link href="/methodology">See our methodology ↗</Link></div>
+  <div className="command-method-intro sweet-method-intro"><span className="command-mini">THE RESEARCH LOOP</span><h2>More evidence.<br/><em>Less hand-waving.</em></h2><p>Every important number should be traceable: a legal entity, specific financial inputs, a reproducible calculation and a source you can inspect.</p><Link href="/methodology">See our methodology ↗</Link></div>
   <div className="command-method-flow">{steps.map(s=><article key={s.n} className="command-step"><div><span>{s.n}</span><small>{s.tag}</small></div><h3>{s.head}</h3><p>{s.body}</p></article>)}</div>
  </section>
  <section className="command-section command-markets">
-  <div className="command-intro"><div><span className="command-mini">LISTED ≠ UNLISTED</span><h2>Two markets.<br/>Different definitions.</h2></div><p>Observed share prices and estimated business values are not interchangeable. The distinction stays visible in every model.</p></div>
+  <div className="command-intro sweet-centered-intro"><div><span className="command-mini">LISTED ≠ UNLISTED</span><h2>Two markets.<br/>Different definitions.</h2></div><p>Observed share prices and estimated business values are not interchangeable. The distinction stays visible in every model.</p></div>
   <div className="command-market-grid">
    <article className="command-market-card"><div className="command-market-top"><span>01 / LISTED</span><span>PUBLIC EQUITY</span></div><h3>Market capitalisation</h3><p>Applicable shares × dated market price. We can calculate it from entered figures; live licensed quotes are not yet connected.</p><div className="command-formula"><small>CALCULATION</small><strong>Price × Shares</strong></div><Link href="/workbench">Calculate market cap ↗</Link></article>
    <article className="command-market-card private"><div className="command-market-top"><span>02 / UNLISTED</span><span>PRIVATE EQUITY</span></div><h3>Estimated equity value</h3><p>DCF, comparables, net assets, funding and stake transactions produce estimates that depend on source quality.</p><div className="command-formula"><small>VALUATION</small><strong>Models + Evidence</strong></div><Link href="/workbench">Build an equity estimate ↗</Link></article>
