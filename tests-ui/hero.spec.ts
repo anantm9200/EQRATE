@@ -19,9 +19,22 @@ for(const viewport of viewports){
   await expect(hero).toBeVisible();
   await expect(title).toBeVisible();
   await expect(search).toBeVisible();
-  const heroHeight=await hero.evaluate(el=>el.getBoundingClientRect().height);
-  expect(heroHeight,'Hero should fill exactly one viewport').toBeGreaterThanOrEqual(viewport.height-2);
-  expect(heroHeight,'Hero should not be taller than the viewport at standard sizes').toBeLessThanOrEqual(viewport.height+2);
+  const fold=await page.evaluate(()=>{
+    const header=document.querySelector('.v2-header')!.getBoundingClientRect();
+    const hero=document.querySelector('.c3-hero')!.getBoundingClientRect();
+    const content=document.querySelector('.c3-hero-message')!.getBoundingClientRect();
+    const artwork=document.querySelector('.c3-hero-graphic')!.getBoundingClientRect();
+    const bottom=document.querySelector('.c3-hero-bottom')!.getBoundingClientRect();
+    return {header:{top:header.top,bottom:header.bottom},hero:{top:hero.top,bottom:hero.bottom,height:hero.height},content:{left:content.left,right:content.right,top:content.top,bottom:content.bottom},artwork:{top:artwork.top,bottom:artwork.bottom},bottom:{top:bottom.top,bottom:bottom.bottom}};
+  });
+  expect(fold.header.bottom,'Header within first fold').toBeLessThan(viewport.height);
+  expect(fold.hero.top,'Hero begins under header').toBeGreaterThanOrEqual(fold.header.bottom-2);
+  expect(fold.hero.bottom,'Hero ends at viewport bottom').toBeLessThanOrEqual(viewport.height+2);
+  expect(fold.hero.bottom,'Hero fills viewport').toBeGreaterThanOrEqual(viewport.height-2);
+  expect(fold.bottom.bottom,'Bottom navigation stays in first fold').toBeLessThanOrEqual(viewport.height+2);
+  expect(fold.content.top,'Content is visible in hero').toBeGreaterThanOrEqual(fold.header.bottom-2);
+  expect(fold.content.bottom,'Content is not clipped by bottom navigation').toBeLessThanOrEqual(fold.bottom.top+2);
+  expect(fold.artwork.top,'Artwork begins within the first fold').toBeLessThan(viewport.height-40);
   const radii=await page.evaluate(()=>{
     const selectors='button, [role="button"], a.primary-button, a.secondary-button, a.v2-primary-cta, a.v2-ai-link, a.v2-cta-round, a.round-link';
     return [...document.querySelectorAll<HTMLElement>(selectors)].map(el=>{

@@ -196,3 +196,93 @@
     .c3-hero { min-height: 100svh; }
   }
 }
+
+
+/* Rebuild the first fold: header + hero = one viewport.
+   The flex child previously shrank to its content due to auto margins,
+   causing the entire desktop layout to float in the middle of the screen. */
+:root { --creqor-header-height: 76px; }
+@media (max-width: 850px) { :root { --creqor-header-height: 68px; } }
+@media (max-width: 600px) { :root { --creqor-header-height: 65px; } }
+
+.c3-hero {
+  height: calc(100vh - var(--creqor-header-height));
+  min-height: calc(100vh - var(--creqor-header-height));
+}
+.c3-hero-main {
+  width: 100%;
+  align-self: stretch;
+  min-width: 0;
+}
+.c3-hero-message {
+  min-width: 0;
+}
+.c3-hero-graphic {
+  min-width: 0;
+}
+.c3-landscape {
+  filter: drop-shadow(0 10px 32px rgba(117, 238, 148, .15));
+}
+.c3-hero-bottom {
+  width: 100%;
+}
+@supports (height: 100svh) {
+  .c3-hero {
+    height: calc(100svh - var(--creqor-header-height));
+    min-height: calc(100svh - var(--creqor-header-height));
+  }
+}
+@media (max-width: 860px) {
+  .c3-hero-main {
+    grid-template-rows: auto minmax(0,1fr);
+    align-content:stretch;
+  }
+  .c3-hero-message {
+    align-self: end;
+    padding: 34px 0 0;
+  }
+  .c3-hero-graphic {
+    align-self: stretch;
+    min-height: 0;
+    height: auto;
+  }
+  .c3-visual {
+    margin-top: 0;
+    max-height: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .c3-hero-message {
+    padding: 30px 0 2px;
+  }
+  .c3-hero-graphic {
+    margin: 0 -3.1%;
+    height: auto;
+    min-height: 0;
+  }
+  .c3-visual {
+    margin: 0 auto;
+    max-height: 100%;
+    width: min(100%, 420px);
+    aspect-ratio: 700/430;
+  }
+  .c3-hero-bottom {
+    padding: 8px 3%;
+    min-height: 55px;
+  }
+}
+@media (max-width: 390px) {
+  .c3-hero-message { padding: 19px 0 0; }
+  .c3-hero-graphic { height: auto; }
+  .c3-visual { margin: 0 auto; aspect-ratio:700/400; }
+  .c3-hero-bottom { min-height: 48px; }
+}
+@media (max-height: 700px) {
+  .c3-hero {
+    height: auto;
+    min-height: calc(100vh - var(--creqor-header-height));
+  }
+  @supports (height: 100svh) {
+    .c3-hero { min-height: calc(100svh - var(--creqor-header-height)); }
+  }
+}
