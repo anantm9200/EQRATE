@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useEffect,useRef,useState} from 'react';
 import Brand from '@/components/brand';
+import CommandPalette from '@/components/command-palette';
 
 const primary=[
   {href:'/workbench',label:'Workbench'},
@@ -21,7 +22,8 @@ const menu=[
   {href:'/research',label:'Research centre',index:'08',detail:'The work behind the numbers'},
   {href:'/verification',label:'Verification',index:'09',detail:'Separate claims from proof'},
   {href:'/methodology',label:'Methodology',index:'10',detail:'Our standards and limitations'},
-  {href:'/watchlist',label:'My watchlist',index:'11',detail:'Return to your research'}
+  {href:'/watchlist',label:'My watchlist',index:'11',detail:'Return to your research'},
+  {href:'/status',label:'System readiness',index:'12',detail:'Check configured integrations'}
 ];
 export default function SiteShell({children}:{children:React.ReactNode}) {
  const path=usePathname();const [open,setOpen]=useState(false);const menuButton=useRef<HTMLButtonElement>(null);const firstLink=useRef<HTMLAnchorElement>(null);
@@ -40,7 +42,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
    <Brand/>
    <nav className="v2-top-nav" aria-label="Primary navigation">{primary.map(item=><Link href={item.href} key={item.href} className={path===item.href?'is-current':''}>{item.label}</Link>)}</nav>
    <div className="v2-header-actions">
-    <Link href="/analyst" className="v2-ai-link"><span className="v2-live-dot"/> AI analyst <span aria-hidden="true">↗</span></Link>
+    <CommandPalette/>
     <button ref={menuButton} className={'v2-menu-button'+(open?' is-open':'')} onClick={()=>setOpen(x=>!x)} aria-expanded={open} aria-controls="creqor-menu" aria-label={open?'Close navigation':'Open full-screen navigation'}>
       <span className="v2-menu-text">{open?'Close':'Menu'}</span><span className="v2-menu-icon"><i/><i/></span>
     </button>
@@ -66,7 +68,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
     <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/workbench">Company workbench</Link><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link></div>
     <div><span className="v2-footer-label">RESEARCH</span><Link href="/intelligence">Market intelligence</Link><Link href="/research">Research centre</Link><Link href="/methodology">Methodology</Link><Link href="/verification">Verification</Link></div>
     <div className="v2-footer-statement"><span className="v2-footer-label">INDEPENDENCE MATTERS</span><p>CREQOR is a research and modelling platform—not a credit rating agency or an investment adviser. Estimates are not observable market prices. Claims and conclusions need traceable sources.</p></div></div>
-    <div className="v2-footer-bottom"><span>© {new Date().getFullYear()} CREQOR</span><span>Designed for clarity. Built for scrutiny.</span><Link href="/api/health">System status ↗</Link></div>
+    <div className="v2-footer-bottom"><span>© {new Date().getFullYear()} CREQOR</span><span>Designed for clarity. Built for scrutiny.</span><Link href="/status">System status ↗</Link></div>
   </footer>
  </>;
 }
