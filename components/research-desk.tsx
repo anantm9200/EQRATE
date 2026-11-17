@@ -22,6 +22,7 @@ function download(name:string,mime:string,body:string){
  window.setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 function escapedCsv(value:unknown){
+ if(typeof value==='number'&&Number.isFinite(value))return String(value);
  const raw=String(value??'');
  const safe=/^[=+@-]/.test(raw.trim())?"'"+raw:raw;
  return '"'+safe.replace(/"/g,'""')+'"';
@@ -103,7 +104,8 @@ export default function ResearchDesk(){
    if(!valid.length)throw new Error('No named assessments found.');
    if(!window.confirm('Import '+valid.length+' draft(s) into this browser? Matching IDs will be replaced; the 30-record limit remains.'))return;
    const incoming=new Map(valid.map(a=>[a.id,a]));
-   const merged=[...valid,...items.filter(x=>!incoming.has(x.id))].slice(0,30);
+   const unique=Array.from(incoming.values());
+   const merged=[...unique,...items.filter(x=>!incoming.has(x.id))].slice(0,30);
    write(merged,'Imported '+Math.min(valid.length,30)+' draft records. Review all identities, financial inputs and URLs before relying on them.');
   }catch(e){setNotice('Import failed: '+(e instanceof Error?e.message:'Invalid JSON bundle.'));}
   finally{if(inputRef.current)inputRef.current.value='';}

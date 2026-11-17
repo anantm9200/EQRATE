@@ -47,3 +47,20 @@ test('mobile research desk and sensitivity do not overflow the viewport',async({
   expect(dimensions.pageWidth).toBeLessThanOrEqual(dimensions.viewport+2);
  }
 });
+
+test('evidence reference can be edited and removed without recreating the record',async({page})=>{
+ await page.goto('/workbench');
+ await page.getByRole('tab',{name:/04 Evidence/}).click();
+ await page.getByPlaceholder('e.g. FY2025 audited accounts').fill('Draft annual accounts');
+ await page.getByPlaceholder('https://…').fill('https://example.org/v1');
+ await page.locator('.wk-evidence-form input[type=date]').fill('2025-12-31');
+ await page.getByRole('button',{name:/Record evidence/}).click();
+ await page.getByRole('button',{name:'Edit source Draft annual accounts'}).click();
+ await page.getByPlaceholder('e.g. FY2025 audited accounts').fill('Corrected source title');
+ await page.getByPlaceholder('https://…').fill('https://example.org/v2');
+ await page.getByRole('button',{name:'Save evidence changes'}).click();
+ await expect(page.locator('.wk-evidence-row')).toHaveCount(1);
+ await expect(page.locator('.wk-evidence-row')).toContainText('Corrected source title');
+ await page.getByRole('button',{name:'Remove source Corrected source title'}).click();
+ await expect(page.locator('.wk-evidence-row')).toHaveCount(0);
+});
