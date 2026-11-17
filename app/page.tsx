@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import IntelligenceCanvas from '@/components/intelligence-canvas';
 import ResearchJourney from '@/components/research-journey';
+import MotionObserver from '@/components/motion-observer';
 
 const jobs=[
  {n:'01',title:'Investors',headline:'An issuer worth understanding.',text:'Inspect the correct legal entity, source its financial records and challenge the assumptions behind its value.',href:'/explore',action:'Find the issuer',icon:'⌕'},
@@ -14,7 +15,7 @@ const steps=[
  {n:'04',tag:'DELIVER',head:'Take the report with you',body:'Save locally, export data or print an audit-ready draft.'}
 ];
 export const metadata={title:'Company intelligence and valuation',description:'CREQOR helps analysts value listed and unlisted companies with transparent financial methods and traceable evidence.'};
-export default function Home(){return <>
+export default function Home(){return <><MotionObserver/>
  <section className="sweet-hero" aria-labelledby="sweet-title">
   <div className="sweet-hero-halo" aria-hidden="true"/>
   <div className="sweet-hero-copy">
