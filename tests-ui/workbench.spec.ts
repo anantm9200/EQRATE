@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 
-test('workbench opens and models a private company's revenue and EBITDA values',async({page})=>{
+test("workbench opens and models a private company’s revenue and EBITDA values",async({page})=>{
  await page.setViewportSize({width:1440,height:900});
  await page.goto('/workbench');
  await expect(page.getByRole('heading',{name:/Research a company/i})).toBeVisible();
