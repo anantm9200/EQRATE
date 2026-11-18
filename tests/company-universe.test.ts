@@ -41,7 +41,7 @@ test('featured company universe returns only authentic parsed response records a
  }) as typeof fetch;
  try{
   const result=await getFeaturedCompanyUniverse();
-  assert.equal(attempts,FEATURED_ENTITY_NAMES.length);
+  assert.equal(attempts,FEATURED_ENTITY_NAMES.length+1); // one GLEIF directory fallback after incomplete name matches
   assert.equal(result.attempted,FEATURED_ENTITY_NAMES.length);
   assert.equal(result.records.length,1);
   assert.equal(result.records[0].name,'APPLE INC.');
