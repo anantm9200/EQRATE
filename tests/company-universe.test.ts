@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {DIRECTORY_PAGE_SIZE,directoryUrl,type LeiEntity} from '../lib/gleif';
-import {selectFeaturedEntity,getFeaturedCompanyUniverse,FEATURED_ENTITY_NAMES} from '../lib/company-universe';
+import {selectFeaturedEntity,getFeaturedCompanyUniverse,FEATURED_ENTITY_NAMES,FEATURED_UNIVERSE_LIMIT} from '../lib/company-universe';
 
 function entity(name:string,lei:string,registrationStatus='ISSUED',status='ACTIVE'):LeiEntity{
  return {name,lei,registrationStatus,status,country:'US',jurisdiction:'US-DE',
@@ -56,19 +56,19 @@ test('featured discovery fills gaps only with official indexed source records',a
  globalThis.fetch=(async(input:RequestInfo|URL)=>{
   const url=new URL(String(input));
   if(url.searchParams.get('page[size]')==='60'){
-   const rows=Array.from({length:15},(_,i)=>{
+   const rows=Array.from({length:40},(_,i)=>{
     const lei=String(i+1).padStart(20,'0');
     return {id:lei,attributes:{lei,entity:{legalName:{name:'Synthetic GLEIF Fixture '+(i+1)},
       status:'ACTIVE',legalAddress:{country:'US'}},
       registration:{status:'ISSUED',lastUpdateDate:'2026-11-18'}}};
    });
-   return new Response(JSON.stringify({data:rows,meta:{pagination:{total:15}}}),{status:200});
+   return new Response(JSON.stringify({data:rows,meta:{pagination:{total:40}}}),{status:200});
   }
   return new Response('{}',{status:503});
  }) as typeof fetch;
  try{
   const result=await getFeaturedCompanyUniverse();
-  assert.equal(result.records.length,FEATURED_ENTITY_NAMES.length);
+  assert.equal(result.records.length,FEATURED_UNIVERSE_LIMIT);
   assert.ok(result.records.every(x=>x.sourceUrl.startsWith('https://search.gleif.org/#/record/')));
   assert.ok(result.records.every(x=>x.name.startsWith('Synthetic GLEIF Fixture ')));
  }finally{globalThis.fetch=old;}
