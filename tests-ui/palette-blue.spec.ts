@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 const isDecorativeGreen=(value:string)=>{
- const match=value.match(/rgba?\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)/i);
+ const match=value.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
  if(!match)return false;
  const [r,g,b]=match.slice(1,4).map(Number).map(x=>x/255);
  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,light=(max+min)/2;
