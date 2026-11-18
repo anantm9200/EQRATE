@@ -25,7 +25,7 @@ test('source index rejects invented, malformed and nonofficial registry records'
  assert.throws(()=>sourceFingerprint({...a,name:''}),/BAD_ENTITY/);
 });
 test('public catalogue queries validate bounding constraints BEFORE contacting a database',async()=>{
- for(const invalid of [{page:0},{page:1001},{q:'a'},{q:'a'.repeat(91)},{country:'USA'},{country:'ae'}]){
+ for(const invalid of [{page:0},{page:1001},{q:'a'},{q:'a'.repeat(91)},{country:'USA'},{country:'a1'}]){
   await assert.rejects(()=>listIndexedRecords(invalid),/INVALID_FILTER/,JSON.stringify(invalid));
  }
 });
