@@ -66,3 +66,13 @@ Browser localStorage is not a secure encrypted repository, shared workspace or a
 - **Not yet provided:** secure organisation accounts, central storage of private research, compliant licensed market pricing, historical audited financial datasets, backtested regulated credit ratings, or a production DGX inference endpoint. These require separate authorisation, credentials and infrastructure.
 
 See [engineering gates](docs/ENGINEERING_PLAYBOOK.md), [design/data sourcing rules](docs/DESIGN_AND_CATALOGUE.md) and [catalogue runbook](docs/CATALOGUE_RUNBOOK.md).
+
+## Official public-records ingestion (18 November 2026)
+
+CREQOR can search live GLEIF legal-entity reference data. The global coverage panel on the homepage and directory reads **official GLEIF Golden Copy publication metadata** and explicitly distinguishes global source coverage from the number actually stored in CREQOR. The latest verified GLEIF source release reported 3,497,788 records (2026-11-18 08:00 UTC); this is **not** a local indexed count.
+
+The Golden Copy CSV importer is implemented at `scripts/gleif-golden-copy.ts` and was exercised against the real official 510,204,340-byte ZIP: 500 of the first 500 rows parsed, 0 invalid in its operator dry run. It streams the archive, handles source schema validation, preserves original LEI provenance, and writes idempotent batches to the existing Postgres catalogue when configured. Never run the huge archive job inside a Vercel request or make it part of a routine Next.js build.
+
+The SEC ticker/CIK/exchange association importer uses the official `company_tickers_exchange.json` file and stores securities associations independently from LEIs. Its source was observed to contain 10,400 ticker associations across 7,996 unique CIKs on 2026-11-18. Its `/issuers` browsing page remains in an honest unconfigured state until Postgres and a genuine `SEC_USER_AGENT` containing a monitored contact email are supplied.
+
+**No production Postgres database is connected and the bulk imports have not been committed to a persistent company index.** The existing live directory remains available; no fictional record, market quote or rating is substituted. See `docs/OFFICIAL_PUBLIC_RECORDS.md` for source citations, migration order, safe operator commands, capacity, validation and rollback.
