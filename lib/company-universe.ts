@@ -1,4 +1,4 @@
-import {searchLEI,type LeiEntity} from './gleif';
+import {searchLEI,listLEIRecords,type LeiEntity} from './gleif';
 
 /**
  * Editorial search targets only. Real company cards are produced exclusively
@@ -43,6 +43,24 @@ export async function getFeaturedCompanyUniverse():Promise<{records:CompanyUnive
   records.push({lei:item.lei,name:item.name,country:item.country,jurisdiction:item.jurisdiction,
    registrationStatus:item.registrationStatus,status:item.status,
    sourceUrl:item.sourceUrl,lastUpdate:item.lastUpdate});
+ }
+ // Featured search targets can be absent from the first GLEIF search window.
+ // Fill remaining cards with other genuine official legal entities rather than
+ // exposing a sparse or fictional homepage. Fail closed if the source is down.
+ if(records.length<FEATURED_ENTITY_NAMES.length){
+  try{
+   const listing=await listLEIRecords({page:1});
+   const candidates=[...listing.results].sort((a,b)=>
+    Number(b.registrationStatus==='ISSUED')-Number(a.registrationStatus==='ISSUED')||
+    Number(b.status==='ACTIVE')-Number(a.status==='ACTIVE'));
+   for(const item of candidates){
+    if(records.length>=FEATURED_ENTITY_NAMES.length)break;
+    if(seen.has(item.lei))continue;
+    seen.add(item.lei);
+    records.push({lei:item.lei,name:item.name,country:item.country,jurisdiction:item.jurisdiction,
+     registrationStatus:item.registrationStatus,status:item.status,sourceUrl:item.sourceUrl,lastUpdate:item.lastUpdate});
+   }
+  }catch{/* The named official records remain available even if browsing fails. */}
  }
  return {records,attempted:FEATURED_ENTITY_NAMES.length};
 }
