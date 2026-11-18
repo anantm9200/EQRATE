@@ -272,3 +272,13 @@ main>section,main>div{box-sizing:border-box}
  .wk-root{padding:0!important}
  .site-header,.v2-prefooter,.v2-footer{display:none!important}
 }
+
+/* Legacy editorial/showcase sections are held to the same flat-canvas rule. */
+.hero,.prefooter{background:#173629!important;background-image:none!important}
+.v2-home-hero:before,.command-backdrop:before,.command-hero-utility:before{
+ display:none!important;
+ background:none!important;
+}
+.v2-visual-grid{background-image:none!important}
+.terminal-result{background:#e5f4ea!important;background-image:none!important}
+.terminal-result:after{display:none!important}
