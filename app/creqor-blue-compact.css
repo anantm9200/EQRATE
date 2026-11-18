@@ -310,3 +310,14 @@ html,body,main{color:var(--cq-ink)!important;background:#fff!important}
 /* Green and amber remain reserved for actual success and warning states, not the brand. */
 .status-ready-dot{background:#248a58!important}
 .status-await-dot{background:#9caabb!important}
+
+/* Verified-source footprint; do not conflate coverage with the local index. */
+.cq-public-coverage{display:flex;align-items:center;gap:22px;justify-content:space-between;
+ margin:17px 0 20px;padding:17px 20px;border:1px solid #dee7f3;border-radius:10px;background:#f7f9fd}
+.cq-public-coverage-metric{display:flex;flex-direction:column;gap:2px;flex:0 1 42%}
+.cq-public-coverage-metric strong{font:600 clamp(1.35rem,2.4vw,2.15rem)/1.15 var(--font-montserrat),sans-serif;color:#1c385f;letter-spacing:-.05em}
+.cq-public-coverage-metric span{font-size:.68rem;color:#6b7e97;line-height:1.5}
+.cq-public-coverage-detail{display:flex;flex-direction:column;gap:4px;max-width:520px;align-items:flex-start}
+.cq-public-coverage-detail p{font-size:.68rem!important;color:#62768d!important;line-height:1.45!important;margin:0!important;max-width:none!important}
+.cq-public-coverage-detail a{font-size:.68rem;color:#305fb9;font-weight:650;margin-top:4px}
+@media(max-width:650px){.cq-public-coverage{flex-direction:column;align-items:stretch;gap:11px;padding:15px}}
