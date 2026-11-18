@@ -213,3 +213,6 @@ export async function upsertSourcedBatch(input:LeiEntity[]):Promise<{seen:number
  }catch(e){await client.query('ROLLBACK');throw e;}
  finally{client.release();}
 }
+
+/** Server/operator-only connection to the approved source catalogue. Never expose to client components. */
+export function getSourceCataloguePool():Pool{return database();}
