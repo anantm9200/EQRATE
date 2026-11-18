@@ -25,7 +25,8 @@ test('every imported stylesheet uses blue/neutral pigments; only real success st
  for(const file of files){
   const css=readFileSync('app/'+file,'utf8');
   for(const color of css.match(/#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3})\b/gi)||[]){
-   if(!greenHue(...channels(color)))continue;
+   const swatch=channels(color);
+   if(!greenHue(swatch[0],swatch[1],swatch[2]))continue;
    // Semantic operational readiness is permitted; branding green is not.
    assert.equal(file,'creqor-blue-compact.css','Unexpected green swatch '+color+' in '+file);
    assert.equal(color.toLowerCase(),'#248a58','Unexpected nonsemantic green swatch '+color);
