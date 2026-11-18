@@ -13,6 +13,9 @@ for(const route of routes){
   if(route.slug==='explore'){
    await expect(page.locator('.lei-main')).toBeVisible();
    await expect(page.getByRole('combobox',{name:/Search global LEI legal entity records/i})).toBeVisible();
+  }else if(route.slug==='intelligence'){
+   await expect(page.locator('.iq-console')).toBeVisible();
+   await expect(page.getByRole('searchbox',{name:'Search global entity intelligence'})).toBeVisible();
   }else{
    await expect(page.locator('.cx-section').first()).toBeVisible();
    expect(await page.locator('.cx-section').count()).toBeGreaterThanOrEqual(route.min);

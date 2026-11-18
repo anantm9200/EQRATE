@@ -65,7 +65,7 @@ test('unavailable SEC connector produces an honest message, never synthetic fina
  await page.route('**/api/intelligence/sec/'+cik,async route=>route.fulfill({status:503,contentType:'application/json',
   body:JSON.stringify({error:'The SEC connector is not configured for this deployment.'})}));
  await page.goto('/intelligence?cik='+cik);
- await expect(page.getByRole('alert')).toContainText('SEC connector is not configured');
+ await expect(page.locator('.iq-state.iq-error[role="alert"]')).toContainText('SEC connector is not configured');
  await expect(page.locator('.iq-financial-panel')).toHaveCount(0);
 });
 for(const width of [320,375,768,1440]){
