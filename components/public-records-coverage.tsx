@@ -13,7 +13,7 @@ export default function PublicRecordsCoverage(){
   return ()=>controller.abort();
  },[]);
  if(!data?.referenceRecords)return null;
- return <div className="cq-public-coverage" aria-label="Official public legal-entity dataset coverage">
+ return <section className="cq-public-coverage" aria-label="Official public legal-entity dataset coverage">
   <div className="cq-public-coverage-metric"><strong>{new Intl.NumberFormat('en-US').format(data.referenceRecords)}</strong><span>legal-entity records in the official GLEIF index</span></div>
   <div className="cq-public-coverage-detail"><p>Published {data.asOf?.slice(0,10)} · Global public coverage, not CREQOR's stored company count.</p>
    <p>{data.locallyIndexedOperational?
@@ -21,5 +21,5 @@ export default function PublicRecordsCoverage(){
    'CREQOR bulk index not yet activated; live global source search is available.'}</p>
    <Link href="/directory">Explore official records ↗</Link>
   </div>
- </div>;
+ </section>;
 }
