@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PlatformPreview from '@/components/platform-preview';
+import IntelligenceSignalDemo from '@/components/intelligence-signal-demo';
 
 export const metadata={
  title:'Company intelligence, made clear',
@@ -46,6 +47,8 @@ export default function Home(){return <>
    </Link>)}
   </div>
  </section>
+
+ <IntelligenceSignalDemo/>
 
  <section className="ux-section ux-method" aria-labelledby="ux-method-title">
   <div className="ux-method-intro">
