@@ -213,3 +213,10 @@
 .iq-home-steps strong{font-family:var(--font-montserrat),sans-serif;font-size:.91rem;font-weight:600;color:#29543a}
 .iq-home-steps small{color:#849988;font-size:.7rem}
 @media(max-width:650px){.iq-home-steps{grid-template-columns:1fr;gap:9px;margin-top:27px}.iq-home-steps>div{padding:20px 15px}}
+
+.iq-source-health{padding:12px 21px;background:rgba(248,253,249,.86);display:flex;gap:15px 22px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #e0ebe3}
+.iq-source-health span{display:inline-flex;align-items:center;gap:8px;font-size:.63rem;font-weight:650;letter-spacing:.075em;color:#758d7a}
+.iq-source-health i{display:inline-block;width:7px;height:7px;border-radius:50%;flex:none}
+.iq-source-health i.is-live{background:#35a064;box-shadow:0 0 0 3px rgba(49,153,93,.1)}
+.iq-source-health i.is-pending{background:#bbbf9f;box-shadow:0 0 0 3px rgba(176,181,141,.1)}
+@media(max-width:650px){.iq-source-health{padding:12px;gap:11px}.iq-source-health span{font-size:.53rem}}

@@ -36,6 +36,15 @@ export default function IntelligenceCommandCentre(){
  const [loading,setLoading]=useState(false);
  const [error,setError]=useState('');
  const [activeMetric,setActiveMetric]=useState<FinancialMetricKey>('revenue');
+ const [sourceReadiness,setSourceReadiness]=useState<{officialRegistryConfigured:boolean;privateIntelligenceConfigured:boolean}|null>(null);
+ useEffect(()=>{
+  const controller=new AbortController();
+  fetch('/api/health',{cache:'no-store',signal:controller.signal})
+   .then(async r=>{if(!r.ok)throw new Error('READINESS_UNAVAILABLE');return r.json();})
+   .then(x=>{if(!controller.signal.aborted)setSourceReadiness({officialRegistryConfigured:Boolean(x.officialRegistryConfigured),privateIntelligenceConfigured:Boolean(x.privateIntelligenceConfigured)});})
+   .catch(()=>{});
+  return()=>controller.abort();
+ },[]);
  const searchAbort=useRef<AbortController|null>(null);
  const reportAbort=useRef<AbortController|null>(null);
  const hydrated=useRef(false);
@@ -109,6 +118,11 @@ export default function IntelligenceCommandCentre(){
  return <div className="iq-root">
   <div className="iq-console" aria-label="CREQOR intelligence search console">
    <div className="iq-console-top"><div><span className="iq-dot"/> OFFICIAL SOURCE INTELLIGENCE</div><span>PROVENANCE-FIRST ANALYSIS · NO INVENTED RATINGS</span></div>
+   <div className="iq-source-health" role="status" aria-label="Live connector readiness">
+    <span><i className="is-live"/> GLEIF · LIVE SOURCE</span>
+    <span><i className={sourceReadiness?.officialRegistryConfigured?'is-live':'is-pending'}/> SEC · {sourceReadiness===null?'CHECKING':sourceReadiness.officialRegistryConfigured?'CONFIGURED':'CONNECTION PENDING'}</span>
+    <span><i className={sourceReadiness?.privateIntelligenceConfigured?'is-live':'is-pending'}/> PRIVATE AI · {sourceReadiness===null?'CHECKING':sourceReadiness.privateIntelligenceConfigured?'CONFIGURED':'NOT CONNECTED'}</span>
+   </div>
    <div className="iq-source-tabs" role="tablist" aria-label="Intelligence sources">
     <button type="button" role="tab" aria-selected={mode==='lei'} className={mode==='lei'?'is-active':''} onClick={()=>reset('lei')}>Global legal-entity intelligence <span>GLEIF</span></button>
     <button type="button" role="tab" aria-selected={mode==='sec'} className={mode==='sec'?'is-active':''} onClick={()=>reset('sec')}>US financial intelligence <span>SEC</span></button>
@@ -124,7 +138,7 @@ export default function IntelligenceCommandCentre(){
    {searchIssue&&<p className="iq-assist iq-alert" role="status">{searchIssue}</p>}
    {!selected&&suggestions.length>0&&<div className="iq-suggestions" role="listbox" aria-label="Official source matches">{suggestions.map(item=>
     <button type="button" role="option" aria-selected={false} key={item.id} onClick={()=>inspect(item.id,item.name)}><span><strong>{item.name}</strong><small>{item.sub}</small></span><span aria-hidden="true">↗</span></button>)}</div>}
-   {mode==='sec'&&<p className="iq-console-foot">US annual financials require the SEC connector. <a target="_blank" rel="noopener noreferrer" href="https://www.sec.gov/search-filings">Official SEC EDGAR ↗</a></p>}
+   {mode==='sec'&&<p className="iq-console-foot">{sourceReadiness?.officialRegistryConfigured===false?'The official SEC connection is not configured in this deployment. Financial reports are not available yet.':'US annual financials require the SEC connector.'} <a target="_blank" rel="noopener noreferrer" href="https://www.sec.gov/search-filings">Official SEC EDGAR ↗</a></p>}
    {mode==='lei'&&<p className="iq-console-foot">GLEIF identifies legal entities across jurisdictions. <a target="_blank" rel="noopener noreferrer" href="https://search.gleif.org/">Official GLEIF search ↗</a></p>}
   </div>
 
