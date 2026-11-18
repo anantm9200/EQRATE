@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:ui": "playwright test",
-    "test:release": "npm run test:ui"
+    "test:release": "npm run test:ui",
+    "catalogue:backfill": "tsx scripts/catalogue-backfill.ts"
   },
   "dependencies": {
     "next": "^15.5.0",
