@@ -3,6 +3,10 @@
     {
       "path": "/api/ops/smoke",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/ops/catalogue-sync",
+      "schedule": "25 * * * *"
     }
   ]
 }
