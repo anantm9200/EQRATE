@@ -8,7 +8,7 @@ test('liquid glass is visibly translucent with an independently blurred backgrou
  const values=await page.evaluate(()=>{
   const glass=getComputedStyle(document.querySelector('.ux-preview')!);
   const header=getComputedStyle(document.querySelector('.site-header')!);
-  return {filter:glass.backdropFilter||glass.webkitBackdropFilter,background:glass.backgroundColor,headerFilter:header.backdropFilter||header.webkitBackdropFilter,headerPosition:header.position,atmosphere:document.querySelectorAll('.fx-hero-atmosphere span').length};
+  return {filter:glass.backdropFilter||glass.getPropertyValue('-webkit-backdrop-filter'),background:glass.backgroundColor,headerFilter:header.backdropFilter||header.getPropertyValue('-webkit-backdrop-filter'),headerPosition:header.position,atmosphere:document.querySelectorAll('.fx-hero-atmosphere span').length};
  });
  expect(values.filter).toContain('blur(');
  expect(values.headerFilter).toContain('blur(');
