@@ -2,6 +2,7 @@
 import {useMemo,useState} from 'react';
 import {computeAssessment,formatMillions,type Assessment,type NumberKey} from '@/lib/assessment';
 import {buildSensitivity,buildScenarios,reviewAssessment,type Scenario} from '@/lib/research-intelligence';
+import ForensicReportPanel from '@/components/forensic-report-panel';
 
 type Props={
  assessment:Assessment;
@@ -100,6 +101,7 @@ export default function AnalysisCockpit({assessment,onChangeInputs,onOpenEvidenc
    <div className="ic-disclosure"><strong>Research status: unverified analyst draft.</strong> Recorded source categories do not confirm document authenticity, the correct issuer, audit scope, or a current traded price. There is no autonomous credit rating or investment recommendation.</div>
    <div className="ic-footer-actions"><button className="wk-button wk-outline" type="button" onClick={onOpenEvidence}>Review source register →</button><button className="wk-button wk-primary" type="button" onClick={onOpenReport}>Generate report →</button></div>
   </section>
+  <ForensicReportPanel assessment={assessment} compact/>
   {feedback&&<div className="ic-message" role="status">{feedback}<button type="button" onClick={()=>setFeedback('')} aria-label="Dismiss notification">×</button></div>}
  </div>;
 }
