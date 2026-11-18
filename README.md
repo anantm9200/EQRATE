@@ -6,7 +6,7 @@ CREQOR is a new evidence-led company research and valuation application. Its fir
 
 ## What's working in the code
 
-- Premium, responsive dark-green and gradient design, custom SVG logo, Poppins + Inter, full-screen navigation, motion and glassmorphism
+- White-first institutional navy/blue design, Montserrat + Inter, compact shared spacing, accessible keyboard interactions and source-backed company browsing
 - Landing, company explorer, issuer profile, comparison, local watchlist, valuation lab, market intelligence, private AI analyst, research, verification and methodology pages
 - Official US SEC entity discovery, issuer identity and annual financial highlights **when** `SEC_USER_AGENT` is configured
 - Deterministic market-cap and DCF computations with input checks and unit tests
@@ -35,7 +35,7 @@ See [architecture and known limits](docs/ARCHITECTURE.md) and [schema](db/schema
 
 CREQOR is **not** presenting itself as a licensed credit rating agency. No live trading prices, source-backed private valuations, company scores, M&A events or fabricated financial stories are included. Live market-data coverage, verified financial facts, regulated research, subscriptions and multi-agent RAG remain future implementation stages. Do not publish unsupported market-cap, ranking, or acquisition claims.
 
-No Vercel project was created or deployed by this commit. The GitHub repository is ready for later import.
+CREQOR is deployed on Vercel at https://creqor.vercel.app. Production readiness is confirmed per release; source-provider and database connectivity are separate.
 ## Research workflows (November 2026)
 
 - **Global company discovery:** GLEIF legal entity search with company identity prefill for the assessment workspace; no claim of financial verification from LEI status
@@ -54,3 +54,15 @@ No Vercel project was created or deployed by this commit. The GitHub repository 
 ### Important limits
 
 Browser localStorage is not a secure encrypted repository, shared workspace or account system. Uploaded evidence files are not accepted; only HTTPS source references and claims are stored locally. Global exchange prices, audited private-company datasets, secure team persistence, independent company ratings, and the private DGX AI service all require separately authorised providers or infrastructure. A method calculation, subjective draft score or registered LEI record is not a verified valuation, credit rating or investment recommendation.
+
+### Data foundation and cross-company intelligence (November 2026)
+
+- **Global company catalogue:** live GLEIF legal-entity browsing with 60 records/page; when configured, an independent versioned PostgreSQL entity index is exposed at `/catalogue` and `/api/catalogue`, with immutable source-fingerprint observations.
+- **Authenticated ingestion:** `/api/ops/catalogue-sync` requires `CRON_SECRET`, ingests 3 bounded GLEIF pages from one country per hour and rotates between 16 markets. It returns a disabled status when `DATABASE_URL` is absent. Manual admin requests can specify 1–8 pages per country. A country cursor advances only after all requested pages succeeded.
+- **Migration:** `db/migrations/001_lei_catalogue.sql` must be applied to an approved dedicated Postgres 15+ instance with restricted credentials. It has not been applied by the repository or by Vercel.
+- **Evidence intelligence:** `/intelligence` compares up to 30 browser-local assessments for repeated URLs, name/identifier conflicts, source-host concentration and large between-draft changes. Local registration numbers are jurisdiction-scoped. Results are **research leads, not independently verified relationships or risk ratings.**
+- **Status:** `/status` and `/api/catalogue/status` distinguish an active index from an unconfigured database; no invented count is displayed.
+- **Validation:** Vercel runs deterministic tests and Next.js build. Playwright checks require an executable browser session; Vercel build success does not mean those UI tests ran.
+- **Not yet provided:** secure organisation accounts, central storage of private research, compliant licensed market pricing, historical audited financial datasets, backtested regulated credit ratings, or a production DGX inference endpoint. These require separate authorisation, credentials and infrastructure.
+
+See [engineering gates](docs/ENGINEERING_PLAYBOOK.md), [design/data sourcing rules](docs/DESIGN_AND_CATALOGUE.md) and [catalogue runbook](docs/CATALOGUE_RUNBOOK.md).
