@@ -124,8 +124,8 @@ main>section,main>div{box-sizing:border-box}
  padding:var(--cq-app-space) var(--cq-page-gutter) clamp(66px,6vw,88px)!important;
 }
 .wk-root{
- /* The workbench itself owns its internal shell/side navigation geometry. */
- padding:0!important;
+ /* The analytical workspace requires the same 3% outer gutter as public pages. */
+ padding:var(--cq-app-space) var(--cq-page-gutter) clamp(66px,6vw,88px)!important;
  background:var(--cq-surface)!important;
 }
 .wk-shell,.wk-dashboard-header,.wk-toolbar,.wk-final-disclosure{
@@ -265,4 +265,10 @@ main>section,main>div{box-sizing:border-box}
 }
 @media(prefers-reduced-motion:reduce){
  .signal-shell *,.ux-preview *{animation:none!important}
+}
+
+/* Keep previous report-print behaviour despite the screen spacing reset. */
+@media print{
+ .wk-root{padding:0!important}
+ .site-header,.v2-prefooter,.v2-footer{display:none!important}
 }
