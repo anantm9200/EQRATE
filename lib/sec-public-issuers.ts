@@ -79,7 +79,49 @@ export async function listIndexedSecIssuers(filters:SecIssuerSearch={}):Promise<
  if(q.length>90||(q.length>0&&q.length<2)||!Number.isSafeInteger(page)||page<1||page>2000||
   exchange.length>35||!/^[a-zA-Z0-9. _-]*$/.test(exchange))throw new Error('SEC_ISSUER_INVALID_FILTER');
  const clauses:string[]=[],params:(string|number)[]=[];
- if(q){params.push(q.replace(/[\\%_]/g,'\\$&')+'%');clauses.push('(lower(legal_name) LIKE $'+params.length+" ESCAPE '\\\\' OR lower(ticker) LIKE $"+params.length+" ESCAPE '\\\\')");}
+ if(q){params.push(q);clauses.push('(starts_with(lower(legal_name),
+ if(exchange){params.push(exchange);clauses.push('exchange = $'+params.length);}
+ const sql=clauses.length?' WHERE '+clauses.join(' AND '):'';
+ const db=getSourceCataloguePool();
+ const count=await db.query<{n:string}>('SELECT count(*)::text n FROM public.cq_sec_issuers'+sql,params);
+ const total=Number(count.rows[0]?.n||0);
+ const rows=await db.query<{cik:number;legal_name:string;ticker:string;exchange:string;source_sha256:string}>(
+  'SELECT cik,legal_name,ticker,exchange,source_sha256 FROM public.cq_sec_issuers'+sql+
+  ' ORDER BY lower(legal_name),ticker LIMIT $'+(params.length+1)+' OFFSET $'+(params.length+2),
+  [...params,60,(page-1)*60]);
+ return {source:'SEC',total,page,pageSize:60,hasMore:page*60<total,
+  records:rows.rows.map(r=>({cik:r.cik,name:r.legal_name,ticker:r.ticker,exchange:r.exchange,
+   sourceUrl:SEC_ISSUERS_URL,sourceFingerprint:r.source_sha256.trim()}))};
+}
+export async function secIssuerIndexStatus():Promise<{configured:boolean;count:number;status:'ready'|'unconfigured'|'unavailable'}>{
+ if(!catalogueConfigured())return{configured:false,count:0,status:'unconfigured'};
+ try{
+  const r=await getSourceCataloguePool().query<{n:string}>('SELECT count(*)::text n FROM public.cq_sec_issuers');
+  return{configured:true,count:Number(r.rows[0]?.n||0),status:'ready'};
+ }catch{return{configured:true,count:0,status:'unavailable'};}
+}
++params.length+') OR starts_with(lower(ticker),
+ if(exchange){params.push(exchange);clauses.push('exchange = $'+params.length);}
+ const sql=clauses.length?' WHERE '+clauses.join(' AND '):'';
+ const db=getSourceCataloguePool();
+ const count=await db.query<{n:string}>('SELECT count(*)::text n FROM public.cq_sec_issuers'+sql,params);
+ const total=Number(count.rows[0]?.n||0);
+ const rows=await db.query<{cik:number;legal_name:string;ticker:string;exchange:string;source_sha256:string}>(
+  'SELECT cik,legal_name,ticker,exchange,source_sha256 FROM public.cq_sec_issuers'+sql+
+  ' ORDER BY lower(legal_name),ticker LIMIT $'+(params.length+1)+' OFFSET $'+(params.length+2),
+  [...params,60,(page-1)*60]);
+ return {source:'SEC',total,page,pageSize:60,hasMore:page*60<total,
+  records:rows.rows.map(r=>({cik:r.cik,name:r.legal_name,ticker:r.ticker,exchange:r.exchange,
+   sourceUrl:SEC_ISSUERS_URL,sourceFingerprint:r.source_sha256.trim()}))};
+}
+export async function secIssuerIndexStatus():Promise<{configured:boolean;count:number;status:'ready'|'unconfigured'|'unavailable'}>{
+ if(!catalogueConfigured())return{configured:false,count:0,status:'unconfigured'};
+ try{
+  const r=await getSourceCataloguePool().query<{n:string}>('SELECT count(*)::text n FROM public.cq_sec_issuers');
+  return{configured:true,count:Number(r.rows[0]?.n||0),status:'ready'};
+ }catch{return{configured:true,count:0,status:'unavailable'};}
+}
++params.length+'))');}
  if(exchange){params.push(exchange);clauses.push('exchange = $'+params.length);}
  const sql=clauses.length?' WHERE '+clauses.join(' AND '):'';
  const db=getSourceCataloguePool();
