@@ -76,11 +76,9 @@ export function analyseCompanyFacts(payload:CompanyFacts,cik:string,subject:{nam
   }
   byMetric.set(metric.key,byEnd);
  }
- const anchors=['revenue','netIncome','operatingCashFlow','operatingIncome'] as FinancialMetricKey[];
- const availableAnchor=anchors.find(key=>(byMetric.get(key)?.size||0)>0);
- const ends=availableAnchor?
-  [...(byMetric.get(availableAnchor)?.keys()||[])]:
-  [...new Set(definitions.flatMap(m=>[...(byMetric.get(m.key)?.keys()||[])]))];
+ // Use the union of source reporting-period ends. Never let an older metric
+ // silently dictate the latest fiscal period when other current metrics exist.
+ const ends=[...new Set(definitions.flatMap(m=>[...(byMetric.get(m.key)?.keys()||[])]))];
  ends.sort((a,b)=>b.localeCompare(a));
  const periods:FinancialPeriod[]=ends.slice(0,4).map(end=>{
   const metrics:FinancialPeriod['metrics']={};
@@ -124,6 +122,12 @@ export function analyseCompanyFacts(payload:CompanyFacts,cik:string,subject:{nam
  }
  const rev=m(current,'revenue'),oldRev=m(prior,'revenue'),net=m(current,'netIncome'),op=m(current,'operatingIncome'),
   ocf=m(current,'operatingCashFlow'),equity=m(current,'equity');
+ if(current&&!rev&&periods.slice(1).some(p=>Boolean(p.metrics.revenue))){
+  add('latest-revenue-missing','review','Current-period revenue unavailable',
+   'The latest supported annual period is '+current.end+', but no supported annual revenue observation is available for that exact period.',
+   'Older revenue observations must not be carried forward or presented as current figures.',
+   Object.values(current.metrics).filter(Boolean).map(x=>x!.sourceId),'Evidence');
+ }
  if(rev&&oldRev&&pair(rev,oldRev)&&oldRev.value>0){
   const growth=(rev.value/oldRev.value-1)*100;
   indicator('revenue-growth','Annual reported revenue change',growth,'percent',[rev.sourceId,oldRev.sourceId],

@@ -59,7 +59,9 @@ test('never compare mismatched 13-month periods or interpolate missing values',(
  const x=payload();x.facts['us-gaap'].RevenueFromContractWithCustomerExcludingAssessedTax.units.USD[2].start='2024-08-01';
  const report=analyseCompanyFacts(x,cik,subject,'2026-11-18');
  assert.ok(!report.indicators.some(i=>i.id==='revenue-growth'));
- assert.ok(report.signals.some(s=>s.id==='period-mismatch'));
+ assert.ok(report.signals.some(s=>s.id==='latest-revenue-missing'));
+ assert.equal(report.periods[0].end,'2025-09-30');
+ assert.equal(report.periods[0].metrics.revenue,undefined);
 });
 test('missing supported metrics stay unavailable with coverage disclosures',()=>{
  const report=analyseCompanyFacts({cik:320193,facts:{'us-gaap':{}}},cik,subject,'2026-11-18');
