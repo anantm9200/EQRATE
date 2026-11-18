@@ -11,7 +11,7 @@ const items=[
  {href:'/watchlist',name:'My watchlist',subtitle:'Locally saved issuer records',keys:'saved company list'},
  {href:'/verification',name:'Evidence verification',subtitle:'Claim-by-claim provenance standards',keys:'source review proof'},
  {href:'/research',name:'Research centre',subtitle:'Independent investigation approach',keys:'analyst process'},
- {href:'/intelligence',name:'Market intelligence',subtitle:'Business and event analysis framework',keys:'sector market'},
+ {href:'/intelligence',name:'Forensic intelligence',subtitle:'Screen company evidence and valuation discrepancies',keys:'intelligence anomaly source risk forensic detection graph provenance investigate'},
  {href:'/analyst',name:'Private AI analyst',subtitle:'Requires your DGX gateway configuration',keys:'ai dgx model private'},
  {href:'/methodology',name:'Methodology & disclosures',subtitle:'Valuation rules and limitations',keys:'formula governance'},
  {href:'/status',name:'System readiness',subtitle:'Check which integrations are configured',keys:'uptime api health service'},
