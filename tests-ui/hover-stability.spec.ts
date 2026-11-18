@@ -2,7 +2,6 @@ import {test,expect} from '@playwright/test';
 
 test('interactive signal path changes its explanation without a page jump',async({page})=>{
  await page.goto('/');
- const region=page.getByRole('region',{name:/the intelligence underneath|beautiful on the surface/i});
  await expect(page.getByRole('heading',{name:/Beautiful on the surface/i})).toBeVisible();
  const evidence=page.getByRole('tab',{name:'Evidence trail'});
  await evidence.scrollIntoViewIfNeeded();
@@ -43,5 +42,5 @@ test('reduced-motion mode keeps signal path usable',async({page})=>{
  const tab=page.getByRole('tab',{name:'Evidence trail'});
  await tab.click();
  await expect(tab).toHaveAttribute('aria-selected','true');
- await expect(page.getByRole('tabpanel',{name:'Evidence trail'})).toContainText('Trace the claim');
+ await expect(page.getByRole('tabpanel',{name:'Evidence trail'})).toContainText(/TRACE THE CLAIM/i);
 });
