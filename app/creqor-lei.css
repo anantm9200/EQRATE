@@ -1,93 +1,93 @@
 /* Real global LEI discovery and legal-entity record */
-.lei-explore-hero,.lei-record-hero{color:#ecfff1;background:radial-gradient(circle at 88% 46%,#1a5036,#072117 65%);padding:66px 3% 59px;overflow:hidden;position:relative}
+.lei-explore-hero,.lei-record-hero{color:#f3f5f8;background:radial-gradient(circle at 88% 46%,#243046,#0c121c 65%);padding:66px 3% 59px;overflow:hidden;position:relative}
 .lei-explore-top{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);align-items:center;gap:7%;margin-top:18px}
 .lei-explore-top h1,.lei-record-hero h1{font:500 clamp(2.05rem,3.35vw,3.4rem)/1.25 var(--font-montserrat),sans-serif;letter-spacing:-.054em}
-.lei-explore-top h1 em{font-family:var(--font-montserrat),sans-serif;font-style:normal;color:#b0f6c2}
-.lei-explore-top p,.lei-record-hero p{max-width:590px;font-size:.84rem;line-height:1.86;color:#a8c4b2;margin-top:17px}
-.lei-explore-stats{display:flex;gap:15px;align-items:center;flex-wrap:wrap;font-size:.58rem;letter-spacing:.1em;color:#86b596;margin-top:27px}
-.lei-explore-stats i{width:3px;height:3px;background:#9bc6a8;border-radius:50%}
-.lei-explore-symbol{width:250px;height:230px;justify-self:center;position:relative;display:grid;place-items:center;color:#cbffdc}
-.lei-explore-symbol>span{font-size:7rem;font-weight:200;position:relative;z-index:2;text-shadow:0 0 48px rgba(111,243,165,.25);animation:lei-glow 8s ease-in-out infinite}
-.lei-explore-symbol i{position:absolute;width:180px;height:180px;border:1px solid rgba(172,247,196,.21);border-radius:50%}
+.lei-explore-top h1 em{font-family:var(--font-montserrat),sans-serif;font-style:normal;color:#c2cfe4}
+.lei-explore-top p,.lei-record-hero p{max-width:590px;font-size:.84rem;line-height:1.86;color:#a9b3c3;margin-top:17px}
+.lei-explore-stats{display:flex;gap:15px;align-items:center;flex-wrap:wrap;font-size:.58rem;letter-spacing:.1em;color:#8296b9;margin-top:27px}
+.lei-explore-stats i{width:3px;height:3px;background:#9babc6;border-radius:50%}
+.lei-explore-symbol{width:250px;height:230px;justify-self:center;position:relative;display:grid;place-items:center;color:#dbe2ef}
+.lei-explore-symbol>span{font-size:7rem;font-weight:200;position:relative;z-index:2;text-shadow:0 0 48px rgba(125,163,229,.25);animation:lei-glow 8s ease-in-out infinite}
+.lei-explore-symbol i{position:absolute;width:180px;height:180px;border:1px solid rgba(192,205,227,.21);border-radius:50%}
 .lei-explore-symbol i:last-child{width:255px;height:255px;opacity:.43;border-style:dashed}
-.lei-main{padding:64px 3% 74px;background:#eef7f0;position:relative;z-index:2}
+.lei-main{padding:64px 3% 74px;background:#f1f2f4;position:relative;z-index:2}
 .lei-main-header{display:flex;align-items:end;justify-content:space-between;gap:23px;margin-bottom:27px}
 .lei-main-header h2{font:500 clamp(1.43rem,2.2vw,2.05rem)/1.3 var(--font-montserrat),sans-serif;margin:12px 0}
-.lei-main-header p{font-size:.77rem;color:#708674;max-width:580px;line-height:1.8}
-.lei-main-header>a{font-size:.72rem;color:#277345;font-weight:700;white-space:nowrap}
-.lei-search-widget{background:#fff;border:1px solid #cee1d2;border-radius:9px;min-width:0;box-shadow:0 28px 56px rgba(46,90,57,.065);position:relative}
+.lei-main-header p{font-size:.77rem;color:#69768d;max-width:580px;line-height:1.8}
+.lei-main-header>a{font-size:.72rem;color:#305fb9;font-weight:700;white-space:nowrap}
+.lei-search-widget{background:#fff;border:1px solid #d1d6de;border-radius:9px;min-width:0;box-shadow:0 28px 56px rgba(48,95,185,.065);position:relative}
 .lei-search-input-shell{display:flex;align-items:center;gap:13px;padding:14px 20px;min-height:76px}
-.lei-search-input-shell>span:first-child{font-size:1.85rem;line-height:1;color:#338d58}
-.lei-search-input-shell input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:clamp(.86rem,1.15vw,1rem);color:#183e29;min-height:44px}
-.lei-search-input-shell input::placeholder{color:#92a899}
-.lei-search-input-shell button{border:0;background:#edf4ee;color:#527c5b;font-size:1.1rem;padding:5px 9px;border-radius:7px}
-.lei-search-busy{font-size:.53rem!important;letter-spacing:.11em;font-weight:750;color:#327851}
-.lei-search-footnote{font-size:.68rem;color:#728b78;display:flex;align-items:center;gap:11px;line-height:1.7;padding:15px 20px;border-top:1px solid #e0ece2}
-.lei-search-indicator{width:7px;height:7px;border-radius:50%;background:#57a86e;flex-shrink:0}
-.lei-results{border-top:1px solid #d9e8dd;background:#fff;max-height:530px;overflow-y:auto}
-.lei-results-head{display:flex;justify-content:space-between;gap:12px;padding:13px 20px;background:#edf6ef;color:#4a815e;font-size:.57rem;letter-spacing:.11em;font-weight:700}
-.lei-results>a{display:flex;align-items:center;gap:14px;padding:17px 19px;border-bottom:1px solid #edf3ee;transition:background .2s;min-width:0}
-.lei-results>a:hover{background:#eff8f1}
-.lei-item-logo{flex:0 0 39px;width:39px;height:39px;display:grid;place-items:center;border-radius:7px;background:#e0f1e5;color:#287d4a;font-size:1.2rem}
+.lei-search-input-shell>span:first-child{font-size:1.85rem;line-height:1;color:#305fb9}
+.lei-search-input-shell input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:clamp(.86rem,1.15vw,1rem);color:#1f2837;min-height:44px}
+.lei-search-input-shell input::placeholder{color:#8e99ac}
+.lei-search-input-shell button{border:0;background:#eff0f2;color:#4a5f84;font-size:1.1rem;padding:5px 9px;border-radius:7px}
+.lei-search-busy{font-size:.53rem!important;letter-spacing:.11em;font-weight:750;color:#305fb9}
+.lei-search-footnote{font-size:.68rem;color:#6c7991;display:flex;align-items:center;gap:11px;line-height:1.7;padding:15px 20px;border-top:1px solid #e2e5ea}
+.lei-search-indicator{width:7px;height:7px;border-radius:50%;background:#5c76a3;flex-shrink:0}
+.lei-results{border-top:1px solid #dcdfe5;background:#fff;max-height:530px;overflow-y:auto}
+.lei-results-head{display:flex;justify-content:space-between;gap:12px;padding:13px 20px;background:#f0f1f3;color:#495e82;font-size:.57rem;letter-spacing:.11em;font-weight:700}
+.lei-results>a{display:flex;align-items:center;gap:14px;padding:17px 19px;border-bottom:1px solid #eff0f1;transition:background .2s;min-width:0}
+.lei-results>a:hover{background:#f2f3f5}
+.lei-item-logo{flex:0 0 39px;width:39px;height:39px;display:grid;place-items:center;border-radius:7px;background:#e4e7ed;color:#305fb9;font-size:1.2rem}
 .lei-item-main{flex:1;min-width:0}
-.lei-item-main strong{display:block;color:#1c4d31;font-size:.8rem;font-weight:600;line-height:1.5}
-.lei-item-main small{display:block;color:#849689;font-size:.65rem;line-height:1.5;overflow-wrap:anywhere;margin-top:5px}
-.lei-item-status{border:1px solid #dce5df;border-radius:6px;background:#f0f2f0;color:#78887c;font-size:.56rem;padding:7px 9px;white-space:nowrap;font-weight:600;letter-spacing:.06em}
-.lei-item-status.issued{border-color:#c8e6d0;background:#e0f4e6;color:#317a4b}
-.lei-results>a>span:last-child{font-size:1rem;color:#31774b}
-.lei-result-empty{padding:24px 20px;color:#668773;font-size:.77rem;line-height:1.75}
-.lei-result-empty a{display:inline-block;margin-left:8px;color:#2b8650;font-weight:700}
+.lei-item-main strong{display:block;color:#253044;font-size:.8rem;font-weight:600;line-height:1.5}
+.lei-item-main small{display:block;color:#7c889e;font-size:.65rem;line-height:1.5;overflow-wrap:anywhere;margin-top:5px}
+.lei-item-status{border:1px solid #dcdfe5;border-radius:6px;background:#f0f1f2;color:#6d7b93;font-size:.56rem;padding:7px 9px;white-space:nowrap;font-weight:600;letter-spacing:.06em}
+.lei-item-status.issued{border-color:#cfd5df;background:#e5e9ef;color:#305fb9}
+.lei-results>a>span:last-child{font-size:1rem;color:#305fb9}
+.lei-result-empty{padding:24px 20px;color:#657288;font-size:.77rem;line-height:1.75}
+.lei-result-empty a{display:inline-block;margin-left:8px;color:#305fb9;font-weight:700}
 .lei-difference{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:9%;align-items:center;padding:76px 3%;background:#fff}
 .lei-difference h2,.lei-sec-section h2,.lei-block-header h2,.lei-record-aside h2{font:500 clamp(1.5rem,2.4vw,2.28rem)/1.28 var(--font-montserrat),sans-serif;letter-spacing:-.048em;margin:14px 0}
-.lei-difference>div:first-child>p,.lei-sec-section p,.lei-record-aside>p{font-size:.79rem;color:#718977;max-width:540px;line-height:1.88}
-.lei-difference>div:first-child>a{display:inline-block;margin-top:23px;color:#2c8951;font-weight:700;font-size:.72rem}
-.lei-proof-layers{border:1px solid #d7e7db;border-radius:9px;overflow:hidden}
-.lei-proof-layers>div{display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:10px;align-items:center;padding:25px 23px;border-bottom:1px solid #d9e8dd;background:#f8fbf8}
+.lei-difference>div:first-child>p,.lei-sec-section p,.lei-record-aside>p{font-size:.79rem;color:#6a7890;max-width:540px;line-height:1.88}
+.lei-difference>div:first-child>a{display:inline-block;margin-top:23px;color:#305fb9;font-weight:700;font-size:.72rem}
+.lei-proof-layers{border:1px solid #dadee4;border-radius:9px;overflow:hidden}
+.lei-proof-layers>div{display:grid;grid-template-columns:minmax(0,1fr) 1fr;gap:10px;align-items:center;padding:25px 23px;border-bottom:1px solid #dcdfe5;background:#f9f9fa}
 .lei-proof-layers>div:last-child{border:0}
-.lei-proof-layers>div:first-child{background:#e4f4e8}
-.lei-proof-layers span{font-size:.6rem;color:#3b7b53;letter-spacing:.1em;font-weight:650}
-.lei-proof-layers strong{font-size:.75rem;font-weight:600;color:#245037}
-.lei-proof-layers small{grid-column:2;font-size:.65rem;color:#86a18c}
-.lei-sec-section{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-items:center;gap:7%;padding:70px 3%;background:#edf6ee}
-.lei-sec-section>div:first-child>a{display:inline-block;font-size:.71rem;font-weight:700;color:#2e7e4e;margin-top:20px}
+.lei-proof-layers>div:first-child{background:#e8ebf0}
+.lei-proof-layers span{font-size:.6rem;color:#305fb9;letter-spacing:.1em;font-weight:650}
+.lei-proof-layers strong{font-size:.75rem;font-weight:600;color:#2c3648}
+.lei-proof-layers small{grid-column:2;font-size:.65rem;color:#838fa4}
+.lei-sec-section{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-items:center;gap:7%;padding:70px 3%;background:#f0f1f3}
+.lei-sec-section>div:first-child>a{display:inline-block;font-size:.71rem;font-weight:700;color:#305fb9;margin-top:20px}
 .lei-sec-section .search-variant-full{max-width:100%}
-.lei-sec-section .company-search{background:#fff;padding:25px;border-radius:9px;border:1px solid #d9e7db}
+.lei-sec-section .company-search{background:#fff;padding:25px;border-radius:9px;border:1px solid #dbdfe5}
 .lei-record-hero{padding-block:64px}
 .lei-record-hero-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:45px;align-items:center;margin-top:19px}
 .lei-record-hero-main h1{overflow-wrap:anywhere;margin-top:15px}
-.lei-record-code{display:flex;align-items:center;gap:17px;color:#a8efbe;margin-top:23px;flex-wrap:wrap}
+.lei-record-code{display:flex;align-items:center;gap:17px;color:#aec4e9;margin-top:23px;flex-wrap:wrap}
 .lei-record-code small{font-size:.6rem;letter-spacing:.13em}
 .lei-record-code strong{font:.8rem var(--font-inter),sans-serif;letter-spacing:.12em;overflow-wrap:anywhere}
-.lei-record-seal{height:155px;width:155px;border:1px solid rgba(179,247,197,.37);background:rgba(137,254,173,.06);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px}
-.lei-record-seal span{font-size:2.8rem;color:#b9f6c8}
-.lei-record-seal strong{color:#e6ffe7;letter-spacing:.1em;font-size:.69rem}
-.lei-record-seal small{font-size:.46rem;letter-spacing:.08em;color:#9fbda8}
-.lei-record-layout{padding:69px 3%;background:#f6faf6;display:grid;grid-template-columns:minmax(0,1.16fr) minmax(310px,.84fr);gap:18px;align-items:start}
-.lei-record-data{background:#fff;border:1px solid #dbe8de;border-radius:9px;padding:30px;min-width:0}
+.lei-record-seal{height:155px;width:155px;border:1px solid rgba(197,209,229,.37);background:rgba(156,185,235,.06);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px}
+.lei-record-seal span{font-size:2.8rem;color:#c8d3e7}
+.lei-record-seal strong{color:#f0f2f5;letter-spacing:.1em;font-size:.69rem}
+.lei-record-seal small{font-size:.46rem;letter-spacing:.08em;color:#a1aabc}
+.lei-record-layout{padding:69px 3%;background:#f7f8f9;display:grid;grid-template-columns:minmax(0,1.16fr) minmax(310px,.84fr);gap:18px;align-items:start}
+.lei-record-data{background:#fff;border:1px solid #dde0e6;border-radius:9px;padding:30px;min-width:0}
 .lei-block-header{margin-bottom:23px}
-.lei-fact-list{border-top:1px solid #e0ebe2}
-.lei-fact-list>div{display:grid;grid-template-columns:minmax(145px,.4fr) minmax(0,.6fr);gap:21px;align-items:start;padding:16px 0;border-bottom:1px solid #e0ebe2}
-.lei-fact-list span{font-size:.71rem;color:#829689}
-.lei-fact-list strong{font-size:.75rem;font-weight:550;line-height:1.7;color:#25513a;overflow-wrap:anywhere}
-.lei-reference{margin-top:28px;padding:22px;background:#edf6ef;border-radius:8px}
-.lei-reference strong{font-size:.76rem;color:#295539}
-.lei-reference p{font-size:.7rem;line-height:1.8;color:#718c77;margin:10px 0}
-.lei-reference>a{font-size:.71rem;font-weight:700;color:#277749}
-.lei-record-aside{background:#0b3023;border:1px solid #14533a;border-radius:9px;color:#eaffef;padding:28px}
-.lei-record-aside .command-mini{color:#b2e7bf}
-.lei-record-aside h2{color:#f0fff1}
-.lei-record-aside>p{color:#aac6b4}
-.lei-start-actions{padding:23px 0;margin-top:22px;border-top:1px solid rgba(180,241,197,.19)}
-.lei-start-actions>p{font-size:.7rem;line-height:1.75;color:#a5c6af}
+.lei-fact-list{border-top:1px solid #e1e4ea}
+.lei-fact-list>div{display:grid;grid-template-columns:minmax(145px,.4fr) minmax(0,.6fr);gap:21px;align-items:start;padding:16px 0;border-bottom:1px solid #e1e4ea}
+.lei-fact-list span{font-size:.71rem;color:#7b879d}
+.lei-fact-list strong{font-size:.75rem;font-weight:550;line-height:1.7;color:#2d3749;overflow-wrap:anywhere}
+.lei-reference{margin-top:28px;padding:22px;background:#f0f1f3;border-radius:8px}
+.lei-reference strong{font-size:.76rem;color:#313b4d}
+.lei-reference p{font-size:.7rem;line-height:1.8;color:#6c7991;margin:10px 0}
+.lei-reference>a{font-size:.71rem;font-weight:700;color:#305fb9}
+.lei-record-aside{background:#121a29;border:1px solid #1f2e48;border-radius:9px;color:#f2f4f7;padding:28px}
+.lei-record-aside .command-mini{color:#b7c7e2}
+.lei-record-aside h2{color:#f6f7f9}
+.lei-record-aside>p{color:#abb5c5}
+.lei-start-actions{padding:23px 0;margin-top:22px;border-top:1px solid rgba(194,206,227,.19)}
+.lei-start-actions>p{font-size:.7rem;line-height:1.75;color:#a1b0ca}
 .lei-start-actions>div{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:17px}
-.lei-start-actions button{min-height:45px;border-radius:8px!important;background:#bdf4ce;color:#12442a;border:1px solid #bdf4ce;padding:11px 13px;cursor:pointer;font-size:.69rem;font-weight:700}
-.lei-start-actions button:last-child{background:transparent;border-color:rgba(187,246,200,.4);color:#d6ffe0}
+.lei-start-actions button{min-height:45px;border-radius:8px!important;background:#cad5e7;color:#1b273b;border:1px solid #cad5e7;padding:11px 13px;cursor:pointer;font-size:.69rem;font-weight:700}
+.lei-start-actions button:last-child{background:transparent;border-color:rgba(202,213,231,.4);color:#e3e8f2}
 .lei-start-actions button:hover{transform:translateY(-1px)}
-.lei-source-note{padding-top:20px;border-top:1px solid rgba(180,241,197,.19)}
-.lei-source-note span{font-size:.58rem;letter-spacing:.1em;color:#a7daa9}
-.lei-source-note p{font-size:.69rem;color:#a6c5b2;line-height:1.78;margin-top:8px}
-.lei-detail-bottom{padding:29px 3%;background:#e6f2e9;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
-.lei-detail-bottom a{color:#2d7b4d;font-size:.74rem;font-weight:650}
+.lei-source-note{padding-top:20px;border-top:1px solid rgba(194,206,227,.19)}
+.lei-source-note span{font-size:.58rem;letter-spacing:.1em;color:#abbbd6}
+.lei-source-note p{font-size:.69rem;color:#a1b0ca;line-height:1.78;margin-top:8px}
+.lei-detail-bottom{padding:29px 3%;background:#e9ebef;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.lei-detail-bottom a{color:#305fb9;font-size:.74rem;font-weight:650}
 @keyframes lei-glow{50%{transform:scale(1.07);opacity:.77}}
 @media(max-width:870px){
  .lei-explore-top,.lei-difference,.lei-sec-section,.lei-record-layout{grid-template-columns:1fr;gap:31px}
