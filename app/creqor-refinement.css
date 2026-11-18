@@ -36,8 +36,8 @@ body{background:#f7faf8;color:var(--cq-ink);text-rendering:optimizeLegibility}
 .v2-quiet-cta,.v2-quiet-cta:hover,.ux-text-link,.ux-text-link:hover{
  transform:none!important;transition:color var(--cq-duration) var(--cq-ease),background-color var(--cq-duration) var(--cq-ease)!important;
 }
-.v2-quiet-cta:hover{gap:inherit!important}
-.ux-text-link:hover{gap:inherit!important}
+.v2-quiet-cta,.v2-quiet-cta:hover{gap:11px!important}
+.ux-text-link,.ux-text-link:hover{gap:18px!important}
 
 /* Do not move a pointer target beneath the pointer.
    Static geometry also avoids card-to-card flicker and geometry reflow. */
