@@ -28,6 +28,19 @@ function sourceIdentity(s:string):string|null{
  }catch{return null;}
 }
 function host(s:string){try{return new URL(s).hostname.toLowerCase();}catch{return null;}}
+/**
+ * A local registration identifier is only meaningful within its jurisdiction.
+ * Potential LEIs are globally scoped, but even a well-formed identifier is not
+ * an authenticated LEI: a primary registry must confirm it.
+ */
+function potentialLei(value:string):boolean{
+ return /^[A-Z0-9]{4}00[A-Z0-9]{14}$/.test(value.trim().toUpperCase());
+}
+function sameIdentifierScope(a:Assessment,b:Assessment):boolean{
+ const id=key(a.identifier);
+ if(!id||id!==key(b.identifier))return false;
+ return potentialLei(a.identifier)||Boolean(key(a.country)&&key(a.country)===key(b.country));
+}
 function pair(a:Assessment,b:Assessment):[string,string]{return [a.id,b.id].sort() as [string,string];}
 function pairNames(a:Assessment,b:Assessment):[string,string]{return a.id<b.id?[a.name,b.name]:[b.name,a.name];}
 function days(s:string):number|null{
@@ -51,13 +64,16 @@ export function analyzePortfolio(input:readonly Assessment[]):PortfolioIntellige
  }
  for(let i=0;i<records.length;i++)for(let j=i+1;j<records.length;j++){
   const a=records[i],b=records[j],ids=pair(a,b),names=pairNames(a,b);
-  const idMatch=Boolean(key(a.identifier)&&key(a.identifier)===key(b.identifier));
+  const identicalTextId=Boolean(key(a.identifier)&&key(a.identifier)===key(b.identifier));
+  const idMatch=sameIdentifierScope(a,b);
   const nameMatch=Boolean(key(a.name)&&key(a.name)===key(b.name));
   if(idMatch){
    links.push({id:'identifier:'+ids.join(':'),kind:'shared-identifier',companies:ids,companyNames:names,detail:'Two drafts use the same registered identifier. This could be repeat coverage or incorrect entity attribution.',priority:'high',evidenceIds:[]});
    if(key(a.name)!==key(b.name)||key(a.country)!==key(b.country)){
     alerts.push({id:'identity:'+ids.join(':'),kind:'conflicting-identity',companyIds:ids,headline:'Conflicting identity attributes for one identifier',reason:'Drafts sharing an identifier disagree on the name or jurisdiction.',nextAction:'Resolve both against the same dated primary registry record; do not automatically merge.',priority:'high',evidenceIds:[]});
    }
+  }else if(identicalTextId){
+   alerts.push({id:'jurisdiction:'+ids.join(':'),kind:'identity-collision',companyIds:ids,headline:'Registration identifier appears in different jurisdictions',reason:'The entered identifier matches but the countries differ. Ordinary registration numbers are locally scoped, so these are not automatically the same legal entity.',nextAction:'Check each identifier against its jurisdiction-specific registry and record the identifier type.',priority:'review',evidenceIds:[]});
   }else if(nameMatch){
    links.push({id:'name:'+ids.join(':'),kind:'name-collision',companies:ids,companyNames:names,detail:'The registered names match, but identifiers do not. A name is not a unique company key.',priority:'review',evidenceIds:[]});
    alerts.push({id:'collision:'+ids.join(':'),kind:'identity-collision',companyIds:ids,headline:'Same company name, different identifiers',reason:'Possible subsidiaries, similarly named businesses, duplicate records or an entry error.',nextAction:'Check legal identifiers and parent-child relationships in primary registries.',priority:'review',evidenceIds:[]});
