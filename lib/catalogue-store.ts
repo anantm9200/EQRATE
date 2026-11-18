@@ -117,7 +117,7 @@ export async function synchronizeCatalogue(country:string,requestedPages=3,overr
    const changedRows=await client.query(`
     INSERT INTO public.cq_lei_catalogue
      (lei,legal_name,country_code,jurisdiction,entity_status,registration_status,last_update,source_url,source_payload,source_sha256)
-    SELECT r.lei::char(20),r.name,r.country::char(2),r.jurisdiction,r.status,
+    SELECT r.lei::char(20),r.name,NULLIF(r.country,'')::char(2),r.jurisdiction,r.status,
       r."registrationStatus",r."lastUpdate",r."sourceUrl",r.payload,r."sourceSha256"::char(64)
     FROM jsonb_to_recordset($1::jsonb) AS r
     (lei text,name text,country text,jurisdiction text,status text,
