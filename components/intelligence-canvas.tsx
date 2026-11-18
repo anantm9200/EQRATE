@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useCallback,useEffect,useRef,useState} from 'react';
 type Lens='value'|'risk'|'evidence';
 const lenses:{id:Lens;label:string;title:string;description:string;values:number[];color:string}[]=[
- {id:'value',label:'Value',title:'The value is in the details.',description:'Test how the picture changes when assumptions move.',values:[29,33,30,41,37,48,44,53,50,61,57,69,65,76,73,87],color:'#27965a'},
+ {id:'value',label:'Value',title:'The value is in the details.',description:'Test how the picture changes when assumptions move.',values:[29,33,30,41,37,48,44,53,50,61,57,69,65,76,73,87],color:'#305fb9'},
  {id:'risk',label:'Risk',title:'See what could change.',description:'Explore uncertainty before committing to a conclusion.',values:[69,66,74,61,63,56,64,52,57,47,53,41,48,35,41,29],color:'#ca8d38'},
  {id:'evidence',label:'Evidence',title:'Follow the reasoning.',description:'Keep sources, assumptions and limitations in view.',values:[23,26,30,31,38,40,47,48,53,58,61,67,72,74,82,91],color:'#3983aa'}
 ];
@@ -38,7 +38,7 @@ export default function IntelligenceCanvas(){
     <div className="atlas-chart-heading"><span>{active.label.toUpperCase()} / RESEARCH VIEW</span><span>{focus===null?'SELECT A POINT TO INSPECT':'INDEX '+String(focus+1).padStart(2,'0')+' / '+active.values[focus]}</span></div>
     <svg viewBox="0 0 470 226" role="img" aria-label={active.label+' synthetic index chart. Select a data point to inspect its index.'} preserveAspectRatio="none">
      <defs><linearGradient id="motionLensFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={active.color} stopOpacity=".24"/><stop offset="100%" stopColor={active.color} stopOpacity="0"/></linearGradient></defs>
-     {[46,99,152,205].map(y=><line key={y} x1="20" x2="455" y1={y} y2={y} stroke="#8bb79c" strokeOpacity=".22" strokeDasharray="2 7"/>)}
+     {[46,99,152,205].map(y=><line key={y} x1="20" x2="455" y1={y} y2={y} stroke="#879abb" strokeOpacity=".22" strokeDasharray="2 7"/>)}
      <path key={lens+'-area'} d={area} fill="url(#motionLensFade)" className="motion-lens-area"/>
      <path key={lens+'-line'} d={path} fill="none" stroke={active.color} strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" className="motion-lens-line"/>
      {coords.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r={focus===i?5.5:3.2} fill={focus===i?active.color:'#fff'} stroke={active.color} strokeWidth="2" className="motion-lens-point"/>)}
