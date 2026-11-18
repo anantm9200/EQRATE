@@ -37,7 +37,7 @@ export default function CompanyUniverse({compact=false}:{compact?:boolean}){
    </div>
    <Link href="/directory" className="cq-universe-more">{compact?'View global directory':'Browse all countries'} <span aria-hidden="true">↗</span></Link>
   </div>
-  {loading?<div className="cq-universe-loading" role="status"><span className="cq-universe-indicator"/> Loading registered legal entities from GLEIF…</div>:
+  {loading?<div className="cq-universe-loading" role="status"><span className="cq-universe-indicator"/> <div><p>Resolving official legal entities from GLEIF…</p><div className="cq-universe-suggestions"><span>Search immediately:</span>{examples.slice(0,6).map(name=><Link href={'/directory?q='+encodeURIComponent(name)} key={name}>{name} ↗</Link>)}</div></div></div>:
    show.length?
     <div className="cq-universe-grid">{show.map(record=><Link href={'/lei/'+encodeURIComponent(record.lei)} className="cq-universe-company" key={record.lei}>
       <span className="cq-universe-avatar" aria-hidden="true">{record.name.trim().slice(0,1)}</span>
