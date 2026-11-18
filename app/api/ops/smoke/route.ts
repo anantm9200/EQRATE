@@ -27,12 +27,14 @@ export async function GET(request:NextRequest){
     detail:'Market cap and DCF synthetic fixtures'});
  }catch{checks.push({name:'deterministic-math',ok:false,detail:'Calculation exception'});}
  const origin=request.nextUrl.origin;
- const [home,workbench,desk,directory,explore,health,lei]=await Promise.all([
+ const [home,workbench,desk,directory,explore,catalogue,catalogueStatus,health,lei]=await Promise.all([
   checkRoute('homepage',origin+'/'),
   checkRoute('workbench',origin+'/workbench'),
   checkRoute('research-desk',origin+'/desk'),
   checkRoute('global-directory',origin+'/directory'),
   checkRoute('explore',origin+'/explore'),
+  checkRoute('catalogue-page',origin+'/catalogue'),
+  checkRoute('catalogue-status',origin+'/api/catalogue/status'),
   checkRoute('health-route',origin+'/api/health'),
   (async():Promise<Check>=>{
    try{
@@ -42,7 +44,7 @@ export async function GET(request:NextRequest){
    }catch{return {name:'gleif-source',ok:false,detail:'GLEIF API unavailable'};}
   })()
  ]);
- checks.push(home,workbench,desk,directory,explore,health,lei);
+ checks.push(home,workbench,desk,directory,explore,catalogue,catalogueStatus,health,lei);
  const ok=checks.every(x=>x.ok);
  const report={status:ok?'healthy':'degraded',checkedAt:new Date().toISOString(),durationMs:Date.now()-started,checks};
  if(ok)console.info('CREQOR_HOURLY_SMOKE',JSON.stringify(report));
