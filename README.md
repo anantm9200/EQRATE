@@ -6,7 +6,7 @@ CREQOR is a new evidence-led company research and valuation application. Its fir
 
 ## What's working in the code
 
-- Premium, responsive dark-green and gradient design, custom SVG logo, Poppins + Inter, full-screen navigation, motion and glassmorphism
+- Responsive emerald and white glass design, Montserrat + Inter typography, full-screen navigation and reduced-motion support
 - Landing, company explorer, issuer profile, comparison, local watchlist, valuation lab, market intelligence, private AI analyst, research, verification and methodology pages
 - Official US SEC entity discovery, issuer identity and annual financial highlights **when** `SEC_USER_AGENT` is configured
 - Deterministic market-cap and DCF computations with input checks and unit tests
@@ -35,7 +35,7 @@ See [architecture and known limits](docs/ARCHITECTURE.md) and [schema](db/schema
 
 CREQOR is **not** presenting itself as a licensed credit rating agency. No live trading prices, source-backed private valuations, company scores, M&A events or fabricated financial stories are included. Live market-data coverage, verified financial facts, regulated research, subscriptions and multi-agent RAG remain future implementation stages. Do not publish unsupported market-cap, ranking, or acquisition claims.
 
-No Vercel project was created or deployed by this commit. The GitHub repository is ready for later import.
+CREQOR is deployed on Vercel at https://creqor.vercel.app. The presence of a deployment does not establish that optional data providers, private inference or a production database are configured.
 ## Research workflows (November 2026)
 
 - **Global company discovery:** GLEIF legal entity search with company identity prefill for the assessment workspace; no claim of financial verification from LEI status
@@ -54,3 +54,7 @@ No Vercel project was created or deployed by this commit. The GitHub repository 
 ### Important limits
 
 Browser localStorage is not a secure encrypted repository, shared workspace or account system. Uploaded evidence files are not accepted; only HTTPS source references and claims are stored locally. Global exchange prices, audited private-company datasets, secure team persistence, independent company ratings, and the private DGX AI service all require separately authorised providers or infrastructure. A method calculation, subjective draft score or registered LEI record is not a verified valuation, credit rating or investment recommendation.
+
+### CREQOR engineering and provenance roadmap (November 2026)
+
+See [Engineering playbook](docs/ENGINEERING_PLAYBOOK.md) for the release gates, daily build loop and ordered milestones. The cross-company portfolio engine screens locally saved assessments for reused source URLs, potential identity collisions and large differences between dated entered financial figures. **Flags are leads for investigation, never independently verified ownership, fraud findings or published credit ratings.** Its Vercel preview and build status must be checked before merging.
