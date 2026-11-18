@@ -8,7 +8,6 @@ export default function GlassMotion(){
  const progress=useRef<HTMLDivElement>(null);
  useEffect(()=>{
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const pointer=window.matchMedia('(hover: hover) and (pointer: fine)');
   let frame=0;
   const update=()=>{
    if(frame)return;
@@ -39,44 +38,11 @@ export default function GlassMotion(){
    if(observer)observer.observe(node);else node.classList.add('fx-visible');
   }
   document.documentElement.classList.add('fx-motion-ready');
-  const dispose:Array<()=>void>=[];
-  if(pointer.matches){
-   const targets=Array.from(document.querySelectorAll<HTMLElement>(
-    '.ux-preview,.ux-workflow-card,.ux-distinction-grid article,.wk-panel,.ic-block,.rd-entry,.cx-card'
-   ));
-   for(const node of targets){
-    let lastFrame=0;
-    const move=(event:PointerEvent)=>{
-     if(event.pointerType==='touch'||lastFrame)return;
-     const rect=node.getBoundingClientRect();
-     const x=Math.max(0,Math.min(100,(event.clientX-rect.left)/rect.width*100));
-     const y=Math.max(0,Math.min(100,(event.clientY-rect.top)/rect.height*100));
-     lastFrame=window.requestAnimationFrame(()=>{
-      lastFrame=0;
-      node.style.setProperty('--fx-x',x.toFixed(1)+'%');
-      node.style.setProperty('--fx-y',y.toFixed(1)+'%');
-      if(node.classList.contains('ux-workflow-card')){
-       node.style.setProperty('--fx-ry',((x-50)/50*1.45).toFixed(2)+'deg');
-       node.style.setProperty('--fx-rx',((50-y)/50*1.45).toFixed(2)+'deg');
-      }
-     });
-    };
-    const leave=()=>{
-     node.style.removeProperty('--fx-x');node.style.removeProperty('--fx-y');
-     node.style.removeProperty('--fx-rx');node.style.removeProperty('--fx-ry');
-    };
-    node.addEventListener('pointermove',move,{passive:true});
-    node.addEventListener('pointerleave',leave);
-    dispose.push(()=>{
-     node.removeEventListener('pointermove',move);node.removeEventListener('pointerleave',leave);
-     if(lastFrame)window.cancelAnimationFrame(lastFrame);
-     leave();
-    });
-   }
-  }
+  // Pointer-tracked gradients and 3D transforms were forcing repeated glass repaints
+  // on every cursor movement, making hover targets appear to jump. Static CSS
+  // highlights now provide the same affordance without JS layout work.
   return ()=>{
    observer?.disconnect();
-   dispose.forEach(fn=>fn());
    reveals.forEach(node=>node.classList.remove('fx-reveal','fx-visible'));
    document.documentElement.classList.remove('fx-motion-ready');
    window.removeEventListener('scroll',update);window.removeEventListener('resize',update);
