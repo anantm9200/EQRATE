@@ -79,7 +79,7 @@ export async function listIndexedSecIssuers(filters:SecIssuerSearch={}):Promise<
  if(q.length>90||(q.length>0&&q.length<2)||!Number.isSafeInteger(page)||page<1||page>2000||
   exchange.length>35||!/^[a-zA-Z0-9. _-]*$/.test(exchange))throw new Error('SEC_ISSUER_INVALID_FILTER');
  const clauses:string[]=[],params:(string|number)[]=[];
- if(q){params.push(q);clauses.push('(starts_with(lower(legal_name),
+ if(q){params.push(q);const placeholder=String.fromCharCode(36)+params.length;clauses.push('(starts_with(lower(legal_name),'+placeholder+') OR starts_with(lower(ticker),'+placeholder+'))');}
  if(exchange){params.push(exchange);clauses.push('exchange = $'+params.length);}
  const sql=clauses.length?' WHERE '+clauses.join(' AND '):'';
  const db=getSourceCataloguePool();
