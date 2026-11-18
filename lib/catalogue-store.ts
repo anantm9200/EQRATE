@@ -86,7 +86,14 @@ export async function synchronizeCatalogue(country:string,requestedPages=3,overr
   (overridePage!==undefined&&(!Number.isSafeInteger(overridePage)||overridePage<1||overridePage>MAX_PAGE)))
   throw new Error('CATALOGUE_INVALID_SYNC_ARGUMENTS');
  const db=database();
- const cursor=await db.query<{next_page:number}>('SELECT next_page FROM public.cq_catalogue_cursors WHERE segment=$1',[code]);
+ const client=await db.connect();
+ let locked=false;
+ const lockName='creqor:gleif:'+code;
+ try{
+  const r=await client.query<{acquired:boolean}>('SELECT pg_try_advisory_lock(hashtext($1)) AS acquired',[lockName]);
+  locked=r.rows[0]?.acquired===true;
+  if(!locked)throw new Error('CATALOGUE_SYNC_ALREADY_RUNNING');
+ const cursor=await client.query<{next_page:number}>('SELECT next_page FROM public.cq_catalogue_cursors WHERE segment=$1',[code]);
  const start=overridePage??cursor.rows[0]?.next_page??1;
  const pages=Array.from({length:Math.min(requestedPages,MAX_PAGE-start+1)},(_,i)=>start+i);
  // Small bounded concurrent requests; official source failures are never substituted.
@@ -105,7 +112,6 @@ export async function synchronizeCatalogue(country:string,requestedPages=3,overr
  const status:SyncResult['status']=successful===0?'failed':successful===pages.length?'ok':'partial';
  const nextPage=(start+pages.length)>MAX_PAGE?1:start+pages.length;
  let changed=0;
- const client=await db.connect();
  try{
   await client.query('BEGIN');
   const batch=[...records.values()].map(x=>({
@@ -153,7 +159,10 @@ export async function synchronizeCatalogue(country:string,requestedPages=3,overr
    [code,status==='ok'?nextPage:start,records.size,warnings.join('; ').slice(0,700)||null]);
   await client.query('COMMIT');
  }catch(e){await client.query('ROLLBACK');throw e;}
- finally{client.release();}
  return {source:'GLEIF',country:code,page:start,pagesRequested:pages.length,pagesSucceeded:successful,
   fetched:records.size,changed,nextPage:status==='ok'?nextPage:start,status,warnings};
+ }finally{
+  if(locked)await client.query('SELECT pg_advisory_unlock(hashtext($1))',[lockName]).catch(()=>{});
+  client.release();
+ }
 }
