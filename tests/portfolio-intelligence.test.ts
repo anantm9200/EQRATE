@@ -48,3 +48,24 @@ test('no invalid or insecure URLs enter the shared-source graph',()=>{
 test('duplicate draft IDs do not count as different companies',()=>{
  const a=item('A','AAA');assert.equal(analyzePortfolio([a,a]).companies,1);
 });
+
+test('local registry numbers are country scoped and never merged across borders',()=>{
+ const a=item('Northwind Ltd','987654','2025-01-01');
+ const b=item('Northwind Ltd','987654','2026-01-01');
+ a.country='India';b.country='United Arab Emirates';
+ a.fields.revenue=10;b.fields.revenue=1000;
+ const result=analyzePortfolio([a,b]);
+ assert.ok(!result.links.some(x=>x.kind==='shared-identifier'));
+ assert.ok(result.alerts.some(x=>x.id.startsWith('jurisdiction:')));
+ assert.ok(!result.alerts.some(x=>x.kind==='financial-shift'));
+});
+
+test('potential LEIs remain globally scoped, but country changes require review',()=>{
+ const a=item('Alpha PLC','529900T8BM49AURSDO55','2025-01-01');
+ const b=item('Alpha PLC','529900T8BM49AURSDO55','2026-01-01');
+ a.country='UK';b.country='DE';
+ const result=analyzePortfolio([a,b]);
+ assert.ok(result.links.some(x=>x.kind==='shared-identifier'));
+ assert.ok(result.alerts.some(x=>x.kind==='conflicting-identity'));
+ assert.equal(result.basis,'analyst-entered-unverified');
+});
