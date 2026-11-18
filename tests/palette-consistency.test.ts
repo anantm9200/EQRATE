@@ -20,17 +20,17 @@ function channels(hex:string):number[]{
 }
 test('every imported stylesheet uses blue/neutral pigments; only real success state retains green',()=>{
  const layout=readFileSync('app/layout.tsx','utf8');
- const files=[...layout.matchAll(/import '\\.\/([^']+\\.css)';/g)].map(m=>m[1]);
+ const files=[...layout.matchAll(/import '\.\/([^']+\.css)';/g)].map(m=>m[1]);
  assert.ok(files.length>12,'Imported stylesheets need to be audited, not just the last theme layer');
  for(const file of files){
   const css=readFileSync('app/'+file,'utf8');
-  for(const color of css.match(/#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3})\\b/gi)||[]){
+  for(const color of css.match(/#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3})\b/gi)||[]){
    if(!greenHue(...channels(color)))continue;
    // Semantic operational readiness is permitted; branding green is not.
    assert.equal(file,'creqor-blue-compact.css','Unexpected green swatch '+color+' in '+file);
    assert.equal(color.toLowerCase(),'#248a58','Unexpected nonsemantic green swatch '+color);
   }
-  for(const match of css.matchAll(/rgba?\\(\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})(?:\\s*,\\s*[0-9.]+)?\\s*\\)/gi)){
+  for(const match of css.matchAll(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[0-9.]+)?\s*\)/gi)){
    assert.ok(!greenHue(Number(match[1]),Number(match[2]),Number(match[3])),
     'Unexpected green RGB pigment '+match[0]+' in '+file);
   }
@@ -39,7 +39,7 @@ test('every imported stylesheet uses blue/neutral pigments; only real success st
 test('homepage evidence panels and scroll progress use blue rather than green',()=>{
  const system=readFileSync('app/creqor-system.css','utf8');
  const unified=readFileSync('app/creqor-unified.css','utf8');
- assert.match(system,/\\.ux-equation strong\\{[^}]*color:#305fb9/i);
- assert.match(unified,/\\.fx-scroll-progress\\{background:linear-gradient\\(90deg,#305fb9/i);
- assert.doesNotMatch(system,/\\.ux-equation\\{[^}]*background:#e(?:[a-f0-9]{5})/i);
+ assert.match(system,/\.ux-equation strong\{[^}]*color:#305fb9/i);
+ assert.match(unified,/\.fx-scroll-progress\{background:linear-gradient\(90deg,#305fb9/i);
+ assert.doesNotMatch(system,/\.ux-equation\{[^}]*background:#e(?:[a-f0-9]{5})/i);
 });
