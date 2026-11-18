@@ -28,6 +28,8 @@ for(const path of ['/directory','/workbench','/desk','/intelligence','/lab','/co
   await page.goto(path);
   const hero=page.locator(path==='/directory'?'.gd-hero':path==='/workbench'?'.wk-page-hero':path==='/desk'?'.rd-hero':path==='/status'?'.status-head':'.page-hero').first();
   await expect(hero).toBeVisible();
+  // Wait for route-level styles to hydrate before sampling computed geometry.
+  await expect(hero).toHaveCSS('padding-left','43.2px');
   const metrics=await hero.evaluate(el=>{
    const css=getComputedStyle(el);
    return {h:el.getBoundingClientRect().height,padLeft:parseFloat(css.paddingLeft),padRight:parseFloat(css.paddingRight),background:css.backgroundImage};

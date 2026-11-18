@@ -18,6 +18,6 @@ export default function AnalystClient(){
   </form>{status&&<div className={'notice '+(result?'':'warning')} style={{marginTop:22}} role="status">{status}</div>}{result&&<div className="response" aria-live="polite">{result}</div>}
   </div>
   <div><div className="panel dark"><span className="micro-label">PRIVATE COMPUTE / PUBLIC ACCOUNTABILITY</span><h3>AI proposes.<br/>Evidence decides.</h3><p>CREQOR uses DGX-hosted AI for interpretation and research, while financial formulas remain separate and repeatable. The gateway is disabled until the secure endpoint and credentials are configured.</p><div className="hero-viz" style={{marginTop:23}}><span>✳</span></div></div>
-  <div className="panel" style={{marginTop:20}}><span className="micro-label">START WITH A QUESTION</span><div style={{display:'grid',gap:12,marginTop:20}}>{suggestions.map(s=><button key={s} onClick={()=>setQuestion(s)} style={{display:'flex',justifyContent:'space-between',textAlign:'left',border:'1px solid #d9e7db',background:'#f5fbf6',padding:'14px',color:'#1e5133',fontSize:'.78rem'}}>{s}<span>↗</span></button>)}</div></div></div>
+  <div className="panel" style={{marginTop:20}}><span className="micro-label">START WITH A QUESTION</span><div style={{display:'grid',gap:12,marginTop:20}}>{suggestions.map(s=><button key={s} onClick={()=>setQuestion(s)} style={{display:'flex',justifyContent:'space-between',textAlign:'left',border:'1px solid #dfe8f5',background:'#f4f7fc',padding:'14px',color:'#1c2d42',fontSize:'.78rem'}}>{s}<span>↗</span></button>)}</div></div></div>
  </div>;
 }
