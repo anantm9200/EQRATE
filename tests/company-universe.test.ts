@@ -41,12 +41,35 @@ test('featured company universe returns only authentic parsed response records a
  }) as typeof fetch;
  try{
   const result=await getFeaturedCompanyUniverse();
-  assert.equal(attempts,FEATURED_ENTITY_NAMES.length);
+  assert.equal(attempts,FEATURED_ENTITY_NAMES.length+1); // one GLEIF directory fallback after incomplete name matches
   assert.equal(result.attempted,FEATURED_ENTITY_NAMES.length);
   assert.equal(result.records.length,1);
   assert.equal(result.records[0].name,'APPLE INC.');
   assert.equal(result.records[0].lei,'12345678901234567890');
   assert.equal('marketCap' in result.records[0],false);
   assert.equal('rating' in result.records[0],false);
+ }finally{globalThis.fetch=old;}
+});
+
+test('featured discovery fills gaps only with official indexed source records',async()=>{
+ const old=globalThis.fetch;
+ globalThis.fetch=(async(input:RequestInfo|URL)=>{
+  const url=new URL(String(input));
+  if(url.searchParams.get('page[size]')==='60'){
+   const rows=Array.from({length:15},(_,i)=>{
+    const lei=String(i+1).padStart(20,'0');
+    return {id:lei,attributes:{lei,entity:{legalName:{name:'Synthetic GLEIF Fixture '+(i+1)},
+      status:'ACTIVE',legalAddress:{country:'US'}},
+      registration:{status:'ISSUED',lastUpdateDate:'2026-11-18'}}};
+   });
+   return new Response(JSON.stringify({data:rows,meta:{pagination:{total:15}}}),{status:200});
+  }
+  return new Response('{}',{status:503});
+ }) as typeof fetch;
+ try{
+  const result=await getFeaturedCompanyUniverse();
+  assert.equal(result.records.length,FEATURED_ENTITY_NAMES.length);
+  assert.ok(result.records.every(x=>x.sourceUrl.startsWith('https://search.gleif.org/#/record/')));
+  assert.ok(result.records.every(x=>x.name.startsWith('Synthetic GLEIF Fixture ')));
  }finally{globalThis.fetch=old;}
 });

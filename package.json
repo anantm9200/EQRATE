@@ -4,17 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm test && next build",
+    "build": "npm test && npm run typecheck && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:ui": "playwright test",
-    "test:release": "npm run test:ui"
+    "test:release": "npm run test:ui",
+    "catalogue:backfill": "tsx scripts/catalogue-backfill.ts"
   },
   "dependencies": {
     "next": "^15.5.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
@@ -22,6 +24,7 @@
     "@types/react-dom": "^19.1.0",
     "typescript": "^5.9.0",
     "tsx": "^4.20.0",
-    "@playwright/test": "^1.58.2"
+    "@playwright/test": "^1.58.2",
+    "@types/pg": "^8.15.5"
   }
 }

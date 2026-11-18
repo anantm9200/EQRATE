@@ -20,8 +20,13 @@ function exportCsv(rows:LeiEntity[]){
  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='CREQOR-GLEIF-loaded-entities.csv';
  document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
-export default function GlobalDirectory({initial,initialCountry='',initialQuery='',initialError=''}:{
+export default function GlobalDirectory({
+ initial,initialCountry='',initialQuery='',initialError='',
+ apiPath='/api/directory',routePath='/directory',showFeatured=true,sourceNote='Connected to the official GLEIF global legal-entity register'
+}:{
  initial:LeiDirectoryPage|null;initialCountry?:string;initialQuery?:string;initialError?:string;
+ apiPath?:'/api/directory'|'/api/catalogue';routePath?:'/directory'|'/catalogue';
+ showFeatured?:boolean;sourceNote?:string;
 }){
  const [query,setQuery]=useState(initialQuery);
  const [country,setCountry]=useState(initialCountry);
@@ -32,6 +37,7 @@ export default function GlobalDirectory({initial,initialCountry='',initialQuery=
  const [saved,setSaved]=useState<LeiEntity[]>([]);
  const [onlySaved,setOnlySaved]=useState(false);
  const [message,setMessage]=useState('');
+ const [indexedStatus,setIndexedStatus]=useState<{status:string;indexed:number}|null>(null);
  const ctrl=useRef<AbortController|null>(null);
  const skipFirst=useRef(true);
  useEffect(()=>{
@@ -52,7 +58,7 @@ export default function GlobalDirectory({initial,initialCountry='',initialQuery=
    const params=new URLSearchParams({page:String(page)});
    if(term.trim())params.set('q',term.trim());
    if(code)params.set('country',code);
-   const response=await fetch('/api/directory?'+params.toString(),{signal:controller.signal});
+   const response=await fetch(apiPath+'?'+params.toString(),{signal:controller.signal});
    const payload=await response.json() as LeiDirectoryPage&{error?:string};
    if(!response.ok)throw new Error(payload.error||'The GLEIF registry could not be reached.');
    if(controller.signal.aborted)return;
@@ -70,7 +76,7 @@ export default function GlobalDirectory({initial,initialCountry='',initialQuery=
   }finally{
    if(!controller.signal.aborted){setBusy(false);setLoadingMore(false);}
   }
- },[]);
+ },[apiPath]);
  useEffect(()=>{
   if(skipFirst.current){skipFirst.current=false;return;}
   ctrl.current?.abort();
@@ -78,11 +84,19 @@ export default function GlobalDirectory({initial,initialCountry='',initialQuery=
   const search=new URLSearchParams();
   if(query.trim())search.set('q',query.trim());
   if(country)search.set('country',country);
-  window.history.replaceState(window.history.state,'','/directory'+(search.size?'?'+search.toString():''));
+  window.history.replaceState(window.history.state,'',routePath+(search.size?'?'+search.toString():''));
   setData(null);setBusy(true);setError('');
   const timer=window.setTimeout(()=>void load(1,false,query,country),query.trim().length>=2?360:140);
   return ()=>{clearTimeout(timer);ctrl.current?.abort();};
- },[query,country,load]);
+ },[query,country,load,routePath]);
+ useEffect(()=>{
+  if(!showFeatured)return;
+  const controller=new AbortController();
+  void fetch('/api/catalogue/status',{signal:controller.signal}).then(r=>r.ok?r.json():null)
+   .then(data=>{if(!controller.signal.aborted&&data&&typeof data.indexed==='number')setIndexedStatus(data);})
+   .catch(()=>{});
+  return ()=>controller.abort();
+ },[showFeatured]);
  useEffect(()=>()=>ctrl.current?.abort(),[]);
 
  const shown=useMemo(()=>{
@@ -108,10 +122,12 @@ export default function GlobalDirectory({initial,initialCountry='',initialQuery=
    <label className="gd-country-selector"><span>Country</span><select aria-label="Filter companies by country" value={country} onChange={e=>chooseCountry(e.target.value)}><option value="">Worldwide · all countries</option>{ALL_COUNTRIES.map(x=><option key={x.code} value={x.code}>{x.name} ({x.code})</option>)}</select></label>
    <button type="button" className={'gd-save-toggle'+(onlySaved?' is-active':'')} aria-pressed={onlySaved} onClick={()=>setOnlySaved(x=>!x)}><span aria-hidden="true">☆</span> Saved ({saved.length})</button>
   </div>
-  {!query&&!country&&!onlySaved&&<CompanyUniverse/>}
+  {showFeatured&&!query&&!country&&!onlySaved&&<CompanyUniverse/>}
   <div className="gd-quick-countries" aria-label="Browse popular countries"><span>EXPLORE BY COUNTRY</span><div>{POPULAR.map(code=><button type="button" key={code||'world'} aria-pressed={country===code} className={country===code?'is-active':''} onClick={()=>chooseCountry(code)}>{code?region(code):'Worldwide'}</button>)}</div></div>
   <div className="gd-search-ideas"><span>LOOK UP A COMPANY</span><div>{SEARCH_IDEAS.map(name=><button key={name} type="button" onClick={()=>{setQuery(name);setOnlySaved(false)}}>{name} ↗</button>)}</div></div>
-  <div className="gd-prompt-row"><span className="gd-source-dot"/> Connected to the official GLEIF global legal-entity register</div>
+  <div className="gd-prompt-row"><span className="gd-source-dot"/> {sourceNote}</div>
+  {showFeatured&&indexedStatus?.status==='ready'&&indexedStatus.indexed>0&&
+   <div className="cq-indexed-entry"><span>CREQOR has {new Intl.NumberFormat('en-US').format(indexedStatus.indexed)} publicly sourced company records indexed for faster repeat research.</span><Link href="/catalogue">Explore indexed catalogue ↗</Link></div>}
   <div className="gd-section-heading">
    <div><span className="gd-kicker">SOURCE-BACKED COMPANY RECORDS</span><h2>{onlySaved?'Your bookmarked companies':query?'Companies matching “'+query.trim()+'”':country?'Companies in '+region(country):'Companies around the world'}</h2>
     <p>Actual registered legal entities with traceable identifiers. Browse the registry, inspect a record and begin your CREQOR research.</p></div>

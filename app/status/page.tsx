@@ -2,11 +2,13 @@
 import {useCallback,useEffect,useState} from 'react';
 import Link from 'next/link';
 type Health={product:string;status:string;officialRegistryConfigured:boolean;privateIntelligenceConfigured:boolean};
+type CatalogueStatus={configured:boolean;status:'ready'|'unconfigured'|'unavailable';indexed:number;updatedAt:string|null;note:string};
 export default function StatusPage(){
  const [health,setHealth]=useState<Health|null>(null);
  const [error,setError]=useState('');
  const [working,setWorking]=useState(true);
  const [leiReachable,setLeiReachable]=useState<boolean|null>(null);
+ const [catalogue,setCatalogue]=useState<CatalogueStatus|null>(null);
  const check=useCallback(async()=>{
   setWorking(true);setError('');
   try{
@@ -24,7 +26,12 @@ export default function StatusPage(){
     const leiData=await leiResponse.json();
     setLeiReachable(leiResponse.ok&&Array.isArray(leiData.results)&&leiData.results.length>0);
    }catch{setLeiReachable(false);}
-  }catch(e){setHealth(null);setLeiReachable(false);setError(e instanceof Error?e.message:'Health check failed.');}
+   try{
+    const response=await fetch('/api/catalogue/status',{cache:'no-store'});
+    if(response.ok)setCatalogue(await response.json() as CatalogueStatus);
+    else setCatalogue(null);
+   }catch{setCatalogue(null);}
+  }catch(e){setHealth(null);setLeiReachable(false);setCatalogue(null);setError(e instanceof Error?e.message:'Health check failed.');}
   finally{setWorking(false);}
  },[]);
  useEffect(()=>{void check()},[check]);
@@ -33,6 +40,9 @@ export default function StatusPage(){
   {name:'Company valuation engine',active:true,value:'Available',detail:'Deterministic methods run in the browser. Values are based on manually entered inputs.'},
   {name:'Research desk, draft evidence & exports',active:true,value:'Available',detail:'Source records and draft reports are stored and exported locally, without server authentication.'},
   {name:'Global LEI legal-entity discovery',active:leiReachable===true,value:leiReachable===null?'Checking source…':leiReachable?'GLEIF responding':'GLEIF unavailable',detail:'Live source test against the GLEIF reference-data API, not an audit or exchange-price verification.'},
+  {name:'Persistent source-indexed company catalogue',active:catalogue?.status==='ready',
+   value:catalogue?.status==='ready'?new Intl.NumberFormat('en-US').format(catalogue.indexed)+' records':catalogue?.status==='unavailable'?'Database unavailable':'Not connected',
+   detail:'PostgreSQL-backed versioned copies of official GLEIF records. Production requires a reviewed migration and DATABASE_URL; indexing is not financial verification.'},
   {name:'Official US SEC company search',active:health?.officialRegistryConfigured===true,value:health?.officialRegistryConfigured?'Configured':'Not configured',detail:'Official company records require the SEC_USER_AGENT connection and the remote data source to respond.'},
   {name:'Private DGX analyst',active:health?.privateIntelligenceConfigured===true,value:health?.privateIntelligenceConfigured?'Gateway configured':'Not configured',detail:'Server gateway must be enabled with model endpoint and access credentials before inference can work.'},
   {name:'Global market prices and published ratings',active:false,value:'Not connected',detail:'Licensed market data, identity resolution, methodology calibration and regulatory review remain required.'}
