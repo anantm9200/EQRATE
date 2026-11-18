@@ -285,3 +285,11 @@ html,body,main{color:var(--cq-ink)!important;background:#fff!important}
  .gd-search-ideas>div{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:5px}
 }
 @media(prefers-reduced-motion:reduce){.cq-universe-indicator{animation:none}}
+
+/* Search stays usable even before the first official catalogue request finishes. */
+.cq-universe-loading{align-items:flex-start}
+.cq-universe-loading p{margin:0 0 8px!important}
+.cq-universe-suggestions{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.cq-universe-suggestions>span{font-size:.62rem;color:#7b89a0}
+.cq-universe-suggestions a{font-size:.65rem;color:#2b5cad;padding:5px 8px;border-radius:5px;background:#fff;border:1px solid #e0e8f5}
+.cq-universe-suggestions a:hover{border-color:#b4c9e9}
