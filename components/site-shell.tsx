@@ -8,6 +8,7 @@ import GlassMotion from '@/components/glass-motion';
 
 const primary=[
   {href:'/workbench',label:'Workbench'},
+  {href:'/intelligence',label:'Intelligence'},
   {href:'/desk',label:'Research desk'},
   {href:'/directory',label:'Companies'},
   {href:'/lab',label:'Valuation lab'},
@@ -22,7 +23,7 @@ const menu=[
   {href:'/lab',label:'Valuation lab',index:'04',detail:'Test the assumptions'},
   {href:'/compare',label:'Compare companies',index:'05',detail:'Understand the differences'},
   {href:'/analyst',label:'AI analyst',index:'06',detail:'Question the evidence'},
-  {href:'/intelligence',label:'Market intelligence',index:'07',detail:'See the bigger picture'},
+  {href:'/intelligence',label:'Intelligence engine',index:'07',detail:'Live source-backed identity and financial signals'},
   {href:'/research',label:'Research centre',index:'08',detail:'The work behind the numbers'},
   {href:'/verification',label:'Verification',index:'09',detail:'Separate claims from proof'},
   {href:'/methodology',label:'Methodology',index:'10',detail:'Our standards and limitations'},

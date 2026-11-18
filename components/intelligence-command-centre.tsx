@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';
 import type {IdentityIntelligence,IntelligenceSignal} from '@/lib/intelligence-engine';
-import type {SecIntelligenceReport,AnnualObservation,FinancialMetricKey} from '@/lib/sec-intelligence';
+import type {SecIntelligenceReport,FinancialMetricKey} from '@/lib/sec-intelligence';
 
 type Mode='lei'|'sec';
 type QueryResult={id:string;name:string;sub:string};
@@ -20,7 +20,8 @@ function tone(level:IntelligenceSignal['level']){return level==='attention'?'att
 function saveReport(report:Report){
  const contents=JSON.stringify({...report,exportedAt:new Date().toISOString(),status:'SOURCE-LINKED_RESEARCH_SNAPSHOT_NOT_A_RATING'},null,2);
  const url=URL.createObjectURL(new Blob([contents],{type:'application/json'}));
- const link=document.createElement('a');link.href=url;link.download='CREQOR-intelligence-'+report.subject.identifier?.replace(/[^A-Z0-9]/gi,'')+(report.type==='sec-financials'?report.subject.cik:'')+'.json';
+ const id=report.type==='legal-identity'?report.subject.identifier:report.subject.cik;
+ const link=document.createElement('a');link.href=url;link.download='CREQOR-intelligence-'+id.replace(/[^A-Z0-9]/gi,'')+'.json';
  document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
@@ -38,8 +39,6 @@ export default function IntelligenceCommandCentre(){
  const searchAbort=useRef<AbortController|null>(null);
  const reportAbort=useRef<AbortController|null>(null);
  const hydrated=useRef(false);
- const latestMode=useRef<Mode>('lei');
- latestMode.current=mode;
  useEffect(()=>{
   if(hydrated.current)return;
   hydrated.current=true;
