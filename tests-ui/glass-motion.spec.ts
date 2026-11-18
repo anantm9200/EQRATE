@@ -27,18 +27,26 @@ test('sensitivity illustration stays tied to real DCF inputs',async({page})=>{
  await expect(page.locator('.ux-live-curve svg')).toHaveAttribute('aria-label',/equity value decreases/i);
 });
 
-test('cards track pointer light but reset on pointer exit',async({page})=>{
+test('hover keeps card hitboxes stable instead of sliding under the pointer',async({page})=>{
  await page.setViewportSize({width:1440,height:900});
  await page.goto('/');
  const card=page.locator('.ux-workflow-card').first();
  await card.scrollIntoViewIfNeeded();
- const rect=await card.boundingBox();
- expect(rect).not.toBeNull();
- await page.mouse.move(rect!.x+rect!.width*.65,rect!.y+rect!.height*.45);
- await expect.poll(()=>card.evaluate(el=>el.style.getPropertyValue('--fx-x'))).toMatch(/%$/);
- await page.mouse.move(0,0);
- await expect.poll(()=>card.evaluate(el=>el.style.getPropertyValue('--fx-x'))).toBe('');
+ await page.waitForTimeout(850);
+ const before=await card.boundingBox();
+ expect(before).not.toBeNull();
+ await page.mouse.move(before!.x+before!.width*.5,before!.y+before!.height*.5);
+ await page.waitForTimeout(360);
+ const after=await card.boundingBox();
+ expect(after).not.toBeNull();
+ expect(Math.abs(after!.x-before!.x)).toBeLessThan(1);
+ expect(Math.abs(after!.y-before!.y)).toBeLessThan(1);
+ expect(Math.abs(after!.width-before!.width)).toBeLessThan(1);
+ expect(Math.abs(after!.height-before!.height)).toBeLessThan(1);
+ const transform=await card.evaluate(el=>getComputedStyle(el).transform);
+ expect(transform).toBe('none');
 });
+
 
 for(const width of [320,375,768,1440]){
  test('motion and glass preserve mobile/desktop layout at '+width+'px',async({page})=>{
