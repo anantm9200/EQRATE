@@ -1,7 +1,19 @@
-import {IntelligenceSections} from '@/components/sections-primary';
+import IntelligenceCommandCentre from '@/components/intelligence-command-centre';
 import Link from 'next/link';
-export const metadata={title:'Market intelligence',description:'Understand research coverage, verification status and market intelligence at CREQOR.'};
-const areas=[{head:'Corporate actions',icon:'↗',copy:'Track proposed and completed transactions separately, with primary source evidence.'},{head:'Market structure',icon:'◇',copy:'Understand security identifiers, listings, share classes and capital changes.'},{head:'Sector intelligence',icon:'◉',copy:'Place financial metrics into the right operating, industry and country context.'},{head:'Governance signals',icon:'⌁',copy:'Flag material differences, disclosure gaps and contradictory source statements.'}];
-export default function Intelligence(){return <><section className="page-hero"><span className="eyebrow">MARKET INTELLIGENCE</span><h1>Context changes<br/><em>everything.</em></h1><p>A disciplined view of corporate change, market structure, financial strength and evidence quality. Not a headline factory.</p></section><section className="body-wrap"><div className="content-grid">{areas.map(a=><article className="panel" key={a.head}><span className="micro-label">RESEARCH DOMAIN</span><div className="hero-viz" style={{minHeight:155}}><span style={{fontSize:'3rem'}}>{a.icon}</span></div><h3 style={{marginTop:22}}>{a.head}</h3><p>{a.copy}</p></article>)}</div><div className="notice" style={{marginTop:25}}>Automated market-monitoring feeds and published research require verified source adapters. This page does not publish placeholder articles or unsupported corporate-action claims.</div><div className="button-row" style={{marginTop:25}}><Link className="primary-button" href="/research">Research standards ↗</Link><Link className="secondary-button" href="/explore">Find a company ↗</Link></div></section>
- <IntelligenceSections/>
- </>}
+export const metadata={
+ title:'Company Intelligence Command Centre | CREQOR',
+ description:'Source-linked global legal-entity intelligence and SEC annual financial research. Trace each finding to GLEIF or official issuer filings.'
+};
+export default function Intelligence(){
+ return <>
+  <section className="iq-hero" aria-labelledby="iq-hero-title"><div className="iq-hero-glow" aria-hidden="true"/>
+   <div className="iq-hero-inner"><span className="iq-kicker"><span className="iq-dot"/> CREQOR / THE INTELLIGENCE ENGINE</span>
+    <h1 id="iq-hero-title">Intelligence that<br/><em>shows its work.</em></h1>
+    <p>Discover the company. Investigate the evidence. Understand what changed—and precisely which source supports it.</p>
+    <div className="iq-hero-links"><Link href="/directory">Explore global entities ↗</Link><Link href="/workbench">Value a business ↗</Link></div>
+   </div>
+  </section>
+  <IntelligenceCommandCentre/>
+  <section className="iq-outro"><span className="iq-kicker">NEXT / FROM FACTS TO JUDGEMENT</span><h2>The evidence comes first.<br/>The conclusion comes later.</h2><p>CREQOR separates observed reference data, financial calculations, analyst assumptions and unsupported conclusions. Private-company financials, live quotes, comprehensive sector comparisons and model-assisted document analysis will require further licensed sources or secure integrations.</p><Link href="/methodology">See the methodology and limitations ↗</Link></section>
+ </>;
+}

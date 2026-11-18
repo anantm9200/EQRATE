@@ -41,6 +41,6 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
    <div className="lei-source-note"><span>WHAT IS NOT PROVIDED HERE</span><p>Live shares, ownership classes, market capitalisation, audited company accounts, proprietary ratings or investment advice.</p></div>
   </aside>
  </section>
- <section className="lei-detail-bottom"><Link href="/explore">← Search another company</Link><Link href="/methodology">Understand valuations ↗</Link></section>
+ <section className="lei-detail-bottom"><Link href={'/intelligence?lei='+encodeURIComponent(entity.lei)}>Analyse this entity ↗</Link><Link href="/explore">← Search another company</Link><Link href="/methodology">Understand valuations ↗</Link></section>
  </>;
 }
