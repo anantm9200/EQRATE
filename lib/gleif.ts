@@ -67,7 +67,7 @@ export async function getLEI(raw:string):Promise<LeiEntity|null>{
 
 /** Global GLEIF register browser. Paged from the official source: no generated or
  * unsourced company records. A legal entity record is not a listed security. */
-export const DIRECTORY_PAGE_SIZE=36;
+export const DIRECTORY_PAGE_SIZE=60;
 export type LeiDirectoryFilters={q?:string;country?:string;page?:number};
 export type LeiDirectoryPage={
  results:LeiEntity[];total:number;page:number;pageSize:number;hasMore:boolean;

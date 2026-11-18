@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PlatformPreview from '@/components/platform-preview';
+import CompanyUniverse from '@/components/company-universe';
 import IntelligenceSignalDemo from '@/components/intelligence-signal-demo';
 
 export const metadata={
@@ -26,6 +27,7 @@ export default function Home(){return <>
      <Link href="/workbench" className="ux-button ux-button-secondary">Build a valuation <span aria-hidden="true">↗</span></Link>
     </div>
    </div>
+   <CompanyUniverse compact/>
    <PlatformPreview/>
    <div className="ux-hero-end"><span>DISCOVER <i/> MODEL <i/> DOCUMENT</span><a href="#workflows">EXPLORE THE PLATFORM <span aria-hidden="true">↓</span></a></div>
   </div>
