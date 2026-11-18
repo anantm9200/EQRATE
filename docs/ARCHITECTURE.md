@@ -2,7 +2,7 @@
 
 ## Status: stage-one application, not a finished institutional platform
 
-CREQOR is the product brand; the existing repository remains named EQRATE. Frontend is Next.js App Router + TypeScript + CSS. Styling uses Poppins and Inter, a dark-green gradient system, compact headings, glass panels and full-screen hamburger navigation. No external image dependencies are needed for the visual system.
+CREQOR is the product brand; the existing repository remains named EQRATE. Frontend is Next.js App Router + TypeScript + CSS. Styling uses Montserrat and Inter, a restrained emerald-on-light visual system, glass panels, consistent centered public-section headings and full-screen navigation. No external image dependencies are needed for the visual system.
 
 ## Trust architecture
 
@@ -35,4 +35,4 @@ Not yet implemented: production PostgreSQL application access and migrations, MF
 
 Import `anantm9200/EQRATE`, framework Next.js, root directory `./`. Run `npm install`, then `npm run build`. Set `SEC_USER_AGENT` and other server-side environment variables as required. Set `NEXT_PUBLIC_SITE_URL` only when the public canonical production domain is decided. Until that point, robots disallows indexing. Test `/api/health`, `/explore`, `/lab`, and `/analyst` before launch.
 
-No domain, hosting deployment, database, SEC user agent, private DGX gateway credentials or licensed data subscriptions have been configured by this commit.
+A Vercel project now serves CREQOR production and preview builds (production: https://creqor.vercel.app). Database connectivity, SEC user agent status, the secure DGX gateway and licensed market data must still be checked in the relevant environment; repository code alone does not confirm those services are configured.
