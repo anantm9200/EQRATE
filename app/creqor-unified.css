@@ -215,9 +215,9 @@ main>section,main>div{box-sizing:border-box}
 /* Decorative overlaid light elements are not needed against clean canvases. */
 .fx-hero-atmosphere span,.v2-visual-glow,.ux-hero:before,.gd-hero-light,
 .signal-graph-grid,.v2-prefooter-rings{display:none!important}
-/* Keep gradient only for actual accents (progress, small marks and indicators). */
-.signal-shell-mark,.ux-status-dot,.fx-scroll-progress,.score-track span,
-.ux-motion-track span,.ic-method-track>span{background-image:revert-layer}
+/* Gradients are only allowed on compact, meaningful accent elements. */
+.signal-shell-mark{background:linear-gradient(140deg,#277b50,#78bb89)!important}
+.fx-scroll-progress{background:linear-gradient(90deg,#1e7f46,#73ce94,#b7f2c9)!important}
 /* Keep content grids aligned without arbitrarily centering tables or controls. */
 :is(.ux-workflow-grid,.ux-distinction-grid,.signal-shell,.cx-gallery-grid,.cx-link-grid,
 .cx-table-scroll,.status-check-list,.gd-toolbar,.gd-grid,.rd-toolbar,.rd-list,.fi-portfolio){
