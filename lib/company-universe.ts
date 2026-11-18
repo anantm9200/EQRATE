@@ -4,6 +4,7 @@ import {searchLEI,listLEIRecords,type LeiEntity} from './gleif';
  * Editorial search targets only. Real company cards are produced exclusively
  * from live GLEIF LEI reference records; this list is not a database of verified facts.
  */
+export const FEATURED_UNIVERSE_LIMIT=32;
 export const FEATURED_ENTITY_NAMES=[
  'APPLE INC.','MICROSOFT CORPORATION','NVIDIA CORPORATION',
  'TOYOTA MOTOR CORPORATION','AIRBUS SE','HSBC HOLDINGS PLC',
@@ -47,14 +48,14 @@ export async function getFeaturedCompanyUniverse():Promise<{records:CompanyUnive
  // Featured search targets can be absent from the first GLEIF search window.
  // Fill remaining cards with other genuine official legal entities rather than
  // exposing a sparse or fictional homepage. Fail closed if the source is down.
- if(records.length<FEATURED_ENTITY_NAMES.length){
+ if(records.length<FEATURED_UNIVERSE_LIMIT){
   try{
    const listing=await listLEIRecords({page:1});
    const candidates=[...listing.results].sort((a,b)=>
     Number(b.registrationStatus==='ISSUED')-Number(a.registrationStatus==='ISSUED')||
     Number(b.status==='ACTIVE')-Number(a.status==='ACTIVE'));
    for(const item of candidates){
-    if(records.length>=FEATURED_ENTITY_NAMES.length)break;
+    if(records.length>=FEATURED_UNIVERSE_LIMIT)break;
     if(seen.has(item.lei))continue;
     seen.add(item.lei);
     records.push({lei:item.lei,name:item.name,country:item.country,jurisdiction:item.jurisdiction,
