@@ -293,3 +293,20 @@ html,body,main{color:var(--cq-ink)!important;background:#fff!important}
 .cq-universe-suggestions>span{font-size:.62rem;color:#7b89a0}
 .cq-universe-suggestions a{font-size:.65rem;color:#2b5cad;padding:5px 8px;border-radius:5px;background:#fff;border:1px solid #e0e8f5}
 .cq-universe-suggestions a:hover{border-color:#b4c9e9}
+
+/* In-product financial highlights must match the blue identity, not legacy green. */
+.ux-model-value strong,.ux-model-foot strong{color:#23539e!important}
+.ux-preview-overline,.ux-preview-action,.ux-curve-meta,.ux-preview-foot a{color:#315fb1!important}
+.ux-preview-description h3,.ux-preview-brand strong{color:#1e3047!important}
+.ux-model-range input,.ux-motion-workspace input[type="range"]{accent-color:#305fb9!important}
+.ux-motion-toggle,.ux-motion-toggle:hover:not(:disabled){
+ background:#eaf1ff!important;color:#315aa5!important;border-color:#d1e0f7!important;
+}
+.ux-preview-tabs{background:#f8fafd!important;border-color:#e3eaf4!important}
+.ux-preview-mark{color:#315fb1!important;background:#edf3ff!important}
+.ux-identity-head,.ux-evidence-head{color:#315fb1!important}
+.ux-evidence-bar>span{background:#4c7dca!important}
+.gd-source-dot,.ux-dot{background:#315fb1!important}
+/* Green and amber remain reserved for actual success and warning states, not the brand. */
+.status-ready-dot{background:#248a58!important}
+.status-await-dot{background:#9caabb!important}
