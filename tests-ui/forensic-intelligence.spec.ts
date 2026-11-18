@@ -15,8 +15,8 @@ test('forensic signal filters and explanations work',async({page})=>{
  await page.goto('/intelligence');
  await page.getByRole('button',{name:/Try synthetic example/i}).click();
  const region=page.getByRole('region',{name:'CREQOR forensic intelligence review'});
- await region.getByRole('button',{name:/HIGH PRIORITY/i}).click();
- await expect(region.getByRole('button',{name:/HIGH PRIORITY/i})).toHaveAttribute('aria-pressed','true');
+ await region.locator('.fi-filters').getByRole('button',{name:/HIGH PRIORITY/i}).click();
+ await expect(region.locator('.fi-filters').getByRole('button',{name:/HIGH PRIORITY/i})).toHaveAttribute('aria-pressed','true');
  await region.getByRole('button',{name:/All \(/i}).click();
  const item=region.locator('.fi-finding').filter({hasText:'No official entity identifier'});
  // Synthetic example has a DEMO-ONLY identifier; inspect a known anomaly instead.
@@ -32,7 +32,7 @@ test('forensic intelligence also updates inside workbench analysis tab',async({p
  await page.getByRole('tab',{name:/03 Analysis/i}).click();
  const forensic=page.getByRole('region',{name:'CREQOR forensic intelligence review'});
  await expect(forensic).toBeVisible();
- await expect(forensic.getByText(/not independently authenticated/i).first()).toBeVisible();
+ await expect(forensic.getByText(/has not retrieved or independently authenticated/i).first()).toBeVisible();
 });
 for(const width of [320,375,768,1440]){
  test('intelligence dashboard fits '+width+'px',async({page})=>{
