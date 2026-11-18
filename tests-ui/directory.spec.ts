@@ -11,7 +11,7 @@ const C={...A,lei:'98765432109876543210',name:'Synthetic Global Markets'};
 const API={
  source:'GLEIF',published:'2026-11-17T12:00:00Z',
  notice:'LEI reference data does not establish prices, financials or ratings.',
- total:80,pageSize:36,hasMore:true
+ total:80,pageSize:60,hasMore:true
 };
 test('worldwide directory has navigation, filtering and official source disclosures',async({page})=>{
  await page.goto('/directory');
@@ -37,7 +37,7 @@ test('country browsing, pagination, record links and saved companies work',async
  await expect(page.locator('.gd-company')).toHaveCount(2);
  await expect(page.getByRole('link',{name:'Synthetic Example Holding Limited'})).toHaveAttribute('href','/lei/12345678901234567890');
  await expect(page.locator('.gd-company')).toContainText(['ISSUED','LAPSED']);
- await page.getByRole('button',{name:/Load 36 more companies/i}).click();
+ await page.getByRole('button',{name:/Load 60 more companies/i}).click();
  await expect(page.locator('.gd-company')).toHaveCount(3);
  await page.getByRole('button',{name:'Bookmark Synthetic Example Holding Limited'}).click();
  await page.getByRole('button',{name:/Saved \(1\)/}).click();
