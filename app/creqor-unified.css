@@ -12,12 +12,12 @@
  --cq-hero-space:clamp(60px,5.3vw,82px);
  --cq-app-space:clamp(45px,4.4vw,64px);
  --cq-surface:#fff;
- --cq-surface-muted:#f7f9f8;
- --cq-surface-subtle:#f3f6f4;
- --cq-divider:#e4ebe6;
- --cq-text:#1c3227;
- --cq-text-soft:#65776a;
- --cq-green:#257449;
+ --cq-surface-muted:#f7f8f9;
+ --cq-surface-subtle:#f4f4f5;
+ --cq-divider:#e4e6eb;
+ --cq-text:#1e2530;
+ --cq-text-soft:#5e6a7f;
+ --cq-green:#305fb9;
  --cq-container:1280px;
  --cq-app-container:1440px;
 }
@@ -30,7 +30,7 @@ main>section,main>div{box-sizing:border-box}
  padding-inline:var(--cq-chrome-gutter)!important;
  background:rgba(255,255,255,.94)!important;
  border-bottom:1px solid var(--cq-divider)!important;
- box-shadow:0 1px 8px rgba(24,57,34,.035)!important;
+ box-shadow:0 1px 8px rgba(30,38,51,.035)!important;
 }
 /* Header + footer + pre-footer consistently use 1.5% inline. */
 .site-header.v2-header,.v2-footer,.v2-prefooter{
@@ -99,11 +99,11 @@ main>section,main>div{box-sizing:border-box}
 .v2-page-hero-grid{min-height:0!important}
 .wk-feature-pills,.lei-explore-stats,.status-head-actions{justify-content:center!important}
 .status-head-actions>a,.status-head-actions>button{
- background:#f6faf7!important;
- color:#276e48!important;
- border:1px solid #cbded1!important;
+ background:#f7f8f9!important;
+ color:#305fb9!important;
+ border:1px solid #ced3db!important;
 }
-.status-head-actions>button:first-child{background:#e7f3eb!important;color:#185735!important}
+.status-head-actions>button:first-child{background:#eaecf0!important;color:#23324c!important}
 .status-error{color:#a8413b!important}
 /* Home hero: clean white background, without the floating blurred orbs. */
 .ux-hero{
@@ -155,7 +155,7 @@ main>section,main>div{box-sizing:border-box}
 }
 /* Dark functional elements retain a solid color; no decorative gradient fill. */
 :is(.panel.dark,.v2-lab-body .panel.dark,.command-final,.terminal,.hero-viz){
- background:#173629!important;
+ background:#1d2430!important;
  background-image:none!important;
 }
 /* The content itself is solid white; depth from hairlines/shadow, not green glow. */
@@ -172,12 +172,12 @@ main>section,main>div{box-sizing:border-box}
 .cx-route,.gd-company,.rd-entry,.wk-panel,.ic-block,.fi-report,.signal-shell,
 .signal-node,.panel):not(.dark){
  border-color:var(--cq-divider)!important;
- box-shadow:0 2px 7px rgba(24,57,34,.025),0 10px 26px rgba(24,57,34,.035)!important;
+ box-shadow:0 2px 7px rgba(30,38,51,.025),0 10px 26px rgba(30,38,51,.035)!important;
 }
 :is(.ux-workflow-card,.ux-distinction-grid article,.cx-card,.gd-company,
 .rd-entry,.wk-panel,.signal-node):hover{
- border-color:#b9d6c3!important;
- box-shadow:0 4px 12px rgba(24,57,34,.035),0 17px 35px rgba(24,57,34,.055)!important;
+ border-color:#b8c3d7!important;
+ box-shadow:0 4px 12px rgba(30,38,51,.035),0 17px 35px rgba(30,38,51,.055)!important;
 }
 .ux-preview{
  background:rgba(255,255,255,.91)!important;
@@ -206,9 +206,9 @@ main>section,main>div{box-sizing:border-box}
  background-color:var(--cq-surface-subtle)!important;
 }
 .cx-diagram-center{background-color:#fff!important}
-.command-backdrop{background-color:#173629!important}
-.feature-card.primary{background-color:#173629!important}
-.v2-identity-viz,.v2-proof-viz{background-color:#173629!important}
+.command-backdrop{background-color:#1d2430!important}
+.feature-card.primary{background-color:#1d2430!important}
+.v2-identity-viz,.v2-proof-viz{background-color:#1d2430!important}
 .ux-motion-workspace .ux-live-curve:before,.ux-motion-workspace .ux-preview-top:after{
  display:none!important;
 }
@@ -216,8 +216,8 @@ main>section,main>div{box-sizing:border-box}
 .fx-hero-atmosphere span,.v2-visual-glow,.ux-hero:before,.gd-hero-light,
 .signal-graph-grid,.v2-prefooter-rings{display:none!important}
 /* Gradients are only allowed on compact, meaningful accent elements. */
-.signal-shell-mark{background:linear-gradient(140deg,#277b50,#78bb89)!important}
-.fx-scroll-progress{background:linear-gradient(90deg,#1e7f46,#73ce94,#b7f2c9)!important}
+.signal-shell-mark{background:linear-gradient(140deg,#305fb9,#7d92b6)!important}
+.fx-scroll-progress{background:linear-gradient(90deg,#305fb9,#7b96c6,#c5d0e4)!important}
 /* Keep content grids aligned without arbitrarily centering tables or controls. */
 :is(.ux-workflow-grid,.ux-distinction-grid,.signal-shell,.cx-gallery-grid,.cx-link-grid,
 .cx-table-scroll,.status-check-list,.gd-toolbar,.gd-grid,.rd-toolbar,.rd-list,.fi-portfolio){
@@ -274,11 +274,11 @@ main>section,main>div{box-sizing:border-box}
 }
 
 /* Legacy editorial/showcase sections are held to the same flat-canvas rule. */
-.hero,.prefooter{background:#173629!important;background-image:none!important}
+.hero,.prefooter{background:#1d2430!important;background-image:none!important}
 .v2-home-hero:before,.command-backdrop:before,.command-hero-utility:before{
  display:none!important;
  background:none!important;
 }
 .v2-visual-grid{background-image:none!important}
-.terminal-result{background:#e5f4ea!important;background-image:none!important}
+.terminal-result{background:#e9ebf0!important;background-image:none!important}
 .terminal-result:after{display:none!important}
