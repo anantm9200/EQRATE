@@ -29,7 +29,7 @@ export default function CompanyUniverse({compact=false}:{compact?:boolean}){
   })();
   return ()=>controller.abort();
  },[]);
- const show=compact?records.slice(0,8):records;
+ const show=compact?records.slice(0,12):records;
  return <section className={'cq-universe'+(compact?' cq-universe-compact':'')} aria-labelledby={compact?'cq-universe-title-home':'cq-universe-title-directory'}>
   <div className="cq-universe-header">
    <div><span className="cq-universe-kicker">LIVE COMPANY UNIVERSE / GLEIF IDENTITY DATA</span>
