@@ -199,3 +199,17 @@
  .iq-hero-glow,.iq-spinner,.iq-empty-art span{animation:none!important}
  .iq-sources-grid a,.iq-hero-links a,.iq-signal-open,.iq-history-track>span{transition:none!important;transform:none!important}
 }
+
+/* Homepage discoverability: intelligence as a first-class product workflow */
+.iq-home-spotlight{padding:clamp(55px,7vw,93px) 3%;background:radial-gradient(ellipse at 50% 0%,rgba(213,246,226,.45),transparent 70%),#fff;text-align:center;border-bottom:1px solid #e2eee5}
+.iq-home-spotlight>div:first-child{max-width:790px;margin:0 auto}
+.iq-home-spotlight h2{font-family:var(--font-montserrat),sans-serif;font-size:clamp(1.65rem,3vw,3rem);font-weight:600;line-height:1.3;color:#1c422d;letter-spacing:-.055em;margin:18px auto}
+.iq-home-spotlight p{color:#718577;font-size:.81rem;line-height:1.85;max-width:650px;margin:0 auto}
+.iq-home-spotlight a{display:inline-block;background:#218049;color:#fff;border-radius:8px;padding:14px 21px;font-weight:650;font-size:.75rem;margin-top:26px}
+.iq-home-spotlight a:hover{background:#1a653a}
+.iq-home-steps{max-width:1150px;margin:43px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.iq-home-steps>div{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 19px;background:rgba(255,255,255,.82);border:1px solid #e0ece3;border-radius:8px;box-shadow:0 11px 36px rgba(31,86,49,.045);gap:11px}
+.iq-home-steps span{font-size:.65rem;color:#379059;letter-spacing:.11em;font-weight:700}
+.iq-home-steps strong{font-family:var(--font-montserrat),sans-serif;font-size:.91rem;font-weight:600;color:#29543a}
+.iq-home-steps small{color:#849988;font-size:.7rem}
+@media(max-width:650px){.iq-home-steps{grid-template-columns:1fr;gap:9px;margin-top:27px}.iq-home-steps>div{padding:20px 15px}}

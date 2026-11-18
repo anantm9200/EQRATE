@@ -32,6 +32,8 @@ export default function Home(){return <>
 
  <section className="gd-home-links" aria-label="Global company directory"><div><strong>Explore companies globally.</strong><small>Source-linked legal entities from the GLEIF registry.</small></div><div className="gd-home-countries"><Link href="/directory">Worldwide ↗</Link><Link href="/directory?country=US">United States</Link><Link href="/directory?country=IN">India</Link><Link href="/directory?country=AE">UAE</Link><Link href="/directory?country=GB">United Kingdom</Link><Link href="/directory?country=NA">Namibia</Link></div></section>
 
+ <section className="iq-home-spotlight" aria-label="Source-backed intelligence engine"><div><span className="iq-kicker">NEW / LIVE INTELLIGENCE</span><h2>From company record<br/>to research signal.</h2><p>Inspect source-linked identities and SEC annual financial trends, with every finding tied to the original reference or filing.</p><Link href="/intelligence">Explore the intelligence engine ↗</Link></div><div className="iq-home-steps"><div><span>01 / GLEIF</span><strong>Who is the entity?</strong><small>Source-linked global legal identities</small></div><div><span>02 / SEC</span><strong>What changed financially?</strong><small>Annual observations and transparent diagnostics</small></div><div><span>03 / EVIDENCE</span><strong>What supports the claim?</strong><small>Trace every rule to original source</small></div></div></section>
+
  <section className="ux-section ux-workflows" id="workflows" aria-labelledby="ux-workflows-title">
   <div className="ux-section-heading">
    <span className="ux-kicker">MADE FOR THE WAY YOU RESEARCH</span>
