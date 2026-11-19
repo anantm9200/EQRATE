@@ -23,7 +23,7 @@ export function summarizeAnnualFinancials(facts:InputFact[],maxYears=6):Financia
  const years=[...new Set(facts.filter(x=>isAnnual(x)&&x.unit==='USD'&&
   revenueTags.includes(x.concept)).map(x=>x.periodEnd))]
   .sort((a,b)=>b.localeCompare(a)).slice(0,Math.max(1,Math.min(maxYears,10)));
- const result=years.map(periodEnd=>{
+ const result:FinancialSummary[]=years.map((periodEnd):FinancialSummary=>{
   const selected=[latestForPeriod(facts,revenueTags,periodEnd),
    latestForPeriod(facts,['NetIncomeLoss'],periodEnd),
    latestForPeriod(facts,['NetCashProvidedByUsedInOperatingActivities'],periodEnd),
