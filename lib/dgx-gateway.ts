@@ -16,7 +16,7 @@ function endpoint(path:string){
  return new URL(path,url);
 }
 export async function callDgxEngine<T>(path:string,options:{
- method?:'GET'|'POST';body?:object;timeoutMs?:number
+ method?:'GET'|'POST';body?:object;timeoutMs?:number;query?:{q:string;country?:string;limit?:number}
 }={}):Promise<T>{
  if(!dgxGatewayConfigured())throw new Error('DGX_ENGINE_NOT_CONNECTED');
  const token=process.env.DGX_ENGINE_TOKEN!;
@@ -27,7 +27,14 @@ export async function callDgxEngine<T>(path:string,options:{
  const headers:Record<string,string>={'Authorization':'Bearer '+token,
   'Accept':'application/json','Content-Type':'application/json'};
  if(clientId){headers['CF-Access-Client-Id']=clientId;headers['CF-Access-Client-Secret']=clientSecret;}
- const response=await fetch(endpoint(path),{method:options.method||'GET',headers,
+ const url=endpoint(path);
+ if(options.query){
+  if(path!=='/v1/search')throw new Error('DGX_QUERY_NOT_ALLOWED');
+  url.searchParams.set('q',options.query.q);
+  if(options.query.country)url.searchParams.set('country',options.query.country);
+  if(options.query.limit)url.searchParams.set('limit',String(options.query.limit));
+ }
+ const response=await fetch(url,{method:options.method||'GET',headers,
   body:options.body?JSON.stringify(options.body):undefined,
   signal:AbortSignal.timeout(Math.max(1000,Math.min(options.timeoutMs||9000,50000))),cache:'no-store'});
  if(!response.ok)throw new Error('DGX_ENGINE_UPSTREAM_'+response.status);
