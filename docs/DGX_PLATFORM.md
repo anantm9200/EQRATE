@@ -15,7 +15,7 @@ _Implementation status: deployable architecture, not evidence that the DGX host 
 ## Deployment preconditions
 
 1. From the DGX itself, verify host OS/architecture, actual free capacity on the target SSD, vLLM localhost reachability, network and power reliability. Don't assume the NVMe has enough room for millions of change-history rows and SEC facts.
-2. Use an encrypted dedicated volume, prepare `/srv/creqor/postgres` (or a configured alternate path), filesystem ownership appropriate to the PostgreSQL container, and an independent encrypted backup destination.
+2. Use an encrypted dedicated volume, prepare `/srv/creqor/postgres` **and** `/srv/creqor/imports` (or configured alternate paths). The import scratch directory must be writable by the Node service UID 1000 and have space for the official ZIP plus extraction buffers. PostgreSQL storage permissions must suit the official image's database user. Have an independent encrypted backup destination.
 3. Install Docker Engine and Compose supported on Ubuntu ARM64; verify the selected `postgres:17-bookworm` and `node:22-bookworm-slim` images resolve for `linux/arm64`.
 4. Clone the reviewed CREQOR repo and create the repository-root `.env.dgx` from `infrastructure/dgx/.env.dgx.example`. Set **real** cryptographically generated, independent `CREQOR_DB_PASSWORD` (URL-safe hex), `DGX_ENGINE_TOKEN` and exact `DGX_MODEL`; never commit them. No real host credentials were generated or set by this commit.
 5. The stack is built from `infrastructure/dgx/compose.yaml`. From the repo root, run a reviewed `docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml up -d --build` on the DGX and validate that both services are healthy. The API only accepts loopback binding.
@@ -51,6 +51,16 @@ Requests to the private API require `Authorization: Bearer <DGX_ENGINE_TOKEN>`. 
 - **Calculations**: FCF is derived only when operating cash flow and capex from the same annual period are both available. DCF requires separately disclosed analyst assumptions for growth, discount, terminal growth, share count and net debt; never report it as observed market cap.
 - **AI**: the locally served model receives only stored source figures and references with strict no-fabrication instructions. Results are labelled model-assisted, saved to an audit table and fall back to deterministic sourced summaries if inference is unavailable. Model reasoning is not a regulated rating.
 - **Security**: user-submitted arbitrary URLs, unrestricted SQL, executable instructions and raw filesystem access are never permitted by the API. No banking or sensitive private documents should be ingested into the public catalogue.
+
+## Encrypted offsite backups
+
+The repository includes `scripts/dgx-backup.sh`, which runs a PostgreSQL custom-format logical dump through `age` encryption into an approved off-host `rclone` destination. It fails closed if the recipient or remote is not configured and does not create an unencrypted dump file. On the DGX host, set an **operator-owned** `DGX_BACKUP_RECIPIENT` (public age recipient) and `DGX_BACKUP_REMOTE` (restricted offsite storage destination), then run the reviewed script. The corresponding private decryption key must be held separately from the DGX. Configure backup cadence, retention, destination immutability and a recurring restore drill before production use; do not equate successful upload with tested recovery.
+
+Logical dumps are not point-in-time recovery. For a full production service, add WAL archiving / PITR and an offsite replica appropriate to data volume and uptime requirements.
+
+## Ingestion inside the DGX container
+
+The service container has a read-only root filesystem but a dedicated durable `/var/creqor/imports` scratch mount. Run the existing operator import scripts **inside the engine container**, where Node, dependencies and `DATABASE_URL` are already configured, for example through `docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml exec engine npm run catalogue:golden-copy -- --dry-run --limit=500`. The same pattern supports `catalogue:sec-issuers` and `catalogue:sec-financials`, after source and credentials have been checked. Do not start the full archive import until storage, CPU and backup capacity have been measured.
 
 ## Capacity/recovery gates
 
