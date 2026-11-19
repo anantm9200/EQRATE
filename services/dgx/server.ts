@@ -133,6 +133,8 @@ function deterministicNarrative(cik:number,summaries:ReturnType<typeof summarize
 }
 async function narrate(cik:number,question:string,summaries:ReturnType<typeof summarizeAnnualFinancials>){
  const fallback=deterministicNarrative(cik,summaries,question);
+ // Never ask a language model to invent research when there is no sourced fact.
+ if(!summaries.some(s=>s.sourceFacts.length))return {text:fallback,kind:'deterministic' as const,model:'deterministic'};
  const m=modelConfiguration();
  if(!m.enabled)return {text:fallback,kind:'deterministic' as const,model:'deterministic'};
  try{
