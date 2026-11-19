@@ -39,7 +39,8 @@ export function parseSecFinancialHistory(input:unknown,cik:number):FinancialFact
    for(const raw of entries){
     if(!raw||typeof raw!=='object')continue;
     const row=raw as Record<string,unknown>;
-    const value=Number(row.val),fiscalYear=Number(row.fy);
+    if(typeof row.val!=='number'||!Number.isFinite(row.val)||Math.abs(row.val)>Number.MAX_SAFE_INTEGER)continue;
+    const value=row.val,fiscalYear=Number(row.fy);
     const form=String(row.form||''),periodStart=row.start===undefined?'':String(row.start);
     const periodEnd=String(row.end||''),filed=String(row.filed||'');
     const accession=String(row.accn||''),fiscalPeriod=String(row.fp||'');
