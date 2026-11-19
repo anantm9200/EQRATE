@@ -1,0 +1,57 @@
+name: creqor-dgx
+services:
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: creqor
+      POSTGRES_USER: creqor
+      POSTGRES_PASSWORD: ${CREQOR_DB_PASSWORD:?Set a strong database password in .env.dgx}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/postgres:/var/lib/postgresql/data"
+    shm_size: "256mb"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creqor -d creqor"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: "12g"
+    pids_limit: 400
+  engine:
+    build:
+      context: ../..
+      dockerfile: infrastructure/dgx/Dockerfile
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - ../../.env.dgx
+    environment:
+      DGX_ENGINE_BIND_HOST: "127.0.0.1"
+      DGX_ENGINE_PORT: "8188"
+      DATABASE_URL: "postgresql://creqor:${CREQOR_DB_PASSWORD}@127.0.0.1:5432/creqor"
+      DGX_VLLM_ENDPOINT: "http://127.0.0.1:8001/v1/chat/completions"
+      TMPDIR: "/var/creqor/imports"
+      NPM_CONFIG_CACHE: "/tmp/npm-cache"
+    volumes:
+      - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/imports:/var/creqor/imports"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8188/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m
+    mem_limit: "4g"
+    pids_limit: 256
+# Localhost binding is intentional. No public PostgreSQL, vLLM or API port.
+# Publish API access only through an authenticated HTTPS tunnel or gateway.

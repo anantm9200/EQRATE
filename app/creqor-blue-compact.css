@@ -355,3 +355,40 @@ html,body,main{color:var(--cq-ink)!important;background:#fff!important}
  .cq-issuer-row{font-size:.65rem}
  .cq-issuers-tools label{width:100%}
 }
+
+/* Private DGX research workspace – consistent institutional navy and compact panels. */
+.cq-engine-shell{padding:var(--cq-app-space) var(--cq-page-gutter) var(--cq-section-space);max-width:1500px;margin-inline:auto}
+.cq-engine-summary{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding-bottom:23px;border-bottom:1px solid #e4eaf4}
+.cq-engine-summary>div{max-width:760px}
+.cq-engine-summary h2{color:#1b314d;font:600 clamp(1.3rem,2.2vw,1.95rem)/1.28 var(--font-montserrat),sans-serif;letter-spacing:-.044em;margin:9px 0}
+.cq-engine-summary p{font-size:.79rem;line-height:1.7;color:#657990}
+.cq-engine-summary a{color:#305fb9;font-size:.73rem;font-weight:650}
+.cq-engine-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.cq-engine-stats>div{display:flex;flex-direction:column;gap:7px;padding:18px;border:1px solid #e1e8f2;border-radius:9px;background:#f9fbff}
+.cq-engine-stats strong{font:650 clamp(1.15rem,1.9vw,1.75rem)/1.1 var(--font-montserrat),sans-serif;color:#264979;font-variant-numeric:tabular-nums}
+.cq-engine-stats span{font-size:.68rem;color:#637791}
+.cq-engine-unconfigured{margin-top:22px;background:#f8fafd;border:1px solid #e3eaf3;border-radius:9px;padding:18px}
+.cq-engine-unconfigured strong{font-size:.83rem;color:#34577e}
+.cq-engine-unconfigured p{font-size:.74rem;line-height:1.7;color:#62788e;max-width:800px;margin:8px 0 0}
+.cq-engine-search{margin-top:22px;padding:18px;background:#fff;border:1px solid #e2e9f3;border-radius:9px}
+.cq-engine-search label{font-size:.75rem;color:#284664;font-weight:650;display:block;margin-bottom:10px}
+.cq-engine-search>div{display:flex;gap:9px}
+.cq-engine-search input,.cq-engine-search select{border-radius:8px;border:1px solid #dce5f0;padding:11px;font-size:.76rem;color:#273c56;background:#fff;min-width:0}
+.cq-engine-search input{flex:1 1 250px}
+.cq-engine-search button{background:#305fb9;border:1px solid #305fb9;color:#fff;border-radius:8px;padding:10px 15px;font-size:.72rem;cursor:pointer}
+.cq-engine-search button:disabled{opacity:.5;cursor:not-allowed}
+.cq-engine-results{margin-top:18px;border:1px solid #e1e9f4;border-radius:9px;overflow:hidden}
+.cq-engine-results>p{padding:16px;font-size:.76rem;color:#62768c}
+.cq-engine-result{display:flex;align-items:center;gap:15px;padding:14px;border-bottom:1px solid #edf1f5}
+.cq-engine-result:last-child{border-bottom:0}
+.cq-engine-record-tag{background:#edf3fc;padding:6px 8px;font-size:.61rem;font-weight:700;color:#305fb9;border-radius:6px}
+.cq-engine-result>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.cq-engine-result strong{font-size:.76rem;color:#263b54}
+.cq-engine-result small{font-size:.65rem;color:#7b8da1;overflow-wrap:anywhere}
+.cq-engine-result>a{color:#305fb9;font-size:.68rem;white-space:nowrap}
+.cq-engine-caveat{font-size:.69rem;line-height:1.7;color:#75869a;margin-top:24px}
+.cq-engine-error{color:#9e443f;font-size:.72rem;margin:12px 0}
+.cq-engine-links{display:flex;gap:14px;flex-wrap:wrap;margin:0 var(--cq-page-gutter) var(--cq-section-space)}
+.cq-engine-links a{color:#315da5;border:1px solid #dce6f3;padding:10px 14px;border-radius:8px;font-size:.71rem}
+@media(max-width:800px){.cq-engine-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.cq-engine-stats{gap:8px}.cq-engine-stats>div{padding:12px}.cq-engine-search>div{flex-wrap:wrap}.cq-engine-search input{flex-basis:100%}.cq-engine-search button{flex:1}.cq-engine-result{gap:8px;flex-wrap:wrap}.cq-engine-result>a{margin-left:auto}}

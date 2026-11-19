@@ -4,6 +4,7 @@ import Link from 'next/link';
 type Health={product:string;status:string;officialRegistryConfigured:boolean;privateIntelligenceConfigured:boolean};
 type CatalogueStatus={configured:boolean;status:'ready'|'unconfigured'|'unavailable';indexed:number;updatedAt:string|null;note:string};
 type PublicCoverage={referenceRecords:number|null;asOf:string|null;locallyIndexed:number;locallyIndexedOperational:boolean};
+type EngineStatus={connected:boolean;status:string;counts:null|{leiEntities:number;secTickerAssociations:number;secFinancialFacts:number;researchRuns:number};aiConfigured?:boolean;note:string};
 export default function StatusPage(){
  const [health,setHealth]=useState<Health|null>(null);
  const [error,setError]=useState('');
@@ -11,6 +12,7 @@ export default function StatusPage(){
  const [leiReachable,setLeiReachable]=useState<boolean|null>(null);
  const [catalogue,setCatalogue]=useState<CatalogueStatus|null>(null);
  const [coverage,setCoverage]=useState<PublicCoverage|null>(null);
+ const [engine,setEngine]=useState<EngineStatus|null>(null);
  const check=useCallback(async()=>{
   setWorking(true);setError('');
   try{
@@ -38,6 +40,11 @@ export default function StatusPage(){
     if(response.ok)setCoverage(await response.json() as PublicCoverage);
     else setCoverage(null);
    }catch{setCoverage(null);}
+   try{
+    const response=await fetch('/api/engine/status',{cache:'no-store'});
+    if(response.ok)setEngine(await response.json() as EngineStatus);
+    else setEngine(null);
+   }catch{setEngine(null);}
   }catch(e){setHealth(null);setLeiReachable(false);setCatalogue(null);setError(e instanceof Error?e.message:'Health check failed.');}
   finally{setWorking(false);}
  },[]);
@@ -54,7 +61,20 @@ export default function StatusPage(){
    value:catalogue?.status==='ready'?new Intl.NumberFormat('en-US').format(catalogue.indexed)+' records':catalogue?.status==='unavailable'?'Database unavailable':'Not connected',
    detail:'PostgreSQL-backed versioned copies of official GLEIF records. Production requires a reviewed migration and DATABASE_URL; indexing is not financial verification.'},
   {name:'Official US SEC company search',active:health?.officialRegistryConfigured===true,value:health?.officialRegistryConfigured?'Configured':'Not configured',detail:'Official company records require the SEC_USER_AGENT connection and the remote data source to respond.'},
-  {name:'Private DGX analyst',active:health?.privateIntelligenceConfigured===true,value:health?.privateIntelligenceConfigured?'Gateway configured':'Not configured',detail:'Server gateway must be enabled with model endpoint and access credentials before inference can work.'},
+  {name:'Private DGX company and financial index',
+   active:engine?.connected===true,
+   value:engine?.connected&&engine.counts?
+    new Intl.NumberFormat('en-US').format(engine.counts.leiEntities)+' indexed LEIs':'Not connected',
+   detail:'Private DGX PostgreSQL record count verified through the authenticated engine. Source coverage is not local storage.'},
+  {name:'Private DGX financial history',
+   active:engine?.connected===true&&Boolean(engine.counts?.secFinancialFacts),
+   value:engine?.connected&&engine.counts?
+    new Intl.NumberFormat('en-US').format(engine.counts.secFinancialFacts)+' imported facts':'Not connected',
+   detail:'SEC CIK/XBRL filings retrieved and stored on the DGX; missing facts are not zeros.'},
+  {name:'Private DGX model inference',
+   active:engine?.connected===true&&engine?.aiConfigured===true,
+   value:engine?.connected&&engine.aiConfigured?'Private model configured':'Not connected',
+   detail:'Optional vLLM inference on locally bound ports. Availability is checked only when an analysis is requested; model identity and hardware must be verified on the DGX.'},
   {name:'Global market prices and published ratings',active:false,value:'Not connected',detail:'Licensed market data, identity resolution, methodology calibration and regulatory review remain required.'}
  ];
  return <div className="status-page">
