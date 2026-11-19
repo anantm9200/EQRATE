@@ -16,8 +16,8 @@ const isAnnual=(r:InputFact)=>{
 function latestForPeriod(facts:InputFact[],concepts:string[],periodEnd:string):InputFact|undefined{
  return facts.filter(f=>f.periodEnd===periodEnd&&f.unit==='USD'&&
   concepts.includes(f.concept)&&isAnnual(f))
-  .sort((a,b)=>concepts.indexOf(a.concept)-concepts.indexOf(b.concept)||
-   b.filed.localeCompare(a.filed))[0];
+  .sort((a,b)=>b.filed.localeCompare(a.filed)||
+   concepts.indexOf(a.concept)-concepts.indexOf(b.concept))[0];
 }
 export function summarizeAnnualFinancials(facts:InputFact[],maxYears=6):FinancialSummary[]{
  const years=[...new Set(facts.filter(x=>isAnnual(x)&&x.unit==='USD'&&
