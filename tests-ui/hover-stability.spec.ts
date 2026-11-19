@@ -4,7 +4,10 @@ test('interactive signal path changes its explanation without a page jump',async
  await page.goto('/');
  await expect(page.getByRole('heading',{name:/Beautiful on the surface/i})).toBeVisible();
  const evidence=page.getByRole('tab',{name:'Evidence trail'});
+ // Live source panels above can still be loading on production; measure only once layout is settled.
+ await page.waitForLoadState('networkidle');
  await evidence.scrollIntoViewIfNeeded();
+ await page.waitForTimeout(400);
  const before=await evidence.boundingBox();
  await evidence.hover();
  await page.waitForTimeout(300);
