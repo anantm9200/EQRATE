@@ -171,6 +171,9 @@ async function main(){
    confirmed=Number(c.rows[0]?.n||0);
    // Only a complete full-file run can establish that a record left the publication.
    if(status==='complete'){
+    // Keep the India identifier view in step with the catalogue (migration 006+).
+    const india=await db.query<{n:string}>('SELECT public.cq_refresh_india_entities()::text n').catch(()=>null);
+    if(india)console.log(JSON.stringify({step:'india-view-refreshed',indianEntities:Number(india.rows[0]?.n||0)}));
     const s=await db.query<{n:string}>('SELECT count(*)::text n FROM public.cq_lei_catalogue WHERE last_seen_run_id IS DISTINCT FROM $1',[runId]);
     stale=Number(s.rows[0]?.n||0);
    }

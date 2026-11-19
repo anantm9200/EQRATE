@@ -7,7 +7,7 @@
 export function dgxGatewayConfigured():boolean{
  return Boolean(process.env.DGX_ENGINE_HTTPS_URL&&process.env.DGX_ENGINE_TOKEN);
 }
-export const DGX_ROUTE=/^\/v1\/(status|search|research|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/research)?)$/;
+export const DGX_ROUTE=/^\/v1\/(status|search|research|india\/(overview|entities)|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/(research|group))?)$/;
 export function dgxEndpoint(path:string,base=process.env.DGX_ENGINE_HTTPS_URL||''):URL{
  if(!DGX_ROUTE.test(path))throw new Error('DGX_UNSUPPORTED_ROUTE');
  let url:URL;
@@ -18,7 +18,8 @@ export function dgxEndpoint(path:string,base=process.env.DGX_ENGINE_HTTPS_URL||'
  return new URL(url.pathname+path.slice(1),url.origin);
 }
 export async function callDgxEngine<T>(path:string,options:{
- method?:'GET'|'POST';body?:object;timeoutMs?:number;query?:{q:string;country?:string;limit?:number}
+ method?:'GET'|'POST';body?:object;timeoutMs?:number;query?:{q:string;country?:string;limit?:number};
+ params?:Partial<Record<'q'|'region'|'class'|'listing'|'status'|'page',string>>
 }={}):Promise<T>{
  if(!dgxGatewayConfigured())throw new Error('DGX_ENGINE_NOT_CONNECTED');
  const token=process.env.DGX_ENGINE_TOKEN!;
@@ -35,6 +36,10 @@ export async function callDgxEngine<T>(path:string,options:{
   url.searchParams.set('q',options.query.q);
   if(options.query.country)url.searchParams.set('country',options.query.country);
   if(options.query.limit)url.searchParams.set('limit',String(options.query.limit));
+ }
+ if(options.params){
+  if(path!=='/v1/india/entities')throw new Error('DGX_QUERY_NOT_ALLOWED');
+  for(const [k,v] of Object.entries(options.params))if(v)url.searchParams.set(k,v);
  }
  const response=await fetch(url,{method:options.method||'GET',headers,redirect:'error',
   body:options.body?JSON.stringify(options.body):undefined,
@@ -61,7 +66,7 @@ export function rateLimited(key:string,limit:number,windowMs=60000):boolean{
 export function clientKey(headers:Headers,scope:string):string{
  return scope+':'+(headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'anonymous');
 }
-export type DgxRun={runId:number;status:string;publishDate:string|null;officialRecords:number|null;rowsRead:number;
+export type DgxRun={runId:number;source?:string;status:string;publishDate:string|null;officialRecords:number|null;rowsRead:number;
  rowsValid:number;rowsRejected:number;rowsInserted:number;rowsChanged:number;startedAt:string;finishedAt:string|null;
  retrievedAt:string|null;retrievalPath:string|null;archiveSha256:string|null};
 export type DgxStatus={

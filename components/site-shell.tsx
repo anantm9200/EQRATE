@@ -7,6 +7,7 @@ import CommandPalette from '@/components/command-palette';
 import GlassMotion from '@/components/glass-motion';
 
 const primary=[
+  {href:'/india',label:'India'},
   {href:'/workbench',label:'Workbench'},
   {href:'/desk',label:'Research desk'},
   {href:'/intelligence',label:'Intelligence'},
@@ -16,6 +17,7 @@ const primary=[
 ];
 const menu=[
   {href:'/',label:'Overview',index:'01',detail:'A better way to know'},
+  {href:'/india',label:'India company intelligence',index:'02',detail:'Every Indian legal entity, decoded and linked'},
   {href:'/workbench',label:'Company workbench',index:'02',detail:'Build a report from financial evidence'},
   {href:'/desk',label:'Research desk',index:'03',detail:'Compare and organise saved assessments'},
   {href:'/directory',label:'Global companies',index:'04',detail:'Browse legal entities worldwide'},
@@ -72,7 +74,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
   </section>
   <footer className="v2-footer">
     <div className="v2-footer-top"><Brand/><p>Company intelligence built on evidence.<br/>Every number should withstand a second look.</p></div>
-    <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/workbench">Company workbench</Link><Link href="/desk">Research desk</Link><Link href="/directory">Global directory</Link><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link><Link href="/intelligence">Forensic intelligence</Link><Link href="/engine">Private intelligence engine</Link></div>
+    <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/india">India company intelligence</Link><Link href="/workbench">Company workbench</Link><Link href="/desk">Research desk</Link><Link href="/directory">Global directory</Link><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link><Link href="/intelligence">Forensic intelligence</Link><Link href="/engine">Private intelligence engine</Link></div>
     <div><span className="v2-footer-label">RESEARCH</span><Link href="/intelligence">Intelligence engine</Link><Link href="/research">Research centre</Link><Link href="/methodology">Methodology</Link><Link href="/verification">Verification</Link></div>
     <div className="v2-footer-statement"><span className="v2-footer-label">INDEPENDENCE MATTERS</span><p>CREQOR is a research and modelling platform—not a credit rating agency or an investment adviser. Estimates are not observable market prices. Claims and conclusions need traceable sources.</p></div></div>
     <div className="v2-footer-bottom"><span>© {new Date().getFullYear()} CREQOR</span><span>Designed for clarity. Built for scrutiny.</span><Link href="/status">System status ↗</Link></div>

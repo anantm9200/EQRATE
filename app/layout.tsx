@@ -18,6 +18,7 @@ import './creqor-preview-motion.css';
 import './creqor-intelligence.css';
 import './creqor-refinement.css';
 import './creqor-unified.css';
+import './creqor-india.css';
 import './creqor-blue-compact.css';
 import SiteShell from '@/components/site-shell';
 const montserrat=Montserrat({subsets:['latin'],weight:['400','500','600','700'],variable:'--font-montserrat',display:'swap'});

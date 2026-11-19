@@ -88,6 +88,7 @@ CREQOR's private backend runs on an NVIDIA DGX Spark (arm64) next to the existin
 - **Identity intelligence**: `lib/identity-intelligence.ts` deterministic LEI screening leads (lapsed/duplicate/annulled registrations, overdue renewal, stale or self-validated data, shared legal names, successors, absence from the latest publication).
 - **AI**: the existing local vLLM model interprets only supplied source data and deterministic results; output citing unknown filings/LEIs is discarded; every analysis is audited (`cq_ai_research_audit`) and falls back to a deterministic answer.
 - **Operations**: systemd user timers for health, data quality and age-encrypted backups (`scripts/dgx-jobs.sh`); off-host pull and restore drill in `scripts/relay/`.
+- **India**: `/india` hub over every Indian LEI registration (CIN/GSTIN decoded, states, company classes, incorporation history, corporate groups from GLEIF Level 2) and rich `/lei/:lei` profiles with group trees and analyst research.
 - **UI**: `/engine` shows real stored counts, source freshness, backend/model health, LEI evidence panels and analyst-gated research; it falls back to live GLEIF search when the DGX is unreachable.
 
 See the [DGX platform runbook](docs/DGX_PLATFORM.md).

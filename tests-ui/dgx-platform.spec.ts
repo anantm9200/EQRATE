@@ -68,3 +68,35 @@ test('engine LEI and financial routes validate identifiers before contacting the
  expect((await request.get('/api/engine/financials/abc')).status()).toBe(400);
  expect((await request.post('/api/engine/valuation/0',{data:{}})).status()).toBe(400);
 });
+test('India hub shows decoded Indian figures or an honest offline state, and searches by filter',async({page,request})=>{
+ const status=await (await request.get('/api/engine/status')).json();
+ await page.goto('/india');
+ await expect(page.getByRole('heading',{name:/Every Indian company/i})).toBeVisible();
+ if(!status.connected){await expect(page.getByText('India analytics are temporarily unavailable')).toBeVisible();return;}
+ await expect(page.getByText('Indian legal entities',{exact:true})).toBeVisible();
+ await expect(page.getByRole('figure').filter({hasText:'Indian legal entities by state / UT'})).toBeVisible();
+ await expect(page.getByText('Maharashtra').first()).toBeVisible();
+ await page.getByLabel('State / UT').selectOption('KA');
+ await page.getByLabel('Listing (CIN)').selectOption('L');
+ await expect(page.getByText(/matching entities/)).toBeVisible();
+ const first=page.locator('.in-results a').first();
+ await expect(first).toContainText(/Karnataka/);
+ await first.click();
+ await expect(page).toHaveURL(/\/lei\/[A-Z0-9]{20}$/);
+ await expect(page.getByRole('heading',{name:/Corporate Identity Number decoded/})).toBeVisible();
+ await expect(page.getByText('Listed',{exact:true})).toBeVisible();
+});
+test('India entity filters are validated before contacting the DGX',async({request})=>{
+ expect((await request.get('/api/engine/india/entities?region=Karnataka')).status()).toBe(400);
+ expect((await request.get('/api/engine/india/entities?listing=X')).status()).toBe(400);
+ expect((await request.get('/api/engine/india/entities?page=9999')).status()).toBe(400);
+ expect((await request.get('/api/engine/lei/short/group')).status()).toBe(400);
+});
+for(const width of [320,375,768,1440]){
+ test('India hub has no horizontal overflow at '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:900});
+  await page.goto('/india');
+  await expect(page.getByRole('heading',{name:/Every Indian company/i})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(2);
+ });
+}
