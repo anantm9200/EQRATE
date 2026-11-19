@@ -16,7 +16,8 @@ function database():Pool{
   if(!['postgres:','postgresql:'].includes(parsed.protocol))throw new Error('CATALOGUE_INVALID_DATABASE_URL');
   if(parsed.hostname!=='localhost'&&parsed.hostname!=='127.0.0.1'&&parsed.searchParams.get('sslmode')==='disable')
    throw new Error('CATALOGUE_TLS_REQUIRED');
-  pool=new Pool({connectionString:url,max:3,idleTimeoutMillis:10000,connectionTimeoutMillis:5000,
+  const max=Math.min(20,Math.max(1,Number(process.env.PG_POOL_MAX)||3));
+  pool=new Pool({connectionString:url,max,idleTimeoutMillis:10000,connectionTimeoutMillis:5000,
    ssl:parsed.hostname==='localhost'||parsed.hostname==='127.0.0.1'?undefined:{rejectUnauthorized:true}});
  }
  return pool;
@@ -29,7 +30,16 @@ function snapshot(entity:LeiEntity):StoredRecord{
  const normalized={lei:entity.lei,name:entity.name.trim(),country:entity.country,
   jurisdiction:entity.jurisdiction,status:entity.status,registrationStatus:entity.registrationStatus,
   lastUpdate:entity.lastUpdate,nextRenewal:entity.nextRenewal,registeredAs:entity.registeredAs,
-  category:entity.category,address:entity.address,headquarters:entity.headquarters,sourceUrl:entity.sourceUrl};
+  category:entity.category,address:entity.address,headquarters:entity.headquarters,sourceUrl:entity.sourceUrl,
+  // Optional Golden Copy fields: undefined values are omitted by JSON.stringify, so
+  // live-API summaries keep the same fingerprint as before these fields existed.
+  otherNames:entity.otherNames||undefined,legalForm:entity.legalForm||undefined,
+  entityCreationDate:entity.entityCreationDate||undefined,
+  initialRegistrationDate:entity.initialRegistrationDate||undefined,
+  managingLou:entity.managingLou||undefined,validationSources:entity.validationSources||undefined,
+  registrationAuthorityId:entity.registrationAuthorityId||undefined,
+  successorLei:entity.successorLei||undefined,expirationDate:entity.expirationDate||undefined,
+  headquartersCountry:entity.headquartersCountry||undefined};
  return {...normalized,sourceSha256:createHash('sha256').update(JSON.stringify(normalized)).digest('hex')};
 }
 export function sourceFingerprint(entity:LeiEntity):string{return snapshot(entity).sourceSha256;}
@@ -167,28 +177,35 @@ export async function synchronizeCatalogue(country:string,requestedPages=3,overr
  }
 }
 
+/** Provenance context for a bulk import: the official publication being applied. */
+export type BulkRunContext={runId:number;publishedAt:string|null};
 /**
  * Transactional, idempotent bulk ingestion of authoritative GLEIF records.
  * Intended for operator-run Golden Copy imports. Each batch stays bounded.
+ * Changed or new records get a new version (observation) linked to the run;
+ * unchanged records are only marked as confirmed by this publication.
  */
-export async function upsertSourcedBatch(input:LeiEntity[]):Promise<{seen:number;changed:number}>{
+export async function upsertSourcedBatch(input:LeiEntity[],run?:BulkRunContext):Promise<{seen:number;changed:number;inserted:number}>{
  if(!Array.isArray(input)||input.length>1000)throw new Error('CATALOGUE_BULK_BATCH_LIMIT');
  const records=new Map<string,StoredRecord>();
  for(const item of input){const normalized=snapshot(item);records.set(normalized.lei,normalized);}
- if(!records.size)return {seen:0,changed:0};
+ if(!records.size)return {seen:0,changed:0,inserted:0};
  const rows=[...records.values()].map(x=>({
   lei:x.lei,name:x.name,country:x.country,jurisdiction:x.jurisdiction,
   status:x.status,registrationStatus:x.registrationStatus,lastUpdate:x.lastUpdate,
   sourceUrl:x.sourceUrl,sourceSha256:x.sourceSha256,payload:x
  }));
+ const runId=run?.runId??null,publishedAt=run?.publishedAt??null;
  const client=await database().connect();
  try{
   await client.query('BEGIN');
-  const updated=await client.query(`
+  const updated=await client.query<{lei:string;inserted:boolean}>(`
     INSERT INTO public.cq_lei_catalogue
-    (lei,legal_name,country_code,jurisdiction,entity_status,registration_status,last_update,source_url,source_payload,source_sha256)
+    (lei,legal_name,country_code,jurisdiction,entity_status,registration_status,last_update,source_url,source_payload,source_sha256,
+     first_seen_run_id,last_changed_run_id,last_seen_run_id,source_published_at)
     SELECT r.lei::char(20),r.name,NULLIF(r.country,'')::char(2),r.jurisdiction,r.status,
-     r."registrationStatus",r."lastUpdate",r."sourceUrl",r.payload,r."sourceSha256"::char(64)
+     r."registrationStatus",r."lastUpdate",r."sourceUrl",r.payload,r."sourceSha256"::char(64),
+     $2::bigint,$2::bigint,$2::bigint,$3::timestamptz
     FROM jsonb_to_recordset($1::jsonb) AS r
      (lei text,name text,country text,jurisdiction text,status text,
       "registrationStatus" text,"lastUpdate" text,"sourceUrl" text,"sourceSha256" text,payload jsonb)
@@ -197,21 +214,67 @@ export async function upsertSourcedBatch(input:LeiEntity[]):Promise<{seen:number
      jurisdiction=EXCLUDED.jurisdiction,entity_status=EXCLUDED.entity_status,
      registration_status=EXCLUDED.registration_status,last_update=EXCLUDED.last_update,
      source_url=EXCLUDED.source_url,source_payload=EXCLUDED.source_payload,
-     source_sha256=EXCLUDED.source_sha256,last_changed_at=now()
+     source_sha256=EXCLUDED.source_sha256,last_changed_at=now(),
+     last_changed_run_id=EXCLUDED.last_changed_run_id,last_seen_run_id=EXCLUDED.last_seen_run_id,
+     source_published_at=EXCLUDED.source_published_at
     WHERE public.cq_lei_catalogue.source_sha256 IS DISTINCT FROM EXCLUDED.source_sha256
-    RETURNING lei
-   `,[JSON.stringify(rows)]);
+    RETURNING lei,(xmax=0) AS inserted
+   `,[JSON.stringify(rows),runId,publishedAt]);
+  if(runId!==null){
+   // Unchanged records: confirm presence in this publication (HOT update, no new version).
+   await client.query(`UPDATE public.cq_lei_catalogue SET last_seen_run_id=$2
+    WHERE lei=ANY($1::char(20)[]) AND last_seen_run_id IS DISTINCT FROM $2`,
+    [rows.map(r=>r.lei),runId]);
+  }
   await client.query(`
-    INSERT INTO public.cq_lei_observations(lei,source_sha256,source_payload)
-    SELECT r.lei::char(20),r."sourceSha256"::char(64),r.payload
+    INSERT INTO public.cq_lei_observations(lei,source_sha256,source_payload,run_id)
+    SELECT r.lei::char(20),r."sourceSha256"::char(64),r.payload,$2::bigint
     FROM jsonb_to_recordset($1::jsonb) AS r
      (lei text,"sourceSha256" text,payload jsonb)
     ON CONFLICT(lei,source_sha256) DO NOTHING
-  `,[JSON.stringify(rows)]);
+  `,[JSON.stringify(rows),runId]);
   await client.query('COMMIT');
-  return {seen:rows.length,changed:updated.rowCount??0};
+  const inserted=updated.rows.filter(r=>r.inserted).length;
+  return {seen:rows.length,changed:(updated.rowCount??0)-inserted,inserted};
  }catch(e){await client.query('ROLLBACK');throw e;}
  finally{client.release();}
+}
+
+export type BulkRunStart={source:'GLEIF_GOLDEN_COPY'|'GLEIF_DELTA';publishDate:string|null;
+ reportedRecords:number|null;sourceUrl:string;archiveSha256:string;archiveBytes:number;
+ retrievedAt:string|null;retrievalPath:'direct'|'operator-relay';rowLimit:number|null};
+/** Open (or resume) a provenance ledger row for one official publication. */
+export async function startBulkRun(s:BulkRunStart,resume:boolean):Promise<{runId:number;resumeFromRow:number;prior:BulkRunProgress|null}>{
+ if(!/^[a-f0-9]{64}$/.test(s.archiveSha256))throw new Error('BULK_RUN_BAD_ARCHIVE_HASH');
+ const db=database();
+ if(resume){
+  const prior=await db.query<{id:string;rows_read:string;rows_valid:string;rows_rejected:string;rows_inserted:string;changed:string}>(
+   `SELECT id::text,rows_read::text,rows_valid::text,rows_rejected::text,rows_inserted::text,changed::text FROM public.cq_bulk_source_runs
+   WHERE source=$1 AND archive_sha256=$2 AND status IN ('running','partial','failed')
+   ORDER BY id DESC LIMIT 1`,[s.source,s.archiveSha256]);
+  if(prior.rows[0]){
+   await db.query(`UPDATE public.cq_bulk_source_runs SET status='running',error_code=NULL,row_limit=$2 WHERE id=$1`,
+    [Number(prior.rows[0].id),s.rowLimit]);
+   const r=prior.rows[0];
+   return {runId:Number(r.id),resumeFromRow:Number(r.rows_read),prior:{rowsRead:Number(r.rows_read),rowsValid:Number(r.rows_valid),
+    rowsRejected:Number(r.rows_rejected),rowsInserted:Number(r.rows_inserted),rowsChanged:Number(r.changed)}};
+  }
+ }
+ const r=await db.query<{id:string}>(`INSERT INTO public.cq_bulk_source_runs
+  (source,source_publish_date,source_reported_records,source_url,processed,changed,status,
+   archive_sha256,archive_bytes,retrieved_at,retrieval_path,row_limit)
+  VALUES($1,$2,$3,$4,0,0,'running',$5,$6,$7,$8,$9) RETURNING id::text`,
+  [s.source,s.publishDate,s.reportedRecords,s.sourceUrl,s.archiveSha256,s.archiveBytes,s.retrievedAt,s.retrievalPath,s.rowLimit]);
+ return {runId:Number(r.rows[0].id),resumeFromRow:0,prior:null};
+}
+export type BulkRunProgress={rowsRead:number;rowsValid:number;rowsRejected:number;rowsInserted:number;rowsChanged:number};
+/** Checkpoint after each committed batch so an interrupted import can resume. */
+export async function checkpointBulkRun(runId:number,p:BulkRunProgress,final?:{status:'complete'|'partial'|'failed';errorCode?:string}):Promise<void>{
+ await database().query(`UPDATE public.cq_bulk_source_runs SET
+  rows_read=$2,rows_valid=$3,rows_rejected=$4,rows_inserted=$5,changed=$6,processed=$2,
+  status=COALESCE($7,status),error_code=$8,finished_at=CASE WHEN $7 IS NULL THEN NULL ELSE now() END
+  WHERE id=$1`,[runId,p.rowsRead,p.rowsValid,p.rowsRejected,p.rowsInserted,p.rowsChanged,
+  final?.status??null,final?.errorCode?.slice(0,200)??null]);
 }
 
 /** Server/operator-only connection to the approved source catalogue. Never expose to client components. */

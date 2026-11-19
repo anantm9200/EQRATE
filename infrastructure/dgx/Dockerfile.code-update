@@ -1,0 +1,9 @@
+# Offline code-only refresh of an already-loaded engine image (no registry or npm access
+# needed). Used on hosts whose network blocks package registries:
+#   docker build -f infrastructure/dgx/Dockerfile.code-update -t creqor-engine:local .
+ARG BASE=creqor-engine:local
+FROM ${BASE}
+COPY lib ./lib
+COPY services ./services
+COPY scripts ./scripts
+COPY db ./db

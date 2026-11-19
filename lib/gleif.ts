@@ -5,6 +5,10 @@ export type LeiEntity={
  registrationStatus:string;lastUpdate:string;nextRenewal:string;
  registeredAs:string;category:string;address:string;headquarters:string;
  sourceUrl:string;
+ /** Optional Golden Copy fields (absent from live API summaries). Never inferred. */
+ otherNames?:string;legalForm?:string;entityCreationDate?:string;initialRegistrationDate?:string;
+ managingLou?:string;validationSources?:string;registrationAuthorityId?:string;
+ successorLei?:string;expirationDate?:string;headquartersCountry?:string;
 };
 type Address={addressLines?:string[];city?:string;region?:string;country?:string;postalCode?:string};
 type GLEIFRecord={id?:string;attributes?:{
