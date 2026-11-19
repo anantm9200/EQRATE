@@ -12,7 +12,9 @@
     "test:release": "npm run test:ui",
     "catalogue:backfill": "tsx scripts/catalogue-backfill.ts",
     "catalogue:golden-copy": "tsx scripts/gleif-golden-copy.ts",
-    "catalogue:sec-issuers": "tsx scripts/sec-issuer-catalogue.ts"
+    "catalogue:sec-issuers": "tsx scripts/sec-issuer-catalogue.ts",
+    "dgx:engine": "tsx services/dgx/server.ts",
+    "catalogue:sec-financials": "tsx scripts/sec-financial-backfill.ts"
   },
   "dependencies": {
     "next": "^15.5.0",
