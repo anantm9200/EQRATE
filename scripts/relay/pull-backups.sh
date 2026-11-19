@@ -8,7 +8,7 @@ set -euo pipefail
 src="${CREQOR_DGX_DIR:-creqor-platform}/data/backups/"
 dest="${1:-$HOME/CREQOR-backups/dumps}"
 mkdir -p "$dest"; chmod 700 "$dest"
-rsync -a --include 'creqor-postgres-*' --exclude '*.partial' --exclude '*' "$CREQOR_DGX_SSH:$src" "$dest/"
+rsync -a --partial --timeout=120 --include 'creqor-postgres-*' --exclude '*.partial' --exclude '*' "$CREQOR_DGX_SSH:$src" "$dest/"
 cd "$dest"
 verified=0
 for manifest in creqor-postgres-*.dump.age.sha256; do

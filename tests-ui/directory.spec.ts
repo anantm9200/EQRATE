@@ -54,7 +54,7 @@ test('search query is encoded and country filters stay present',async({page})=>{
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...API,page:1,results:[A],total:1,hasMore:false})});
  });
  await page.goto('/directory');
- await page.getByRole('button',{name:'India'}).click();
+ await page.getByRole('button',{name:'India',exact:true}).click();
  await expect(page.locator('.gd-company')).toHaveCount(1);
  await page.getByRole('searchbox',{name:'Search global company directory'}).fill('Tata & Sons');
  await expect.poll(()=>seen.some(u=>new URL(u).searchParams.get('q')==='Tata & Sons'&&new URL(u).searchParams.get('country')==='IN')).toBe(true);
