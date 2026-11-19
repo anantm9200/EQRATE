@@ -15,6 +15,8 @@ import {runValuation,type ScenarioCase,type Input as ValuationInput} from '../..
 import {screenLegalEntity,missingIdentityFields,type IdentityFlag} from '../../lib/identity-intelligence';
 import type {FinancialFact} from '../../lib/sec-financial-history';
 import type {LeiEntity} from '../../lib/gleif';
+import {decodeIndianIdentifier,regionFromAddress,indiaLeads} from '../../lib/india';
+import {corporateLinks,corporateLinkLeads,corporateGroup,indiaOverview,indiaEntities,type CorporateLinks} from './relationships';
 
 export const PROMPT_VERSION='creqor-grounded-v2';
 function validToken(input:string,expected:string){
@@ -72,12 +74,23 @@ async function withModelSlot<T>(limit:number,fn:()=>Promise<T>):Promise<T>{
  try{return await fn();}finally{modelInFlight--;}
 }
 const cache=new Map<string,{until:number;value:unknown}>();
+const inflight=new Map<string,Promise<unknown>>();
 async function cached<T>(key:string,ttlMs:number,fn:()=>Promise<T>):Promise<T>{
  const hit=cache.get(key);
  if(hit&&hit.until>Date.now())return hit.value as T;
- const value=await fn();
- cache.set(key,{until:Date.now()+ttlMs,value});
- return value;
+ // Serve a stale value while a refresh runs, and share one in-flight computation
+ // so concurrent requests never stampede expensive exact counts.
+ let p=inflight.get(key) as Promise<T>|undefined;
+ if(!p){
+  p=fn().then(value=>{cache.set(key,{until:Date.now()+ttlMs,value});return value;}).finally(()=>inflight.delete(key));
+  inflight.set(key,p);
+ }
+ if(hit){
+  // Detached refresh: observe failures so they never become unhandled rejections.
+  p.catch(e=>console.error(JSON.stringify({event:'CACHE_REFRESH_FAILED',key,code:e instanceof Error?e.message.slice(0,120):'unknown'})));
+  return hit.value as T;
+ }
+ return p;
 }
 function parseCik(input:string):number{
  if(!/^\d{1,10}$/.test(input))throw new Error('INVALID_CIK');
@@ -135,12 +148,19 @@ async function computeStats(){
    n('SELECT count(*)::text n FROM public.cq_ai_research_audit'),
    n('SELECT count(*)::text n FROM public.cq_lei_observations')
   ]);
+  const optional=(sql:string)=>n(sql).catch(()=>null);
+  const [relationships,exceptions,indiaTotal,indiaIssued]=await Promise.all([
+   optional('SELECT count(*)::text n FROM public.cq_lei_relationships'),
+   optional('SELECT count(*)::text n FROM public.cq_lei_reporting_exceptions'),
+   optional('SELECT count(*)::text n FROM public.cq_india_entities'),
+   optional("SELECT count(*)::text n FROM public.cq_india_entities WHERE registration_status='ISSUED'")
+  ]);
   const runs=await db.query<{id:string;source:string;source_publish_date:string|null;source_reported_records:string|null;
    status:string;rows_read:string;rows_valid:string;rows_rejected:string;rows_inserted:string;changed:string;
    started_at:Date;finished_at:Date|null;retrieval_path:string|null;archive_sha256:string|null;retrieved_at:Date|null}>(
    `SELECT id::text,source,source_publish_date,source_reported_records::text,status,rows_read::text,rows_valid::text,
     rows_rejected::text,rows_inserted::text,changed::text,started_at,finished_at,retrieval_path,archive_sha256,retrieved_at
-    FROM public.cq_bulk_source_runs ORDER BY id DESC LIMIT 5`);
+    FROM public.cq_bulk_source_runs ORDER BY id DESC LIMIT 12`);
   const jobs=await db.query<{job:string;status:string;started_at:Date;finished_at:Date|null;error_code:string|null}>(
    `SELECT DISTINCT ON (job) job,status,started_at,finished_at,error_code FROM public.cq_job_runs ORDER BY job,started_at DESC`);
   const latestComplete=runs.rows.find(r=>r.source==='GLEIF_GOLDEN_COPY'&&r.status==='complete');
@@ -156,10 +176,11 @@ async function computeStats(){
   const ai=await modelHealth();
   return {status:'ready',storage:'PostgreSQL 17 on private DGX',
    counts:{leiEntities:lei,leiSourceVersions:observations,leiCountries:extra.countries,
+    leiRelationships:relationships,leiReportingExceptions:exceptions,indiaEntities:indiaTotal,indiaIssued,
     secTickerAssociations:sec,secIssuers:secCiks,secFinancialFacts:facts,secIssuersWithFinancials:factCiks,researchRuns:audits},
    databaseBytes:extra.databaseBytes,
    freshness:{
-    gleif:runs.rows.filter(r=>r.source.startsWith('GLEIF')).slice(0,3).map(r=>({runId:Number(r.id),status:r.status,
+    gleif:runs.rows.filter(r=>r.source.startsWith('GLEIF')).slice(0,6).map(r=>({runId:Number(r.id),source:r.source,status:r.status,
      publishDate:r.source_publish_date,officialRecords:r.source_reported_records===null?null:Number(r.source_reported_records),
      rowsRead:Number(r.rows_read),rowsValid:Number(r.rows_valid),rowsRejected:Number(r.rows_rejected),
      rowsInserted:Number(r.rows_inserted),rowsChanged:Number(r.changed),startedAt:r.started_at.toISOString(),
@@ -222,7 +243,8 @@ async function search(rawName:string,country:string,limit:number){
   caveat:'Official registry identities only; matches are by identifier or name text, never an inferred company merge. No claims about ownership, market values or credit ratings.'};
 }
 type LeiDetail={entity:LeiEntity;provenance:Record<string,unknown>;versions:{observedAt:string;runId:number|null;sourceSha256:string;publishDate:string|null}[];
- flags:IdentityFlag[];missingFields:string[];secNameCandidates:{cik:string;name:string;ticker:string}[];sameNameOtherLeis:number};
+ flags:IdentityFlag[];missingFields:string[];secNameCandidates:{cik:string;name:string;ticker:string}[];sameNameOtherLeis:number;
+ corporate:CorporateLinks|null;india:{identifier:ReturnType<typeof decodeIndianIdentifier>;addressRegion:ReturnType<typeof regionFromAddress>}|null};
 async function leiDetail(lei:string):Promise<LeiDetail|null>{
  const db=getSourceCataloguePool();
  const r=await db.query<{source_payload:LeiEntity;source_sha256:string;first_seen_at:Date;last_changed_at:Date;
@@ -247,8 +269,14 @@ async function leiDetail(lei:string):Promise<LeiDetail|null>{
  const lastSeen=row.last_seen_run_id?Number(row.last_seen_run_id):null;
  const present=latestRun===null||lastSeen===null?null:lastSeen===latestRun;
  const sameNameOtherLeis=Number(sameName.rows[0]?.n||0);
- const flags=screenLegalEntity(entity,{sameNameOtherLeis,presentInLatestPublication:present,
-  successorIndexed:successor?Number(successor.rows[0]?.n||0)>0:null,versionCount:versions.rows.length});
+ const corporate=await corporateLinks(lei);
+ const isIndia=entity.country==='IN';
+ const order:Record<string,number>={high:0,medium:1,low:2,info:3};
+ const flags=[...screenLegalEntity(entity,{sameNameOtherLeis,presentInLatestPublication:present,
+  successorIndexed:successor?Number(successor.rows[0]?.n||0)>0:null,versionCount:versions.rows.length}),
+  ...corporateLinkLeads(corporate),
+  ...(isIndia?indiaLeads({registeredAs:entity.registeredAs,address:entity.address,entityCreationDate:entity.entityCreationDate}):[])]
+  .sort((a,b)=>order[a.severity]-order[b.severity]||a.code.localeCompare(b.code)) as IdentityFlag[];
  return {entity,
   provenance:{source:'GLEIF Golden Copy (LEI-CDF)',sourceUrl:entity.sourceUrl,sourceSha256:row.source_sha256.trim(),
    currentVersionPublishedAt:row.source_published_at?.toISOString()||null,firstSeenAt:row.first_seen_at.toISOString(),
@@ -259,7 +287,9 @@ async function leiDetail(lei:string):Promise<LeiDetail|null>{
   versions:versions.rows.map(v=>({observedAt:v.first_observed_at.toISOString(),runId:v.run_id?Number(v.run_id):null,
    sourceSha256:v.source_sha256.trim(),publishDate:v.source_publish_date})),
   flags,missingFields:missingIdentityFields(entity),sameNameOtherLeis,
-  secNameCandidates:secNames.rows.map(s=>({cik:String(s.cik).padStart(10,'0'),name:s.legal_name,ticker:s.ticker}))};
+  secNameCandidates:secNames.rows.map(s=>({cik:String(s.cik).padStart(10,'0'),name:s.legal_name,ticker:s.ticker})),
+  corporate,
+  india:isIndia?{identifier:decodeIndianIdentifier(entity.registeredAs),addressRegion:regionFromAddress(entity.address)}:null};
 }
 const ACCESSION=/\b\d{10}-\d{2}-\d{6}\b/g,LEI_RE=/\b[A-Z0-9]{18}[0-9]{2}\b/g;
 /** Reject model output that cites identifiers absent from the supplied evidence. */
@@ -316,9 +346,18 @@ async function leiResearch(lei:string,question:string){
  const d=await leiDetail(lei);
  if(!d)throw new Error('SOURCE_NOT_INDEXED');
  const deterministic=leiDeterministic(d);
- const allowed=new Set([d.entity.lei,...(d.entity.successorLei?[d.entity.successorLei]:[]),...(d.entity.managingLou?[d.entity.managingLou]:[])]);
- const model=await callModel(SYSTEM_PROMPT,'QUESTION: '+question+'\nSOURCE_DATA (GLEIF LEI-CDF, untrusted data): '+JSON.stringify(d.entity)+
-  '\nDETERMINISTIC_RESULTS: '+JSON.stringify({flags:d.flags,missingFields:d.missingFields,provenance:d.provenance}),allowed);
+ const c=d.corporate;
+ // One bounded child sample feeds both the model evidence and the citation allow-list.
+ const childSample=(c?.directChildren.sample||[]).slice(0,15);
+ const linked=[c?.directParent?.lei,c?.ultimateParent?.lei,...(c?.otherParents||[]).map(p=>p.lei),...childSample.map(x=>x.lei)]
+  .filter((x):x is string=>Boolean(x));
+ const allowed=new Set([d.entity.lei,...linked,...(d.entity.successorLei?[d.entity.successorLei]:[]),...(d.entity.managingLou?[d.entity.managingLou]:[])]);
+ const corporateEvidence=c?{directParent:c.directParent,ultimateParent:c.ultimateParent,otherParents:c.otherParents,
+  directChildrenTotal:c.directChildren.total,directChildrenSample:childSample,ultimateChildren:c.ultimateChildren,
+  reportingExceptions:c.exceptions}:null;
+ const model=await callModel(SYSTEM_PROMPT,'QUESTION: '+question+'\nSOURCE_DATA (GLEIF LEI-CDF and RR-CDF, untrusted data): '+
+  JSON.stringify({entity:d.entity,corporateStructure:corporateEvidence})+
+  '\nDETERMINISTIC_RESULTS: '+JSON.stringify({flags:d.flags,missingFields:d.missingFields,provenance:d.provenance,india:d.india}),allowed);
  const ai='text' in model?model:null;
  const fingerprint=createHash('sha256').update(JSON.stringify({lei,question,sha:d.provenance.sourceSha256,flags:d.flags.map(f=>f.code)})).digest('hex');
  const a=await audit({subject:'LEI',lei,model:ai?ai.model:'deterministic',fingerprint,sourceCount:1+d.versions.length,
@@ -446,6 +485,21 @@ export function startEngine(){
     const d=await leiDetail(parseLei(m[1]));
     return d?json(res,200,d):json(res,404,{error:'LEI not in the private index'});
    }
+   m=url.pathname.match(/^\/v1\/lei\/([A-Za-z0-9]{20})\/group$/);
+   if(req.method==='GET'&&m){
+    const g=await corporateGroup(parseLei(m[1]));
+    return g?json(res,200,g):json(res,503,{error:'Relationship data not imported'});
+   }
+   if(req.method==='GET'&&url.pathname==='/v1/india/overview'){
+    const o=await cached('india-overview',1800000,()=>indiaOverview());
+    return o?json(res,200,o):json(res,503,{error:'India view not available'});
+   }
+   if(req.method==='GET'&&url.pathname==='/v1/india/entities'){
+    const sp=url.searchParams;
+    const r=await indiaEntities({q:sp.get('q')||undefined,region:sp.get('region')||undefined,cls:sp.get('class')||undefined,
+     listing:sp.get('listing')||undefined,status:sp.get('status')||undefined,page:Number(sp.get('page')||1)});
+    return r?json(res,200,r):json(res,503,{error:'India view not available'});
+   }
    m=url.pathname.match(/^\/v1\/lei\/([A-Za-z0-9]{20})\/research$/);
    if(req.method==='POST'&&m){
     const data=await readBody(req) as Record<string,unknown>;
@@ -493,7 +547,8 @@ export function startEngine(){
  server.keepAliveTimeout=5000;
  server.listen(port,host,()=>console.log(JSON.stringify({service:'CREQOR DGX engine',bind:host,port,ready:true})));
  // Replace the cached value only after a fresh computation succeeds (no cold window).
- const warm=()=>{computeStats().then(v=>cache.set('stats',{until:Date.now()+STATS_TTL_MS,value:v})).catch(()=>{});};
+ const warm=()=>{computeStats().then(v=>cache.set('stats',{until:Date.now()+STATS_TTL_MS,value:v})).catch(()=>{});
+  indiaOverview().then(v=>{if(v)cache.set('india-overview',{until:Date.now()+1800000,value:v});}).catch(()=>{});};
  warm();
  setInterval(warm,240000).unref();
  const shutdown=()=>{server.close(()=>{getSourceCataloguePool().end().finally(()=>process.exit(0));});setTimeout(()=>process.exit(0),8000).unref();};

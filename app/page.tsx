@@ -33,7 +33,7 @@ export default function Home(){return <>
   </div>
  </section>
 
- <section className="gd-home-links" aria-label="Global company directory"><div><strong>Explore companies globally.</strong><small>Source-linked legal entities from the GLEIF registry.</small></div><div className="gd-home-countries"><Link href="/directory">Worldwide ↗</Link><Link href="/directory?country=US">United States</Link><Link href="/directory?country=IN">India</Link><Link href="/directory?country=AE">UAE</Link><Link href="/directory?country=GB">United Kingdom</Link><Link href="/directory?country=NA">Namibia</Link></div></section>
+ <section className="gd-home-links" aria-label="India company intelligence and global directory"><div><strong>India first: every Indian legal entity, decoded.</strong><small>4 lakh+ Indian LEI registrations with CIN, state and group data, plus the worldwide GLEIF registry.</small></div><div className="gd-home-countries"><Link href="/india">India company intelligence ↗</Link><Link href="/directory?country=IN">India directory</Link><Link href="/directory">Worldwide</Link><Link href="/directory?country=US">United States</Link><Link href="/directory?country=AE">UAE</Link><Link href="/directory?country=GB">United Kingdom</Link><Link href="/directory?country=NA">Namibia</Link></div></section>
 
  <section className="ux-section ux-workflows" id="workflows" aria-labelledby="ux-workflows-title">
   <div className="ux-section-heading">

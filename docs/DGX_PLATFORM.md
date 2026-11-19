@@ -55,7 +55,7 @@ Some DGX networks run DNS security filtering that blocks GLEIF, SEC, Companies H
 * builds the engine image for `linux/arm64` and loads it on the DGX;
 * the run ledger records `retrieval_path='operator-relay'`.
 
-Allow-listing these domains on the DGX network enables direct, unattended refresh: `goldencopy.gleif.org`, `api.gleif.org`, `www.sec.gov`, `data.sec.gov`, `registry.npmjs.org`, `registry-1.docker.io`, `auth.docker.io`, `production.cloudflare.docker.com`.
+Allow-listing the domains in `docs/NETWORK_ALLOWLIST.md` (GLEIF, Docker Hub, npm; SEC deliberately excluded) enables direct, unattended refresh.
 
 ## Ingestion
 
@@ -103,9 +103,21 @@ Install: `cp infrastructure/dgx/systemd/* ~/.config/systemd/user/ && systemctl -
 * `scripts/relay/restore-test.sh`: decrypts the newest dump off-host, restores into a throwaway PostgreSQL 17 container and compares row counts with the backup manifest.
 * Logical dumps are not point-in-time recovery. For production continuity add WAL archiving / PITR to an off-site object store.
 
+## India focus and GLEIF Level 2
+
+* **Migration 006** adds `cq_lei_relationships` (official RR-CDF relationship records: direct/ultimate accounting consolidation, international branches, fund links), `cq_lei_reporting_exceptions` (official reasons a parent is not reported) and the `cq_india_entities` materialized view.
+* `cq_india_entities` decodes identifiers Indian registrants reported to GLEIF: **CIN** (listed/unlisted prefix, industry code, ROC state, incorporation year, company class, registration number) and **GSTIN** (GST state code, PAN holder type). State comes from the ISO 3166-2 code in the legal address. Codes without a documented meaning are shown raw as "not decoded". The view is refreshed by `cq_refresh_india_entities()` (security-definer, executable by `creqor_ingest`) after each complete LEI import.
+* Import Level 2 files with `scripts/gleif-level2.ts --kind=rr|repex --archive=... --metadata=... --expected-sha256=...` (same provenance ledger as the LEI import). Self-referencing relationship rows (start node = end node; 3,272 in the 2026-11-19 file) are rejected and counted. Current-data queries read only rows confirmed by the latest complete RR/repex run (`last_seen_run_id >=` that run), so records dropped by a newer complete publication disappear; during a re-import, rows already confirmed by the running import are visible as they are written. Parent-related leads are only raised once both RR and repex runs are complete, so "no parent reported" never means "not imported yet".
+* Engine routes: `GET /v1/india/overview`, `GET /v1/india/entities?q=&region=&class=&listing=L|U&status=&page=`, `GET /v1/lei/:lei/group`. Website: `/india` (hub with state, class, incorporation and group figures plus filtered search) and `/lei/:lei` (CIN/GSTIN decoding, corporate structure and group tree, screening leads, provenance, analyst research).
+* SEC collection stays disabled by decision; Indian financial statements are not ingested (MCA filings and exchange disclosures need licensed or officially open access).
+
+## Encryption at rest
+
+`infrastructure/dgx/encrypted-volume.sh` (run with sudo by the operator) creates a LUKS2 file-backed volume, migrates PostgreSQL data, imports and backups onto it, and repoints `.env.dgx`. Without a TPM the volume must be unlocked after each reboot (`unlock`). See `docs/NETWORK_ALLOWLIST.md` for the outbound allow-list request that enables unattended source refresh.
+
 ## Known limitations
 
-* The DGX root filesystem is plain ext4 (no LUKS). Encryption at rest for the live database requires a root-provisioned LUKS volume; backups are encrypted.
+* Until `encrypted-volume.sh` is run, the live database sits on the plain ext4 root filesystem; backups are always encrypted.
 * A single DGX is a single point of failure; recovery depends on off-host encrypted backups.
 * Tailscale Funnel enforces TLS but not identity; authentication is the engine bearer token plus rate limiting. Cloudflare Access service tokens are the stronger option where available.
 * Ingestion and model inference share the host; containers are CPU/memory capped and model calls are concurrency-limited, but vLLM itself is managed outside CREQOR.

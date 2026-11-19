@@ -2,8 +2,9 @@
 import Link from 'next/link';
 import {useEffect,useState} from 'react';
 type Counts={leiEntities:number;leiSourceVersions?:number;leiCountries?:number;secTickerAssociations:number;
+ leiRelationships?:number|null;leiReportingExceptions?:number|null;indiaEntities?:number|null;indiaIssued?:number|null;
  secIssuers?:number;secFinancialFacts:number;secIssuersWithFinancials?:number;researchRuns:number};
-type Run={runId:number;status:string;publishDate:string|null;officialRecords:number|null;rowsRead:number;rowsValid:number;
+type Run={runId:number;source?:string;status:string;publishDate:string|null;officialRecords:number|null;rowsRead:number;rowsValid:number;
  rowsRejected:number;rowsInserted:number;rowsChanged:number;finishedAt:string|null;retrievalPath:string|null};
 type Status={connected:boolean;status:string;counts:Counts|null;aiConfigured?:boolean;note:string;databaseBytes?:number|null;
  freshness?:{gleif:Run[];staleNotInLatestPublication:number|null;sec:{status:string};
@@ -26,7 +27,7 @@ const day=(s:string|null|undefined)=>s?s.slice(0,10):'—';
 export default function DgxEngineBrowser(){
  const [status,setStatus]=useState<Status|null>(null);
  const [q,setQ]=useState('');
- const [country,setCountry]=useState('');
+ const [country,setCountry]=useState('IN');
  const [records,setRecords]=useState<Result[]>([]);
  const [origin,setOrigin]=useState<'dgx'|'live'>('dgx');
  const [busy,setBusy]=useState(false);
@@ -91,7 +92,9 @@ export default function DgxEngineBrowser(){
   }catch(e){setResearchError(e instanceof Error?e.message:'Research unavailable.');}
   finally{setResearchBusy(false);}
  }
- const latest=status?.freshness?.gleif?.[0];
+ const runs=status?.freshness?.gleif||[];
+ const latest=runs.find(r=>!r.source||r.source==='GLEIF_GOLDEN_COPY');
+ const rr=runs.find(r=>r.source==='GLEIF_RR');
  return <div className="cq-engine-shell">
   <div className="cq-engine-summary">
    <div><span className="eyebrow">PRIVATE DATA ENGINE / STORAGE STATUS</span>
@@ -102,9 +105,9 @@ export default function DgxEngineBrowser(){
   {status?.connected&&status.counts?<>
    <div className="cq-engine-stats" aria-label="Private DGX stored-record counts">
     {[
-     ['Indexed legal entities (LEI)',status.counts.leiEntities],
-     ['Countries represented',status.counts.leiCountries??null],
-     ['SEC issuers / financial facts',null,fmt(status.counts.secIssuers??status.counts.secTickerAssociations)+' / '+fmt(status.counts.secFinancialFacts)],
+     ['Indian legal entities',status.counts.indiaEntities??null],
+     ['Global legal entities (LEI)',status.counts.leiEntities],
+     ['Reported group relationships',status.counts.leiRelationships??null],
      ['Audited research analyses',status.counts.researchRuns]
     ].map(([label,value,text])=><div key={String(label)}>
      <strong>{text?String(text):fmt(value as number|null)}</strong><span>{label}</span>
@@ -115,7 +118,7 @@ export default function DgxEngineBrowser(){
     <div><dt>Official records in publication</dt><dd>{fmt(latest?.officialRecords)}</dd></div>
     <div><dt>Latest run: valid / rejected</dt><dd>{latest?fmt(latest.rowsValid)+' / '+fmt(latest.rowsRejected):'—'}</dd></div>
     <div><dt>Not in latest publication</dt><dd>{fmt(status.freshness?.staleNotInLatestPublication)}</dd></div>
-    <div><dt>SEC financial history</dt><dd>{status.freshness?.sec.status==='not-imported'?'not imported (source contact not configured)':status.freshness?.sec.status||'—'}</dd></div>
+    <div><dt>Relationship data (Level 2)</dt><dd>{rr?day(rr.publishDate)+' · '+rr.status:'not imported'}</dd></div>
     <div><dt>Local AI model</dt><dd>{status.ai?.reachable&&status.ai.configured?status.ai.model:'unavailable — deterministic analysis only'}</dd></div>
     <div><dt>Backend check</dt><dd>{status.latencyMs!==undefined?status.latencyMs+' ms':'—'} · {day(status.checkedAt)}</dd></div>
     <div><dt>Retrieval path</dt><dd>{latest?.retrievalPath==='operator-relay'?'operator relay (official archive, SHA-256 verified)':latest?.retrievalPath||'—'}</dd></div>
@@ -129,7 +132,7 @@ export default function DgxEngineBrowser(){
      placeholder="Legal company name, LEI or SEC ticker" minLength={2} maxLength={100}/>
     <select value={country} onChange={e=>setCountry(e.target.value)} aria-label="Country">
      <option value="">All countries</option>
-     {['US','IN','AE','GB','DE','JP','SG','SA','ZA','NA','AU','CA','FR','BR','VN','TZ','CH','NL','LU','IE','CN','HK']
+     {['IN','US','AE','GB','DE','JP','SG','SA','ZA','NA','AU','CA','FR','BR','VN','TZ','CH','NL','LU','IE','CN','HK']
       .map(c=><option key={c} value={c}>{c}</option>)}
     </select>
     <button type="submit" disabled={busy||q.trim().length<2}>{busy?'Searching…':'Search records'}</button></div>
@@ -166,7 +169,7 @@ export default function DgxEngineBrowser(){
    {detail.missingFields.length>0&&<p className="cq-engine-note"><strong>Not provided by the source:</strong> {detail.missingFields.join(', ')}</p>}
    {detail.secNameCandidates.length>0&&<p className="cq-engine-note"><strong>SEC issuers with the identical name (name match only, not a verified link):</strong> {detail.secNameCandidates.map(s=>s.name+' (CIK '+s.cik+')').join('; ')}</p>}
    <div className="cq-engine-actions"><a href={detail.entity.sourceUrl} target="_blank" rel="noopener noreferrer">Original GLEIF record ↗</a>
-    <Link href={'/lei/'+detail.entity.lei}>Open CREQOR LEI profile</Link></div>
+    <Link href={'/lei/'+detail.entity.lei}>Open full company profile ↗</Link></div>
    <form className="cq-engine-research" onSubmit={e=>{e.preventDefault();void runResearch();}}>
     <h4>Analyst research (local AI, audited)</h4>
     <label htmlFor="cq-research-q">Question</label>

@@ -2,7 +2,7 @@
 
 ## Status: stage-one application, not a finished institutional platform
 
-CREQOR is the product brand; the existing repository remains named EQRATE. Frontend is Next.js App Router + TypeScript + CSS. Styling uses Poppins and Inter, a dark-green gradient system, compact headings, glass panels and full-screen hamburger navigation. No external image dependencies are needed for the visual system.
+CREQOR is the product brand; the existing repository remains named EQRATE. Frontend is Next.js App Router + TypeScript + CSS. Styling uses Montserrat and Inter with the white-first navy/blue system (`app/creqor-blue-compact.css` is always the last global stylesheet), compact headings, solid panels and full-screen hamburger navigation. No external image dependencies are needed for the visual system.
 
 ## Trust architecture
 

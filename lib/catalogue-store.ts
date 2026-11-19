@@ -240,7 +240,7 @@ export async function upsertSourcedBatch(input:LeiEntity[],run?:BulkRunContext):
  finally{client.release();}
 }
 
-export type BulkRunStart={source:'GLEIF_GOLDEN_COPY'|'GLEIF_DELTA';publishDate:string|null;
+export type BulkRunStart={source:'GLEIF_GOLDEN_COPY'|'GLEIF_DELTA'|'GLEIF_RR'|'GLEIF_REPEX';publishDate:string|null;
  reportedRecords:number|null;sourceUrl:string;archiveSha256:string;archiveBytes:number;
  retrievedAt:string|null;retrievalPath:'direct'|'operator-relay';rowLimit:number|null};
 /** Open (or resume) a provenance ledger row for one official publication. */
