@@ -17,12 +17,9 @@ export async function GET(req:NextRequest){
  rates.set(ip,next);
  if(rates.size>2000)for(const [k,v] of rates)if(v.expires<now)rates.delete(k);
  if(next.hits>30)return NextResponse.json({error:'Search limit exceeded.'},{status:429});
- const params=new URLSearchParams({q,limit:String(limit)});
- if(country)params.set('country',country);
  try{
-  const result=await callDgxEngine<Record<string,unknown>>('/v1/search',{timeoutMs:12000,
-   // Search is tunneled as a fixed-route POST-like gateway request? Instead use
-   // only a literal source path; the private engine accepts query params.
+  const result=await callDgxEngine<Record<string,unknown>>('/v1/search',{
+   query:{q,...(country?{country}:{}),limit},timeoutMs:12000
   });
   return NextResponse.json(result,{headers:{'Cache-Control':'no-store'}});
  }catch{
