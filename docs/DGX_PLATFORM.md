@@ -1,71 +1,111 @@
 # CREQOR DGX private intelligence platform
 
-_Implementation status: deployable architecture, not evidence that the DGX host was remotely configured or that a public endpoint is connected._
+_Operational runbook for the private CREQOR backend on an NVIDIA DGX Spark (Ubuntu 24.04, arm64).
+Host names, IPs and credentials are intentionally not recorded in this repository._
 
 ## System boundary
 
-**Vercel:** user-facing Next.js website, public GLEIF discovery, authentication for analyst-only research, a server-side DGX client, read-only search and status. Vercel never receives the PostgreSQL password or unrestricted access to local vLLM ports.
-
-**DGX Spark:** Ubuntu 24.04-based ARM64 system with existing vLLM inference. A separate CPU-limited Node service handles authenticated company queries and source-backed analysis. PostgreSQL 17 on **encrypted durable SSD/NVMe** stores official GLEIF identities, SEC issuer records, per-period XBRL facts and research audit traces. GPU memory is reserved for inference, not for persistent company storage.
-
-**Connectivity:** both the API and PostgreSQL bind only to 127.0.0.1, as does the model gateway. Deploy a separately managed, audited HTTPS reverse tunnel (e.g., Cloudflare Tunnel + Access service-token policy) to the API *only*. Vercel sends a service-token header pair and an independent 32+ character Bearer token. Never expose TCP 5432, 8001 or 8188 directly to the internet, and never accept a user-supplied destination URL.
-
-**Reliability:** a single DGX is a single point of failure. Keep off-host encrypted Postgres base backups/WAL archiving, immutable snapshots, restore drills and available disk monitoring. A local SSD is not an offsite backup. Separate ingestion from GPU compute; container memory caps apply to the API and PostgreSQL, but the existing vLLM service must be independently sized.
-
-## Deployment preconditions
-
-1. From the DGX itself, verify host OS/architecture, actual free capacity on the target SSD, vLLM localhost reachability, network and power reliability. Don't assume the NVMe has enough room for millions of change-history rows and SEC facts.
-2. Use an encrypted dedicated volume, prepare `/srv/creqor/postgres` **and** `/srv/creqor/imports` (or configured alternate paths). The import scratch directory must be writable by the Node service UID 1000 and have space for the official ZIP plus extraction buffers. PostgreSQL storage permissions must suit the official image's database user. Have an independent encrypted backup destination.
-3. Install Docker Engine and Compose supported on Ubuntu ARM64; verify the selected `postgres:17-bookworm` and `node:22-bookworm-slim` images resolve for `linux/arm64`.
-4. Clone the reviewed CREQOR repo and create the repository-root `.env.dgx` from `infrastructure/dgx/.env.dgx.example`. Set **real** cryptographically generated, independent `CREQOR_DB_PASSWORD` (URL-safe hex), `DGX_ENGINE_TOKEN` and exact `DGX_MODEL`; never commit them. No real host credentials were generated or set by this commit.
-5. The stack is built from `infrastructure/dgx/compose.yaml`. From the repo root, run a reviewed `docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml up -d --build` on the DGX and validate that both services are healthy. The API only accepts loopback binding.
-6. Apply the existing three migrations **in order**, using the local database container and an approved administrative role: `001_lei_catalogue.sql`, `002_official_sec_issuers.sql`, `003_dgx_intelligence.sql`. No migration runs automatically at build/deploy time.
-7. Ingest public LEI/SEC records using operator-controlled jobs:
-   - `npm run catalogue:golden-copy -- --dry-run --limit=500` (verify live Golden Copy archive first).
-   - `npm run catalogue:golden-copy -- --limit=100000` (initial real-index milestone).
-   - `npm run catalogue:golden-copy -- --limit=all --batch-size=750` (scale within disk and maintenance limits).
-   - `npm run catalogue:sec-issuers` (requires a compliant real `SEC_USER_AGENT`).
-   - `npm run catalogue:sec-financials -- --limit=50 --delay-ms=600` (paced XBRL backfill; rerun to advance).
-   The scripts should run on the DGX or a controlled worker with direct secure database access; never run large ZIP imports in Vercel.
-8. Check `http://127.0.0.1:8188/health` locally and authenticated `/v1/status` and `/v1/search?q=...`. Verify counts reflect real imported records, including sample checks against the original GLEIF/SEC endpoints. Check sample financial histories against SEC accession IDs and fiscal periods.
-9. Configure an authenticated **HTTPS** gateway to localhost port 8188, protected by a service-token policy and strict rate limiting. Do not enable a public anonymous bypass route. Permit only server-to-server Vercel traffic where technically feasible.
-10. In Vercel project environment settings, add `DGX_ENGINE_HTTPS_URL` (an HTTPS origin with trailing `/`), `DGX_ENGINE_TOKEN`, optionally the paired `DGX_ACCESS_CLIENT_ID`/`DGX_ACCESS_CLIENT_SECRET`. Analyst-only research uses the **existing** `CREQOR_ANALYST_ACCESS_TOKEN`. Do not set `DATABASE_URL` in Vercel for this architecture. Verify `/api/engine/status` and `/engine` before advertising availability.
-
-## API
-
-| Method | Path | Grounded behaviour |
+| Layer | Where | Exposure |
 | --- | --- | --- |
-| GET | `/health` | Only loopback server liveness, no sensitive counts |
-| GET | `/v1/status` | Authenticated actual PostgreSQL row counts and model configuration flag |
-| GET | `/v1/search?q=NAME&country=US&limit=30` | Authenticated LEI and SEC source-linked identities, never an inferred company merge |
-| GET | `/v1/financials/0000320193` | Authenticated XBRL facts and comparable annual series |
-| POST | `/v1/research` | Authenticated source-grounded deterministic analysis, optional local vLLM explanation and explicitly assumed DCF |
+| Next.js website | Vercel | Public. Holds only `DGX_ENGINE_HTTPS_URL`, `DGX_ENGINE_TOKEN`, `CREQOR_ANALYST_ACCESS_TOKEN`. Never a database URL. |
+| HTTPS gateway | Tailscale Funnel path `/creqor-engine` on the DGX's existing `*.ts.net` HTTPS listener (or Cloudflare Tunnel + Access) | Public TLS endpoint that forwards **only** to the engine's loopback port. |
+| CREQOR engine (`services/dgx/server.ts`) | Docker, host network, `127.0.0.1:8196` | Loopback only. Bearer token (96 hex chars) on every `/v1` route; global rate limits; unauthenticated-request throttle. |
+| PostgreSQL 17 | Docker, `127.0.0.1:5432` | Loopback only. scram-sha-256, data checksums, DDL/connection logging. |
+| vLLM (existing, not managed by CREQOR) | host, port 8002 | CREQOR calls it on loopback only (`DGX_VLLM_ENDPOINT`), max 2 concurrent requests. |
 
-Requests to the private API require `Authorization: Bearer <DGX_ENGINE_TOKEN>`. The public website uses only the Next.js routes `/api/engine/status`, `/api/engine/search`, and analyst-authorized `/api/engine/research` through the protected server-side gateway.
+Port 8188 is used by another service on shared hosts, so the engine defaults to **8196** (`DGX_ENGINE_PORT`).
 
-## Data provenance and financial integrity
+## Database roles (least privilege)
 
-- **GLEIF**: names, LEIs, country, jurisdiction and registration status are only legal-entity reference facts. No automatic ownership relationships, trade eligibility or market cap.
-- **SEC**: CIK/ticker associations may include multiple securities for a single filer. SEC companyfacts are issuer-reported observations, not independently guaranteed truth.
-- **History**: facts preserve fiscal period, unit, form, accession, filing date and source URL; repetitions/restatements remain version-identifiable.
-- **Calculations**: FCF is derived only when operating cash flow and capex from the same annual period are both available. DCF requires separately disclosed analyst assumptions for growth, discount, terminal growth, share count and net debt; never report it as observed market cap.
-- **AI**: the locally served model receives only stored source figures and references with strict no-fabrication instructions. Results are labelled model-assisted, saved to an audit table and fall back to deterministic sourced summaries if inference is unavailable. Model reasoning is not a regulated rating.
-- **Security**: user-submitted arbitrary URLs, unrestricted SQL, executable instructions and raw filesystem access are never permitted by the API. No banking or sensitive private documents should be ingested into the public catalogue.
+| Role | Used by | Rights |
+| --- | --- | --- |
+| `creqor` | migrations, backups, job ledger | owner (superuser in the official image; never given to the engine) |
+| `creqor_app` | engine | `SELECT` on public records, `INSERT` on `cq_ai_research_audit`; `statement_timeout=15s` |
+| `creqor_ingest` | import jobs | `INSERT/UPDATE` on source tables and job/run ledgers; no `DELETE`, no DDL |
 
-## Encrypted offsite backups
+Roles are created `NOLOGIN` by migration 004 and enabled by `scripts/dgx-db-bootstrap.sh`, which reads passwords from `.env.dgx` via psql variables with statement logging disabled. Re-run it to rotate passwords. Containers receive only the variables they need (no shared `env_file`): the engine never sees the owner or ingest passwords.
 
-The repository includes `scripts/dgx-backup.sh`, which runs a PostgreSQL custom-format logical dump through `age` encryption into an approved off-host `rclone` destination. It fails closed if the recipient or remote is not configured and does not create an unencrypted dump file. On the DGX host, set an **operator-owned** `DGX_BACKUP_RECIPIENT` (public age recipient) and `DGX_BACKUP_REMOTE` (restricted offsite storage destination), then run the reviewed script. The corresponding private decryption key must be held separately from the DGX. Configure backup cadence, retention, destination immutability and a recurring restore drill before production use; do not equate successful upload with tested recovery.
+## Deploy / upgrade
 
-Logical dumps are not point-in-time recovery. For a full production service, add WAL archiving / PITR and an offsite replica appropriate to data volume and uptime requirements.
+```bash
+# On an operator workstation that can reach the public sources
+export CREQOR_DGX_SSH=user@dgx-host CREQOR_DGX_DIR=creqor-platform
+scripts/relay/dgx-relay.sh sync     # repo -> $CREQOR_DGX_DIR/app (never .env*)
+scripts/relay/dgx-relay.sh image    # build linux/arm64 engine image, docker load on the DGX
+# On the DGX
+cd ~/creqor-platform/app
+cp infrastructure/dgx/.env.dgx.example .env.dgx && chmod 600 .env.dgx   # fill with `openssl rand -hex 32` values
+docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml up -d postgres
+scripts/dgx-migrate.sh              # ordered, checksummed, one transaction per file
+scripts/dgx-db-bootstrap.sh         # enable creqor_app / creqor_ingest
+docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml up -d engine
+tailscale funnel --bg --https=443 --set-path=/creqor-engine http://127.0.0.1:8196
+```
 
-## Ingestion inside the DGX container
+Remove only the CREQOR route with `tailscale funnel --https=443 --set-path=/creqor-engine off`
+(**never** `tailscale funnel --https=443 off`, which removes every route on that listener).
 
-The service container has a read-only root filesystem but a dedicated durable `/var/creqor/imports` scratch mount. Run the existing operator import scripts **inside the engine container**, where Node, dependencies and `DATABASE_URL` are already configured, for example through `docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml exec engine npm run catalogue:golden-copy -- --dry-run --limit=500`. The same pattern supports `catalogue:sec-issuers` and `catalogue:sec-financials`, after source and credentials have been checked. Do not start the full archive import until storage, CPU and backup capacity have been measured.
+Vercel: set `DGX_ENGINE_HTTPS_URL=https://<host>.ts.net/creqor-engine/` (trailing slash), `DGX_ENGINE_TOKEN` (same value as `.env.dgx`) and `CREQOR_ANALYST_ACCESS_TOKEN`.
 
-## Capacity/recovery gates
+## Restricted networks (operator relay)
 
-Before importing millions of entities, verify storage allocation, migration performance, index build time, ingestion costs, backups, restore time, SSD wear, and DGX GPU/CPU contention. The DGX alone is **not** a high-availability production database. An offsite mirror or restore strategy is required before depending on it for business continuity.
+Some DGX networks run DNS security filtering that blocks GLEIF, SEC, Companies House, npm, Docker Hub and OS mirrors. CREQOR does not modify firewall or DNS policy. Instead `scripts/relay/dgx-relay.sh` runs on a workstation that can reach the official sources and:
 
-## Current code verification versus real deployment
+* downloads the official GLEIF Golden Copy archive and its publish metadata, checks the published byte size, computes SHA-256, copies both to the DGX and runs the importer with `--archive --metadata --expected-sha256 --retrieved-at --resume`;
+* builds the engine image for `linux/arm64` and loads it on the DGX;
+* the run ledger records `retrieval_path='operator-relay'`.
 
-New files, scripts, migrations, backend API, tests and UI can be validated in the repository. Direct SSH control of the user's DGX, its local filesystem/volumes, vLLM process and HTTPS tunnel were **not available** to this chat. Therefore no claim of live DGX indexing or model serving can be made without an explicit on-host deployment and end-to-end smoke test.
+Allow-listing these domains on the DGX network enables direct, unattended refresh: `goldencopy.gleif.org`, `api.gleif.org`, `www.sec.gov`, `data.sec.gov`, `registry.npmjs.org`, `registry-1.docker.io`, `auth.docker.io`, `production.cloudflare.docker.com`.
+
+## Ingestion
+
+```bash
+# Inside the DGX stack (ingest role, bounded memory/CPU)
+docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml --profile jobs run --rm -T ingest \
+  scripts/gleif-golden-copy.ts --archive=/var/creqor/imports/<file>.csv.zip \
+  --metadata=/var/creqor/imports/lei2-latest.json --expected-sha256=<hex> --limit=100000   # milestone A
+#   ... --limit=all --resume                                                                  # full publication
+```
+
+Every run writes `cq_bulk_source_runs` (publication date, official record count, archive SHA-256 and size, retrieval time and path, rows read / valid / rejected / inserted / changed, status). Per entity: `first_seen_run_id`, `last_changed_run_id`, `last_seen_run_id`, `source_published_at`; every distinct source version is kept in `cq_lei_observations`. After a complete full-file run, records absent from that publication are counted as stale — never deleted. Checkpoints are written after every committed batch, so `--resume` continues an interrupted run. Unchanged records are only re-confirmed (HOT update), so daily re-imports do not create new versions.
+
+SEC issuers (`scripts/sec-issuer-catalogue.ts`) and companyfacts (`scripts/sec-financial-backfill.ts`) require `SEC_USER_AGENT` with a real organisation and monitored contact email (SEC fair-access policy). Leave it empty to keep SEC collection disabled.
+
+## Engine API (all `/v1` routes require `Authorization: Bearer <DGX_ENGINE_TOKEN>`)
+
+| Method | Path | Behaviour |
+| --- | --- | --- |
+| GET | `/health` | liveness only |
+| GET | `/v1/status` | exact stored counts, DB size, GLEIF run freshness, stale count, job states, model reachability |
+| GET | `/v1/search?q=&country=&limit=` | LEI exact → name prefix → substring/name-variant (pg_trgm) → SEC issuers; each result labelled with its match type |
+| GET | `/v1/lei/:lei` | source record, provenance, version history, deterministic identity leads, missing fields, exact-name SEC candidates (explicitly "name match only") |
+| POST | `/v1/lei/:lei/research` | deterministic summary + optional local-model interpretation; audited |
+| GET | `/v1/financials/:cik` | stored companyfacts + `lib/financial-analysis.ts` ratios, trends and signals |
+| POST | `/v1/valuation/:cik` | `lib/valuation-scenarios.ts` bear/base/bull DCF, sensitivity, multiples, NAV — assumptions must be explicit |
+| POST | `/v1/research` | SEC research: deterministic analysis + optional model interpretation; audited |
+
+Analytical responses are split into `verifiedSource`, `deterministicCalculations`, `analystAssumptions`, `aiInterpretation` and `missingOrUnverified`. Model output that cites an accession number or LEI not present in the supplied evidence is discarded (deterministic answer returned, reason recorded). Source documents are passed to the model as untrusted data. Every analysis is written to `cq_ai_research_audit` with subject, question, source versions, assumptions, model id, prompt version, latency and review state (`unreviewed` by default — nothing is auto-published).
+
+## Supervised jobs (systemd user timers, lingering enabled)
+
+| Timer | Schedule | Script |
+| --- | --- | --- |
+| `creqor-health.timer` | every 15 min | `scripts/dgx-jobs.sh health` — Postgres, engine, model, disk ≥ 85 %, memory < 4 GB, backup age > 36 h |
+| `creqor-quality.timer` | daily 06:30 | `scripts/dgx-jobs.sh quality` — invalid rows, provenance gaps, stale records, publication age > 72 h |
+| `creqor-backup.timer` | daily 02:30 | `scripts/dgx-backup.sh` |
+
+Install: `cp infrastructure/dgx/systemd/* ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now creqor-{health,quality,backup}.timer`. Results land in `cq_job_runs` and are shown on `/engine`. Exit code 3 = warning.
+
+## Backups and recovery
+
+* `scripts/dgx-backup.sh`: `pg_dump -Fc` streamed into `age` public-key encryption (no plaintext on disk), SHA-256 manifest, row-count manifest, retention `DGX_BACKUP_KEEP`. The **age private key is kept off the DGX**.
+* `scripts/relay/pull-backups.sh`: copies encrypted dumps to an off-host directory and verifies checksums.
+* `scripts/relay/restore-test.sh`: decrypts the newest dump off-host, restores into a throwaway PostgreSQL 17 container and compares row counts with the backup manifest.
+* Logical dumps are not point-in-time recovery. For production continuity add WAL archiving / PITR to an off-site object store.
+
+## Known limitations
+
+* The DGX root filesystem is plain ext4 (no LUKS). Encryption at rest for the live database requires a root-provisioned LUKS volume; backups are encrypted.
+* A single DGX is a single point of failure; recovery depends on off-host encrypted backups.
+* Tailscale Funnel enforces TLS but not identity; authentication is the engine bearer token plus rate limiting. Cloudflare Access service tokens are the stronger option where available.
+* Ingestion and model inference share the host; containers are CPU/memory capped and model calls are concurrency-limited, but vLLM itself is managed outside CREQOR.

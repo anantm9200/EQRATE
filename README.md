@@ -77,16 +77,17 @@ The SEC ticker/CIK/exchange association importer uses the official `company_tick
 
 **No production Postgres database is connected and the bulk imports have not been committed to a persistent company index.** The existing live directory remains available; no fictional record, market quote or rating is substituted. See `docs/OFFICIAL_PUBLIC_RECORDS.md` for source citations, migration order, safe operator commands, capacity, validation and rollback.
 
-## DGX private intelligence platform (2026-11-19)
+## DGX private intelligence platform
 
-CREQOR includes a **separately deployable, ARM64-compatible backend for NVIDIA DGX Spark** in `infrastructure/dgx/` and `services/dgx/`. The Vercel website remains public-facing; company indexing, SEC XBRL financial history, deterministic modelling, private inference and research audits are designed to run on the DGX using PostgreSQL stored on durable encrypted SSD/NVMe.
+CREQOR's private backend runs on an NVIDIA DGX Spark (arm64) next to the existing local vLLM service. The Vercel website stays public-facing and reaches the DGX only through an authenticated HTTPS gateway.
 
-- **Database**: migrations `001` (GLEIF identities), `002` (SEC issuer/ticker associations), `003` (filing facts and analysis history) on a local PostgreSQL 17 instance with localhost-only port binding.
-- **Ingestion**: official GLEIF Golden Copy import, SEC issuer records, and `npm run catalogue:sec-financials` for bounded, paced source-linked multi-year XBRL facts. `scripts/dgx-refresh.sh` is available for operator scheduling.
-- **Calculations**: period-comparable annual revenue, margins, reported operating cash flow and capex, derived free cash flow and explicit-assumption DCF estimates. No unsupported current market cap or regulated ratings.
-- **AI**: optional model-assisted analyses through the DGX's localhost vLLM service, with sourced facts and filing IDs. The engine falls back to an evidence-based deterministic summary when AI is disabled or unavailable.
-- **API**: a token-protected localhost-only service, with a separately managed HTTPS reverse gateway for Vercel. Public search/status routes never receive raw database credentials or private inference tokens.
-- **Recovery**: `scripts/dgx-backup.sh` streams encrypted PostgreSQL backup off the machine; requires operator-configured age public recipient and offsite rclone destination. Restores must be tested.
-- **UI**: `/engine` and `/api/engine/status` show genuine DGX connectivity and imported counts, or an explicit not-connected state.
+- **Database**: PostgreSQL 17 (loopback only, data checksums, scram-sha-256) with ordered, checksummed migrations `001`–`005` (`scripts/dgx-migrate.sh`) and least-privilege runtime roles `creqor_app` / `creqor_ingest` (`scripts/dgx-db-bootstrap.sh`).
+- **Ingestion**: the official GLEIF Golden Copy with per-publication provenance (publish date, archive SHA-256, retrieval time, read/valid/rejected/inserted/changed counts), per-entity first/last-seen runs, version history, checkpoints and `--resume`. SEC issuer and companyfacts collection is available once a compliant `SEC_USER_AGENT` is configured.
+- **Restricted networks**: `scripts/relay/dgx-relay.sh` moves verified official archives and the arm64 engine image to a DGX whose network blocks public sources and registries, without touching firewall policy.
+- **Calculations**: `lib/financial-analysis.ts` (margins, returns, liquidity, leverage, cash conversion, FCF, EBITDA, growth, CAGR, volatility, restatement and deterioration signals; missing never becomes zero) and `lib/valuation-scenarios.ts` (bear/base/bull DCF, EV-to-equity bridge, sensitivity matrix, multiples, NAV; every input labelled source or assumption).
+- **Identity intelligence**: `lib/identity-intelligence.ts` deterministic LEI screening leads (lapsed/duplicate/annulled registrations, overdue renewal, stale or self-validated data, shared legal names, successors, absence from the latest publication).
+- **AI**: the existing local vLLM model interprets only supplied source data and deterministic results; output citing unknown filings/LEIs is discarded; every analysis is audited (`cq_ai_research_audit`) and falls back to a deterministic answer.
+- **Operations**: systemd user timers for health, data quality and age-encrypted backups (`scripts/dgx-jobs.sh`); off-host pull and restore drill in `scripts/relay/`.
+- **UI**: `/engine` shows real stored counts, source freshness, backend/model health, LEI evidence panels and analyst-gated research; it falls back to live GLEIF search when the DGX is unreachable.
 
-**This is deployable code, not a live DGX installation.** No SSH/session access to the physical DGX was available in this chat, and the currently connected Vercel project has no `DGX_ENGINE_HTTPS_URL`/token or `DATABASE_URL`. The actual Docker stack, database migrations, source ingestion, private HTTPS gateway, vLLM model ID and offsite backup destination must be configured and verified on the DGX host. See [DGX platform runbook](docs/DGX_PLATFORM.md) for exact security and operational gates.
+See the [DGX platform runbook](docs/DGX_PLATFORM.md).

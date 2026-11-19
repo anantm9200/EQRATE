@@ -1,17 +1,59 @@
 name: creqor-dgx
+# CREQOR private intelligence stack for the DGX Spark (linux/arm64).
+# Localhost binding is intentional: no public PostgreSQL, vLLM or engine port.
+# The engine is published only through an authenticated HTTPS gateway (see docs/DGX_PLATFORM.md).
+# Resource limits keep CREQOR well inside the DGX's shared CPU/RAM budget so the
+# existing vLLM / llama.cpp inference services are never starved.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
 services:
   postgres:
     image: postgres:17-bookworm
+    pull_policy: missing
     restart: unless-stopped
     environment:
       POSTGRES_DB: creqor
       POSTGRES_USER: creqor
       POSTGRES_PASSWORD: ${CREQOR_DB_PASSWORD:?Set a strong database password in .env.dgx}
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command:
+      - postgres
+      - -c
+      - shared_buffers=1536MB
+      - -c
+      - effective_cache_size=4GB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=512MB
+      - -c
+      - max_connections=40
+      - -c
+      - max_wal_size=4GB
+      - -c
+      - checkpoint_timeout=15min
+      - -c
+      - wal_compression=on
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - log_statement=ddl
+      - -c
+      - log_connections=on
+      - -c
+      - log_min_duration_statement=2000
+      - -c
+      - log_lock_waits=on
+      - -c
+      - track_io_timing=on
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/postgres:/var/lib/postgresql/data"
-    shm_size: "256mb"
+    shm_size: "1g"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U creqor -d creqor"]
       interval: 15s
@@ -19,30 +61,36 @@ services:
       retries: 8
     security_opt:
       - no-new-privileges:true
-    mem_limit: "12g"
+    mem_limit: "6g"
+    cpus: 4
     pids_limit: 400
+    logging: *logging
   engine:
+    image: creqor-engine:${CREQOR_RELEASE:-local}
+    pull_policy: never
     build:
       context: ../..
       dockerfile: infrastructure/dgx/Dockerfile
     restart: unless-stopped
     network_mode: host
-    env_file:
-      - ../../.env.dgx
+    # Explicit variables only: the engine never receives the owner or ingest passwords.
     environment:
+      DGX_ENGINE_TOKEN: "${DGX_ENGINE_TOKEN:?Set DGX_ENGINE_TOKEN}"
+      DGX_MODEL: "${DGX_MODEL:-}"
+      DGX_AI_ENABLED: "${DGX_AI_ENABLED:-false}"
+      DGX_AI_MAX_CONCURRENCY: "${DGX_AI_MAX_CONCURRENCY:-2}"
+      PG_POOL_MAX: "${PG_POOL_MAX:-8}"
       DGX_ENGINE_BIND_HOST: "127.0.0.1"
-      DGX_ENGINE_PORT: "8188"
-      DATABASE_URL: "postgresql://creqor:${CREQOR_DB_PASSWORD}@127.0.0.1:5432/creqor"
-      DGX_VLLM_ENDPOINT: "http://127.0.0.1:8001/v1/chat/completions"
-      TMPDIR: "/var/creqor/imports"
-      NPM_CONFIG_CACHE: "/tmp/npm-cache"
-    volumes:
-      - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/imports:/var/creqor/imports"
+      DGX_ENGINE_PORT: "${DGX_ENGINE_PORT:-8196}"
+      # Runtime role: SELECT on public records + INSERT on the research audit only.
+      DATABASE_URL: "postgresql://creqor_app:${CREQOR_APP_DB_PASSWORD:?Set CREQOR_APP_DB_PASSWORD}@127.0.0.1:5432/creqor"
+      DGX_VLLM_ENDPOINT: "${DGX_VLLM_ENDPOINT:-http://127.0.0.1:8002/v1/chat/completions}"
+      NODE_OPTIONS: "--max-old-space-size=768"
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8188/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:'+(process.env.DGX_ENGINE_PORT||8196)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 20s
       timeout: 5s
       retries: 5
@@ -51,7 +99,32 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,nosuid,nodev,size=128m
-    mem_limit: "4g"
+    mem_limit: "1536m"
+    cpus: 2
     pids_limit: 256
-# Localhost binding is intentional. No public PostgreSQL, vLLM or API port.
-# Publish API access only through an authenticated HTTPS tunnel or gateway.
+    logging: *logging
+  # One-shot operator/scheduled jobs: `docker compose --profile jobs run --rm ingest <script> [args]`
+  ingest:
+    image: creqor-engine:${CREQOR_RELEASE:-local}
+    pull_policy: never
+    profiles: ["jobs"]
+    network_mode: host
+    environment:
+      SEC_USER_AGENT: "${SEC_USER_AGENT:-}"
+      PG_POOL_MAX: "4"
+      # Ingestion role: INSERT/UPDATE on source tables; no DELETE, no DDL.
+      DATABASE_URL: "postgresql://creqor_ingest:${CREQOR_INGEST_DB_PASSWORD:?Set CREQOR_INGEST_DB_PASSWORD}@127.0.0.1:5432/creqor"
+      TMPDIR: "/var/creqor/imports"
+      NODE_OPTIONS: "--max-old-space-size=1536"
+    entrypoint: ["./node_modules/.bin/tsx"]
+    volumes:
+      - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/imports:/var/creqor/imports"
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=256m
+    mem_limit: "2g"
+    cpus: 2
+    pids_limit: 128
+    logging: *logging

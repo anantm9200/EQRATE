@@ -7,7 +7,12 @@ export const SEC_FINANCIAL_CONCEPTS=[
  'Assets','Liabilities','StockholdersEquity','CashAndCashEquivalentsAtCarryingValue',
  'LongTermDebt','LongTermDebtCurrent','CommonStockSharesOutstanding',
  'WeightedAverageNumberOfDilutedSharesOutstanding','NetCashProvidedByUsedInInvestingActivities',
- 'PaymentsToAcquirePropertyPlantAndEquipment'
+ 'PaymentsToAcquirePropertyPlantAndEquipment',
+ // Profitability, liquidity, leverage and EBITDA inputs for the deterministic analysis engine.
+ 'GrossProfit','CostOfRevenue','AssetsCurrent','LiabilitiesCurrent','LongTermDebtNoncurrent',
+ 'DebtCurrent','ShortTermBorrowings','DepreciationDepletionAndAmortization',
+ 'DepreciationAndAmortization','InterestExpense','NetCashProvidedByUsedInFinancingActivities',
+ 'EntityCommonStockSharesOutstanding'
 ] as const;
 export type FinancialFact={
  cik:number;taxonomy:'us-gaap'|'dei';concept:string;unit:'USD'|'shares';
@@ -69,12 +74,14 @@ export async function fetchSecFinancialHistory(cik:number):Promise<FinancialFact
  const url=SEC_FACT_PREFIX+String(cik).padStart(10,'0')+'.json';
  const response=await fetch(url,{headers:{'User-Agent':userAgent,'Accept':'application/json'},
   signal:AbortSignal.timeout(25000),cache:'no-store'});
+ // 404: the registrant has no XBRL companyfacts (e.g. non-XBRL filer). Not a failure, not zero.
+ if(response.status===404)throw new Error('SEC_NO_XBRL_COMPANYFACTS');
  if(!response.ok||new URL(response.url).hostname!=='data.sec.gov')
   throw new Error('SEC_FINANCIAL_SOURCE_UNAVAILABLE');
  return parseSecFinancialHistory(await response.json(),cik);
 }
 export async function persistSecFinancialHistory(cik:number,records:FinancialFact[]):Promise<number>{
- if(!Number.isSafeInteger(cik)||cik<1||!Array.isArray(records)||records.length>10000||
+ if(!Number.isSafeInteger(cik)||cik<1||!Array.isArray(records)||records.length>40000||
   records.some(f=>f.cik!==cik))throw new Error('SEC_FINANCIAL_BATCH_REJECTED');
  const client=await getSourceCataloguePool().connect();
  let changed=0;

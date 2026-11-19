@@ -256,4 +256,9 @@ body{background:#f8f8f9;color:var(--cq-ink);text-rendering:optimizeLegibility}
 }
 @media(prefers-reduced-motion:reduce){
  .signal-section *,.signal-section *::before,.signal-section *::after{animation:none!important;transition:none!important}
+ /* Same selector list (and specificity) as the card transition rule above, so reduced motion wins. */
+ :is(.ux-workflow-card,.ux-distinction-grid article,.ux-method-steps>div,.cx-card,.cx-route,
+  .v2-capability,.feature-card,.gd-company,.command-job,.sweet-insight-card,
+  .command-market-card,.wk-panel,.rd-entry,.ic-block,.fi-report,
+  .ux-model-card,.ux-identity-card,.ux-evidence-card){transition:none!important}
 }
