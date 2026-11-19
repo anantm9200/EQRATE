@@ -34,6 +34,10 @@ services:
       DGX_ENGINE_PORT: "8188"
       DATABASE_URL: "postgresql://creqor:${CREQOR_DB_PASSWORD}@127.0.0.1:5432/creqor"
       DGX_VLLM_ENDPOINT: "http://127.0.0.1:8001/v1/chat/completions"
+      TMPDIR: "/var/creqor/imports"
+      NPM_CONFIG_CACHE: "/tmp/npm-cache"
+    volumes:
+      - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/imports:/var/creqor/imports"
     depends_on:
       postgres:
         condition: service_healthy
