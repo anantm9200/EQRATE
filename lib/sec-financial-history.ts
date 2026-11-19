@@ -33,7 +33,7 @@ export function parseSecFinancialHistory(input:unknown,cik:number):FinancialFact
    if(!concepts.has(concept))continue;
    const units=facts[concept]?.units;
    if(!units||typeof units!=='object')continue;
-   const unit=concept.includes('Shares')?'shares':'USD';
+   const unit:FinancialFact['unit']=concept.includes('Shares')?'shares':'USD';
    const entries=units[unit];
    if(!Array.isArray(entries))continue;
    for(const raw of entries){
