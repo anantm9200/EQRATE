@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
+import PublicRecordsCoverage from '@/components/public-records-coverage';
 
 type RecordView={
  lei:string;name:string;country:string;status:string;registrationStatus:string;
@@ -28,7 +29,7 @@ export default function CompanyUniverse({compact=false}:{compact?:boolean}){
   })();
   return ()=>controller.abort();
  },[]);
- const show=compact?records.slice(0,8):records;
+ const show=compact?records.slice(0,12):records;
  return <section className={'cq-universe'+(compact?' cq-universe-compact':'')} aria-labelledby={compact?'cq-universe-title-home':'cq-universe-title-directory'}>
   <div className="cq-universe-header">
    <div><span className="cq-universe-kicker">LIVE COMPANY UNIVERSE / GLEIF IDENTITY DATA</span>
@@ -37,6 +38,7 @@ export default function CompanyUniverse({compact=false}:{compact?:boolean}){
    </div>
    <Link href="/directory" className="cq-universe-more">{compact?'View global directory':'Browse all countries'} <span aria-hidden="true">↗</span></Link>
   </div>
+  <PublicRecordsCoverage/>
   {loading?<div className="cq-universe-loading" role="status"><span className="cq-universe-indicator"/> <div><p>Resolving official legal entities from GLEIF…</p><div className="cq-universe-suggestions"><span>Search immediately:</span>{examples.slice(0,6).map(name=><Link href={'/directory?q='+encodeURIComponent(name)} key={name}>{name} ↗</Link>)}</div></div></div>:
    show.length?
     <div className="cq-universe-grid">{show.map(record=><Link href={'/lei/'+encodeURIComponent(record.lei)} className="cq-universe-company" key={record.lei}>

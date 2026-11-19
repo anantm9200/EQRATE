@@ -166,3 +166,53 @@ export async function synchronizeCatalogue(country:string,requestedPages=3,overr
   client.release();
  }
 }
+
+/**
+ * Transactional, idempotent bulk ingestion of authoritative GLEIF records.
+ * Intended for operator-run Golden Copy imports. Each batch stays bounded.
+ */
+export async function upsertSourcedBatch(input:LeiEntity[]):Promise<{seen:number;changed:number}>{
+ if(!Array.isArray(input)||input.length>1000)throw new Error('CATALOGUE_BULK_BATCH_LIMIT');
+ const records=new Map<string,StoredRecord>();
+ for(const item of input){const normalized=snapshot(item);records.set(normalized.lei,normalized);}
+ if(!records.size)return {seen:0,changed:0};
+ const rows=[...records.values()].map(x=>({
+  lei:x.lei,name:x.name,country:x.country,jurisdiction:x.jurisdiction,
+  status:x.status,registrationStatus:x.registrationStatus,lastUpdate:x.lastUpdate,
+  sourceUrl:x.sourceUrl,sourceSha256:x.sourceSha256,payload:x
+ }));
+ const client=await database().connect();
+ try{
+  await client.query('BEGIN');
+  const updated=await client.query(`
+    INSERT INTO public.cq_lei_catalogue
+    (lei,legal_name,country_code,jurisdiction,entity_status,registration_status,last_update,source_url,source_payload,source_sha256)
+    SELECT r.lei::char(20),r.name,NULLIF(r.country,'')::char(2),r.jurisdiction,r.status,
+     r."registrationStatus",r."lastUpdate",r."sourceUrl",r.payload,r."sourceSha256"::char(64)
+    FROM jsonb_to_recordset($1::jsonb) AS r
+     (lei text,name text,country text,jurisdiction text,status text,
+      "registrationStatus" text,"lastUpdate" text,"sourceUrl" text,"sourceSha256" text,payload jsonb)
+    ON CONFLICT(lei) DO UPDATE SET
+     legal_name=EXCLUDED.legal_name,country_code=EXCLUDED.country_code,
+     jurisdiction=EXCLUDED.jurisdiction,entity_status=EXCLUDED.entity_status,
+     registration_status=EXCLUDED.registration_status,last_update=EXCLUDED.last_update,
+     source_url=EXCLUDED.source_url,source_payload=EXCLUDED.source_payload,
+     source_sha256=EXCLUDED.source_sha256,last_changed_at=now()
+    WHERE public.cq_lei_catalogue.source_sha256 IS DISTINCT FROM EXCLUDED.source_sha256
+    RETURNING lei
+   `,[JSON.stringify(rows)]);
+  await client.query(`
+    INSERT INTO public.cq_lei_observations(lei,source_sha256,source_payload)
+    SELECT r.lei::char(20),r."sourceSha256"::char(64),r.payload
+    FROM jsonb_to_recordset($1::jsonb) AS r
+     (lei text,"sourceSha256" text,payload jsonb)
+    ON CONFLICT(lei,source_sha256) DO NOTHING
+  `,[JSON.stringify(rows)]);
+  await client.query('COMMIT');
+  return {seen:rows.length,changed:updated.rowCount??0};
+ }catch(e){await client.query('ROLLBACK');throw e;}
+ finally{client.release();}
+}
+
+/** Server/operator-only connection to the approved source catalogue. Never expose to client components. */
+export function getSourceCataloguePool():Pool{return database();}

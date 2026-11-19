@@ -310,3 +310,48 @@ html,body,main{color:var(--cq-ink)!important;background:#fff!important}
 /* Green and amber remain reserved for actual success and warning states, not the brand. */
 .status-ready-dot{background:#248a58!important}
 .status-await-dot{background:#9caabb!important}
+
+/* Verified-source footprint; do not conflate coverage with the local index. */
+.cq-public-coverage{display:flex;align-items:center;gap:22px;justify-content:space-between;
+ margin:17px 0 20px;padding:17px 20px;border:1px solid #dee7f3;border-radius:10px;background:#f7f9fd}
+.cq-public-coverage-metric{display:flex;flex-direction:column;gap:2px;flex:0 1 42%}
+.cq-public-coverage-metric strong{font:600 clamp(1.35rem,2.4vw,2.15rem)/1.15 var(--font-montserrat),sans-serif;color:#1c385f;letter-spacing:-.05em}
+.cq-public-coverage-metric span{font-size:.68rem;color:#6b7e97;line-height:1.5}
+.cq-public-coverage-detail{display:flex;flex-direction:column;gap:4px;max-width:520px;align-items:flex-start}
+.cq-public-coverage-detail p{font-size:.68rem!important;color:#62768d!important;line-height:1.45!important;margin:0!important;max-width:none!important}
+.cq-public-coverage-detail a{font-size:.68rem;color:#305fb9;font-weight:650;margin-top:4px}
+@media(max-width:650px){.cq-public-coverage{flex-direction:column;align-items:stretch;gap:11px;padding:15px}}
+
+/* Official SEC issuer index – compact, source-first instead of synthetic cards. */
+.cq-issuers{padding:var(--cq-app-space) var(--cq-page-gutter) var(--cq-section-space);margin:auto;max-width:1580px}
+.cq-issuers-tools{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:15px;background:#f8fafd;border:1px solid #e4eaf2;border-radius:10px}
+.cq-issuers-tools label{font-size:.75rem;color:#385171;font-weight:650}
+.cq-issuers-tools input{flex:1 1 260px;min-width:0;border:1px solid #d9e2ee;background:white;border-radius:8px;padding:10px 14px;outline-color:#305fb9;color:#1c2c46;font-size:.81rem}
+.cq-issuers-tools span{font-size:.69rem;color:#6c7d90}
+.cq-issuer-table{border:1px solid #e4eaf2;border-radius:10px;margin-top:16px;overflow:hidden;background:white}
+.cq-issuer-table-header,.cq-issuer-row{display:grid;grid-template-columns:minmax(190px,2fr) minmax(70px,.62fr) minmax(100px,.7fr) minmax(70px,.5fr);gap:13px;align-items:center;padding:13px 17px}
+.cq-issuer-table-header{background:#f7f9fd;font-size:.66rem;color:#6c7f98;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.cq-issuer-row{border-top:1px solid #edf1f6;font-size:.76rem;color:#5c7186;min-height:72px}
+.cq-issuer-row:hover{background:#f9fbff}
+.cq-issuer-row>div{min-width:0;display:flex;flex-direction:column;gap:5px}
+.cq-issuer-row strong{font-size:.78rem;color:#233851;font-weight:650}
+.cq-issuer-row small{color:#8595a7;font-size:.64rem}
+.cq-issuer-ticker{font-weight:700;color:#2757a5}
+.cq-issuer-row a{color:#305fb9;font-weight:650;font-size:.71rem}
+.cq-issuer-pagination{display:flex;align-items:center;justify-content:center;gap:18px;margin:21px auto}
+.cq-issuer-pagination span{color:#65798e;font-size:.7rem}
+.cq-issuer-pagination button{cursor:pointer;background:white;border:1px solid #dbe5f1;border-radius:7px;padding:9px 14px;color:#305fb9;font-size:.71rem}
+.cq-issuer-pagination button:disabled{opacity:.45;cursor:not-allowed}
+.cq-issuer-caveat,.cq-issuers-empty,.cq-issuers-error{font-size:.71rem;color:#6c7b8e;line-height:1.6}
+.cq-issuers-error{color:#a64139}
+.cq-issuers-unavailable{min-height:270px;text-align:center;max-width:850px}
+.cq-issuers-unavailable h2{font-size:clamp(1.35rem,2vw,1.8rem);margin:10px 0 8px;color:#1c2d48}
+.cq-issuers-unavailable p{font-size:.83rem;color:#6b7d93;line-height:1.75}
+.cq-issuers-unavailable a{display:inline-block;color:#305fb9;font-size:.75rem;margin-top:12px}
+@media(max-width:650px){
+ .cq-issuer-table-header,.cq-issuer-row{grid-template-columns:minmax(100px,1.6fr) minmax(48px,.7fr) minmax(55px,.8fr);gap:8px;padding:12px 9px}
+ .cq-issuer-table-header span:last-child,.cq-issuer-row a{display:none}
+ .cq-issuer-row strong{font-size:.68rem;overflow-wrap:anywhere}
+ .cq-issuer-row{font-size:.65rem}
+ .cq-issuers-tools label{width:100%}
+}

@@ -10,13 +10,17 @@
     "test": "tsx --test tests/*.test.ts",
     "test:ui": "playwright test",
     "test:release": "npm run test:ui",
-    "catalogue:backfill": "tsx scripts/catalogue-backfill.ts"
+    "catalogue:backfill": "tsx scripts/catalogue-backfill.ts",
+    "catalogue:golden-copy": "tsx scripts/gleif-golden-copy.ts",
+    "catalogue:sec-issuers": "tsx scripts/sec-issuer-catalogue.ts"
   },
   "dependencies": {
     "next": "^15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "csv-parse": "^6.1.0",
+    "unzipper": "^0.12.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
@@ -25,6 +29,7 @@
     "typescript": "^5.9.0",
     "tsx": "^4.20.0",
     "@playwright/test": "^1.58.2",
-    "@types/pg": "^8.15.5"
+    "@types/pg": "^8.15.5",
+    "@types/unzipper": "^0.10.11"
   }
 }
