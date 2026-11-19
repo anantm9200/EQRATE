@@ -26,7 +26,7 @@ type Status={freshness?:{gleif:{source?:string;status:string;publishDate:string|
 const nf=new Intl.NumberFormat('en-IN');
 const lakh=(n:number)=>n>=100000?(n/100000).toFixed(n>=1000000?1:2).replace(/\.?0+$/,'')+' lakh':nf.format(n);
 const REASON:Record<string,string>={NATURAL_PERSONS:'Controlled by individuals',NON_CONSOLIDATING:'Parent does not consolidate',
- NO_KNOWN_PERSON:'No known controller',NON_PUBLIC:'Withheld: non-public',BINDING_LEGAL_COMMITMENTS:'Withheld: legal commitments',
+ NO_KNOWN_PERSON:'No known controller',NO_LEI:'Parent has no LEI',NON_PUBLIC:'Withheld: non-public',BINDING_LEGAL_COMMITMENTS:'Withheld: legal commitments',
  LEGAL_OBSTACLES:'Withheld: legal obstacles',DISCLOSURE_DETRIMENTAL:'Withheld: detrimental',CONSENT_NOT_OBTAINED:'Withheld: no consent',
  DETRIMENT_NOT_EXCLUDED:'Withheld: detriment not excluded'};
 

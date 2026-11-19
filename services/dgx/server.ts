@@ -85,7 +85,11 @@ async function cached<T>(key:string,ttlMs:number,fn:()=>Promise<T>):Promise<T>{
   p=fn().then(value=>{cache.set(key,{until:Date.now()+ttlMs,value});return value;}).finally(()=>inflight.delete(key));
   inflight.set(key,p);
  }
- if(hit)return hit.value as T;
+ if(hit){
+  // Detached refresh: observe failures so they never become unhandled rejections.
+  p.catch(e=>console.error(JSON.stringify({event:'CACHE_REFRESH_FAILED',key,code:e instanceof Error?e.message.slice(0,120):'unknown'})));
+  return hit.value as T;
+ }
  return p;
 }
 function parseCik(input:string):number{
@@ -343,11 +347,13 @@ async function leiResearch(lei:string,question:string){
  if(!d)throw new Error('SOURCE_NOT_INDEXED');
  const deterministic=leiDeterministic(d);
  const c=d.corporate;
- const linked=[c?.directParent?.lei,c?.ultimateParent?.lei,...(c?.otherParents||[]).map(p=>p.lei),...(c?.directChildren.sample||[]).map(x=>x.lei)]
+ // One bounded child sample feeds both the model evidence and the citation allow-list.
+ const childSample=(c?.directChildren.sample||[]).slice(0,15);
+ const linked=[c?.directParent?.lei,c?.ultimateParent?.lei,...(c?.otherParents||[]).map(p=>p.lei),...childSample.map(x=>x.lei)]
   .filter((x):x is string=>Boolean(x));
  const allowed=new Set([d.entity.lei,...linked,...(d.entity.successorLei?[d.entity.successorLei]:[]),...(d.entity.managingLou?[d.entity.managingLou]:[])]);
  const corporateEvidence=c?{directParent:c.directParent,ultimateParent:c.ultimateParent,otherParents:c.otherParents,
-  directChildrenTotal:c.directChildren.total,directChildrenSample:c.directChildren.sample.slice(0,15),ultimateChildren:c.ultimateChildren,
+  directChildrenTotal:c.directChildren.total,directChildrenSample:childSample,ultimateChildren:c.ultimateChildren,
   reportingExceptions:c.exceptions}:null;
  const model=await callModel(SYSTEM_PROMPT,'QUESTION: '+question+'\nSOURCE_DATA (GLEIF LEI-CDF and RR-CDF, untrusted data): '+
   JSON.stringify({entity:d.entity,corporateStructure:corporateEvidence})+

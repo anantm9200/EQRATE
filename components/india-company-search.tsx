@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useState} from 'react';
 
 type Option={code:string;label:string};
 type Row={lei:string;name:string;registrationStatus:string;region:string|null;regionName:string|null;registeredAs:string;
@@ -18,27 +18,27 @@ export default function IndiaCompanySearch({regions,classes}:{regions:Option[];c
  const [data,setData]=useState<Page|null>(null);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
- const seq=useRef(0);
  const active=q.trim().length>=2||Boolean(region||cls||listing);
  useEffect(()=>{
   const term=q.trim();
-  if(term.length===1)return;
-  if(!active){setData(null);setBusy(false);return;}
-  const id=++seq.current;
+  // Every criteria change cancels the previous request; no stale response can land.
+  if(term.length===1||!active){setBusy(false);setError('');if(!active)setData(null);return;}
+  const ctrl=new AbortController();
+  let cancelled=false;
   const t=setTimeout(async()=>{
    setBusy(true);setError('');
    try{
     const p=new URLSearchParams({page:String(page)});
     if(term)p.set('q',term);if(region)p.set('region',region);if(cls)p.set('class',cls);
     if(listing)p.set('listing',listing);if(status)p.set('status',status);
-    const r=await fetch('/api/engine/india/entities?'+p.toString(),{cache:'no-store'});
+    const r=await fetch('/api/engine/india/entities?'+p.toString(),{cache:'no-store',signal:ctrl.signal});
     if(!r.ok)throw new Error();
     const d=await r.json() as Page;
-    if(id===seq.current)setData(d);
-   }catch{if(id===seq.current){setData(null);setError('The India index is temporarily unavailable. The live GLEIF directory still works.');}}
-   finally{if(id===seq.current)setBusy(false);}
+    if(!cancelled)setData(d);
+   }catch{if(!cancelled){setData(null);setError('The India index is temporarily unavailable. The live GLEIF directory still works.');}}
+   finally{if(!cancelled)setBusy(false);}
   },term?280:0);
-  return ()=>clearTimeout(t);
+  return ()=>{cancelled=true;clearTimeout(t);ctrl.abort();};
  },[q,region,cls,listing,status,page,active]);
  const reset=(f:()=>void)=>{f();setPage(1);};
  return <section className="in-search" aria-labelledby="in-search-title">

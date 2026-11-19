@@ -35,7 +35,7 @@ export async function generateMetadata({params}:{params:Promise<{lei:string}>}){
 }
 const day=(s:string|null|undefined)=>s?s.slice(0,10):'Not provided';
 const EX:Record<string,string>={NATURAL_PERSONS:'controlled by individuals, not a legal-entity parent',NON_CONSOLIDATING:'the controlling entity does not consolidate this entity',
- NO_KNOWN_PERSON:'no known controlling person or entity',NON_PUBLIC:'parent withheld as non-public'};
+ NO_KNOWN_PERSON:'no known controlling person or entity',NON_PUBLIC:'parent withheld as non-public',NO_LEI:'the parent has no LEI'};
 function ParentCard({label,e}:{label:string;e:Edge}){
  return <div className="lp-parent"><span className="in-kicker">{label}</span>
   {e.indexed?<Link href={'/lei/'+e.lei}>{e.name}</Link>:<strong>{e.lei}</strong>}

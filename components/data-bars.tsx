@@ -20,7 +20,7 @@ export function BarList({title,caption,rows,total,unit='entities'}:{title:string
     const label=r.href?<Link href={r.href}>{r.label}</Link>:<span>{r.label}</span>;
     return <li key={r.key} tabIndex={0} aria-label={tip}>
      <span className="cq-barlist-label">{label}</span>
-     <span className="cq-barlist-track"><span className="cq-barlist-bar" style={{width:Math.max(0.6,100*r.value/max)+'%'}}/>
+     <span className="cq-barlist-track"><span className="cq-barlist-plot"><span className="cq-barlist-bar" style={{width:Math.max(0.6,100*r.value/max)+'%'}}/></span>
       <span className="cq-barlist-value">{nf.format(r.value)}</span></span>
      <span className="cq-tip" role="tooltip">{tip}</span>
     </li>;})}

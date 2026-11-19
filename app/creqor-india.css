@@ -30,8 +30,9 @@
 .cq-barlist li:focus-visible{box-shadow:0 0 0 2px var(--cq-accent,#305fb9)}
 .cq-barlist-label{font-size:.7rem;color:#2c4562;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cq-barlist-label a{color:#264f8f}
-.cq-barlist-track{display:flex;align-items:center;gap:8px;min-width:0}
-.cq-barlist-bar{display:block;height:14px;background:var(--cq-accent,#305fb9);border-radius:0 4px 4px 0;flex:0 0 auto;max-width:calc(100% - 64px)}
+.cq-barlist-track{display:grid;grid-template-columns:minmax(0,1fr) 4.6em;align-items:center;gap:8px;min-width:0}
+.cq-barlist-plot{display:block;min-width:0}
+.cq-barlist-bar{display:block;height:14px;background:var(--cq-accent,#305fb9);border-radius:0 4px 4px 0}
 .cq-barlist-value{font-size:.66rem;color:#4b6079;font-variant-numeric:tabular-nums;white-space:nowrap}
 .cq-tip{position:absolute;left:38%;bottom:calc(100% + 4px);z-index:5;background:#13243a;color:#fff;font-size:.64rem;line-height:1.45;padding:7px 9px;border-radius:6px;white-space:normal;max-width:300px;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .12s,transform .12s}
 .cq-barlist li:hover .cq-tip,.cq-barlist li:focus-visible .cq-tip,.cq-column:hover .cq-tip,.cq-column:focus-visible .cq-tip{opacity:1;transform:none}

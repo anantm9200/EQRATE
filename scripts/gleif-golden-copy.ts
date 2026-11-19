@@ -172,8 +172,17 @@ async function main(){
    // Only a complete full-file run can establish that a record left the publication.
    if(status==='complete'){
     // Keep the India identifier view in step with the catalogue (migration 006+).
-    const india=await db.query<{n:string}>('SELECT public.cq_refresh_india_entities()::text n').catch(()=>null);
-    if(india)console.log(JSON.stringify({step:'india-view-refreshed',indianEntities:Number(india.rows[0]?.n||0)}));
+    try{
+     const india=await db.query<{n:string}>('SELECT public.cq_refresh_india_entities()::text n');
+     console.log(JSON.stringify({step:'india-view-refreshed',indianEntities:Number(india.rows[0]?.n||0)}));
+    }catch(e){
+     // The catalogue import itself succeeded; the derived India view is stale until a retry.
+     const code=e instanceof Error?e.message.slice(0,160):'INDIA_VIEW_REFRESH_FAILED';
+     if(!/does not exist/.test(code)){
+      console.error(JSON.stringify({step:'india-view-refresh-failed',code,retry:"SELECT public.cq_refresh_india_entities();"}));
+      process.exitCode=3;
+     }
+    }
     const s=await db.query<{n:string}>('SELECT count(*)::text n FROM public.cq_lei_catalogue WHERE last_seen_run_id IS DISTINCT FROM $1',[runId]);
     stale=Number(s.rows[0]?.n||0);
    }

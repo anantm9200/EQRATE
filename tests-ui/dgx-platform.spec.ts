@@ -77,7 +77,9 @@ test('India hub shows decoded Indian figures or an honest offline state, and sea
  await expect(page.getByRole('figure').filter({hasText:'Indian legal entities by state / UT'})).toBeVisible();
  await expect(page.getByText('Maharashtra').first()).toBeVisible();
  await page.getByLabel('State / UT').selectOption('KA');
+ const filtered=page.waitForResponse(r=>r.url().includes('/api/engine/india/entities')&&r.url().includes('region=KA')&&r.url().includes('listing=L'));
  await page.getByLabel('Listing (CIN)').selectOption('L');
+ await filtered;
  await expect(page.getByText(/matching entities/)).toBeVisible();
  const first=page.locator('.in-results a').first();
  await expect(first).toContainText(/Karnataka/);

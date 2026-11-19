@@ -10,7 +10,7 @@ CREQOR imports **official public records** on a schedule. Today an operator work
 
 | Purpose | Domains | Volume |
 | --- | --- | --- |
-| GLEIF Golden Copy (legal entities, relationships) | `goldencopy.gleif.org`, `api.gleif.org` | ~600 MB/day full files, or a few MB of deltas every 8 h |
+| GLEIF Golden Copy (legal entities, relationships) | `goldencopy.gleif.org`, `leidata-preview.gleif.org`, `api.gleif.org` | ~600 MB/day full files, or a few MB of deltas every 8 h |
 | Container image updates | `registry-1.docker.io`, `auth.docker.io`, `production.cloudflare.docker.com` | occasional, < 1 GB |
 | Node.js packages for builds | `registry.npmjs.org` | occasional, < 200 MB |
 | Ubuntu security updates (optional) | `ports.ubuntu.com` | standard |

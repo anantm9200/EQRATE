@@ -27,28 +27,40 @@ export async function relationshipTablesReady():Promise<boolean>{
  const r=await getSourceCataloguePool().query<{ok:boolean}>(`SELECT to_regclass('public.cq_lei_relationships') IS NOT NULL ok`);
  return Boolean(r.rows[0]?.ok);
 }
-/** Level 2 conclusions (e.g. "no parent reported") are only valid once both official files were fully imported. */
-export async function level2Complete():Promise<boolean>{
- if(!await relationshipTablesReady())return false;
- const r=await getSourceCataloguePool().query<{n:string}>(`SELECT count(DISTINCT source)::text n FROM public.cq_bulk_source_runs
-  WHERE source IN ('GLEIF_RR','GLEIF_REPEX') AND status='complete'`);
- return Number(r.rows[0]?.n||0)===2;
+/**
+ * Latest fully imported Level 2 publications. Current-data queries only read rows
+ * confirmed by (last_seen_run_id >=) these runs, so records dropped from a newer
+ * complete publication disappear instead of lingering as stale facts.
+ */
+export async function level2Runs():Promise<{rr:number;repex:number}|null>{
+ if(!await relationshipTablesReady())return null;
+ const r=await getSourceCataloguePool().query<{source:string;id:string}>(`SELECT source,max(id)::text id FROM public.cq_bulk_source_runs
+  WHERE source IN ('GLEIF_RR','GLEIF_REPEX') AND status='complete' GROUP BY source`);
+ const rr=r.rows.find(x=>x.source==='GLEIF_RR'),repex=r.rows.find(x=>x.source==='GLEIF_REPEX');
+ return rr&&repex?{rr:Number(rr.id),repex:Number(repex.id)}:null;
 }
+/** Level 2 conclusions (e.g. "no parent reported") are only valid once both official files were fully imported. */
+export async function level2Complete():Promise<boolean>{return (await level2Runs())!==null;}
+const CHILD_TYPES=`('IS_DIRECTLY_CONSOLIDATED_BY','IS_INTERNATIONAL_BRANCH_OF')`;
 export async function corporateLinks(lei:string):Promise<CorporateLinks|null>{
- if(!await level2Complete())return null;
+ const runs=await level2Runs();
+ if(!runs)return null;
  const db=getSourceCataloguePool();
  const [parents,childCount,children,ultimateChildren,exceptions]=await Promise.all([
   db.query<EdgeRow>(`SELECT r.parent_lei lei,c.legal_name name,c.country_code country,c.registration_status,${EDGE_COLS}
    FROM public.cq_lei_relationships r LEFT JOIN public.cq_lei_catalogue c ON c.lei=r.parent_lei
-   WHERE r.child_lei=$1 ORDER BY r.relationship_type`,[lei]),
-  db.query<{n:string}>(`SELECT count(*)::text n FROM public.cq_lei_relationships WHERE parent_lei=$1 AND relationship_type='IS_DIRECTLY_CONSOLIDATED_BY'`,[lei]),
+   WHERE r.child_lei=$1 AND r.last_seen_run_id>=$2 ORDER BY r.relationship_type,r.last_seen_run_id DESC`,[lei,runs.rr]),
+  db.query<{n:string}>(`SELECT count(*)::text n FROM public.cq_lei_relationships
+   WHERE parent_lei=$1 AND relationship_type IN ${CHILD_TYPES} AND last_seen_run_id>=$2`,[lei,runs.rr]),
   db.query<{lei:string;name:string|null;country:string|null;registration_status:string|null;type:string;status:string}>(
    `SELECT r.child_lei lei,c.legal_name name,c.country_code country,c.registration_status,r.relationship_type type,r.relationship_status status
     FROM public.cq_lei_relationships r LEFT JOIN public.cq_lei_catalogue c ON c.lei=r.child_lei
-    WHERE r.parent_lei=$1 AND r.relationship_type IN ('IS_DIRECTLY_CONSOLIDATED_BY','IS_INTERNATIONAL_BRANCH_OF')
-    ORDER BY (r.relationship_status='ACTIVE') DESC,c.legal_name NULLS LAST LIMIT 40`,[lei]),
-  db.query<{n:string}>(`SELECT count(*)::text n FROM public.cq_lei_relationships WHERE parent_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY'`,[lei]),
-  db.query<{category:string;reasons:string[]}>(`SELECT category,reasons FROM public.cq_lei_reporting_exceptions WHERE lei=$1 ORDER BY category`,[lei])
+    WHERE r.parent_lei=$1 AND r.relationship_type IN ${CHILD_TYPES} AND r.last_seen_run_id>=$2
+    ORDER BY (r.relationship_status='ACTIVE') DESC,c.legal_name NULLS LAST LIMIT 40`,[lei,runs.rr]),
+  db.query<{n:string}>(`SELECT count(*)::text n FROM public.cq_lei_relationships
+   WHERE parent_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY' AND last_seen_run_id>=$2`,[lei,runs.rr]),
+  db.query<{category:string;reasons:string[]}>(`SELECT category,reasons FROM public.cq_lei_reporting_exceptions
+   WHERE lei=$1 AND last_seen_run_id>=$2 ORDER BY category`,[lei,runs.repex])
  ]);
  const edges=parents.rows.map(toEdge);
  return {
@@ -65,6 +77,7 @@ const EXCEPTION_TEXT:Record<string,string>={
  NATURAL_PERSONS:'controlled by one or more natural persons (no legal-entity parent)',
  NON_CONSOLIDATING:'the controlling entity does not prepare consolidated financial statements that include this entity',
  NO_KNOWN_PERSON:'no known controlling person or entity',
+ NO_LEI:'the parent exists but has no LEI',
  NON_PUBLIC:'parent information is withheld as non-public',
  BINDING_LEGAL_COMMITMENTS:'parent information is withheld because of binding legal commitments',
  LEGAL_OBSTACLES:'parent information is withheld because of legal obstacles',
@@ -82,7 +95,7 @@ export function corporateLinkLeads(l:CorporateLinks|null):LinkLead[]{
   if(!edge&&!ex)out.push({code:'NO_'+label.toUpperCase()+'_PARENT_DATA',severity:'low',title:'No '+label+' parent or exception reported',
    explanation:'GLEIF expects either '+(label==='ultimate'?'an':'a')+' '+label+' accounting-consolidation parent or a reporting exception. Neither is present in the imported Level 2 data.',evidence:{}});
   if(ex){
-   const withheld=ex.reasons.filter(r=>!['NATURAL_PERSONS','NON_CONSOLIDATING','NO_KNOWN_PERSON'].includes(r));
+   const withheld=ex.reasons.filter(r=>!['NATURAL_PERSONS','NON_CONSOLIDATING','NO_KNOWN_PERSON','NO_LEI'].includes(r));
    out.push({code:'PARENT_EXCEPTION_'+label.toUpperCase(),severity:withheld.length?'low':'info',
     title:(withheld.length?'Parent withheld':'Parent reporting exception')+' ('+label+')',
     explanation:'Registrant states: '+ex.reasons.map(r=>EXCEPTION_TEXT[r]||r).join('; ')+'.',evidence:{category,reasons:ex.reasons}});
@@ -99,31 +112,45 @@ export function corporateLinkLeads(l:CorporateLinks|null):LinkLead[]{
 }
 /** Group view: the subject's ultimate parent and every LEI reporting that same ultimate parent. */
 export async function corporateGroup(lei:string){
- if(!await relationshipTablesReady())return null;
+ const runs=await level2Runs();
+ if(!runs)return null;
  const db=getSourceCataloguePool();
  const up=await db.query<{parent_lei:string}>(`SELECT parent_lei FROM public.cq_lei_relationships
-  WHERE child_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY' LIMIT 1`,[lei]);
+  WHERE child_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY' AND last_seen_run_id>=$2
+  ORDER BY last_seen_run_id DESC LIMIT 1`,[lei,runs.rr]);
  const root=up.rows[0]?.parent_lei.trim()||lei;
  const members=await db.query<{lei:string}>(`SELECT child_lei lei FROM public.cq_lei_relationships
-  WHERE parent_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY' ORDER BY child_lei LIMIT 600`,[root]);
- const all=[root,...members.rows.map(m=>m.lei.trim())];
+  WHERE parent_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY' AND last_seen_run_id>=$2 ORDER BY child_lei LIMIT 600`,[root,runs.rr]);
+ // Always keep the subject in view, even when it sorts beyond the displayed members.
+ const all=[...new Set([root,lei,...members.rows.map(m=>m.lei.trim())])];
  const total=await db.query<{n:string}>(`SELECT count(*)::text n FROM public.cq_lei_relationships
-  WHERE parent_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY'`,[root]);
+  WHERE parent_lei=$1 AND relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY' AND last_seen_run_id>=$2`,[root,runs.rr]);
  const [nodes,edges]=await Promise.all([
   db.query<{lei:string;legal_name:string;country_code:string|null;registration_status:string}>(
    `SELECT lei,legal_name,country_code,registration_status FROM public.cq_lei_catalogue WHERE lei=ANY($1::char(20)[])`,[all]),
   db.query<{child_lei:string;parent_lei:string}>(`SELECT child_lei,parent_lei FROM public.cq_lei_relationships
-   WHERE relationship_type='IS_DIRECTLY_CONSOLIDATED_BY' AND child_lei=ANY($1::char(20)[]) AND parent_lei=ANY($1::char(20)[])`,[all])
+   WHERE relationship_type='IS_DIRECTLY_CONSOLIDATED_BY' AND child_lei=ANY($1::char(20)[]) AND parent_lei=ANY($1::char(20)[])
+   AND last_seen_run_id>=$2`,[all,runs.rr])
  ]);
  const byLei=new Map(nodes.rows.map(n=>[n.lei.trim(),n]));
  const countries=new Map<string,number>();
  for(const n of nodes.rows){const c=n.country_code?.trim()||'—';countries.set(c,(countries.get(c)||0)+1);}
- return {subject:lei,ultimateParent:root,membersReported:Number(total.rows[0]?.n||0),membersShown:members.rows.length,
+ return {subject:lei,ultimateParent:root,membersReported:Number(total.rows[0]?.n||0),membersShown:all.length-1,
   nodes:all.map(l=>({lei:l,name:byLei.get(l)?.legal_name||null,country:byLei.get(l)?.country_code?.trim()||null,
    registrationStatus:byLei.get(l)?.registration_status||null,isSubject:l===lei,isUltimateParent:l===root})),
   edges:edges.rows.map(e=>({child:e.child_lei.trim(),parent:e.parent_lei.trim()})),
   countries:[...countries.entries()].sort((a,b)=>b[1]-a[1]).map(([country,count])=>({country,count})),
   caveat:'Members are entities that report this ultimate accounting-consolidation parent to GLEIF. Accounting consolidation is not the same as legal or beneficial ownership.'};
+}
+/** ISO 3166-2:IN codes that were superseded; both spellings appear in source addresses. */
+export const REGION_ALIASES:Record<string,string[]>={TS:['TS','TG'],TG:['TS','TG'],CG:['CG','CT'],CT:['CG','CT'],
+ OD:['OD','OR'],OR:['OD','OR'],UK:['UK','UT'],UT:['UK','UT'],DH:['DH','DN','DD']};
+const CANONICAL:Record<string,string>={TG:'TS',CT:'CG',OR:'OD',UT:'UK',DN:'DH',DD:'DH'};
+export function mergeRegions(rows:{code:string;entities:number;issued:number}[]){
+ const m=new Map<string,{code:string;name:string;entities:number;issued:number}>();
+ for(const r of rows){const code=CANONICAL[r.code]||r.code;const cur=m.get(code)||{code,name:IN_REGION[code]||'not decoded',entities:0,issued:0};
+  cur.entities+=r.entities;cur.issued+=r.issued;m.set(code,cur);}
+ return [...m.values()].sort((a,b)=>b.entities-a.entities);
 }
 async function indiaReady(){
  const r=await getSourceCataloguePool().query<{ok:boolean}>(`SELECT to_regclass('public.cq_india_entities') IS NOT NULL ok`);
@@ -133,8 +160,10 @@ export async function indiaOverview(){
  if(!await indiaReady())return null;
  const db=getSourceCataloguePool();
  const q=<T extends Record<string,unknown>>(sql:string,p:unknown[]=[])=>db.query<T>(sql,p).then(r=>r.rows);
- const rel=await relationshipTablesReady();
- const [totals,regions,classes,decades,recent,pan,ras,foreignParents,topParents,exceptionReasons]=await Promise.all([
+ const runs=await level2Runs();
+ const rel=runs!==null;
+ const rr=runs?.rr??0,rx=runs?.repex??0;
+ const [totals,regions,classes,decades,recent,pan,ras,foreignParents,topParents,exceptionReasons,parentTotal]=await Promise.all([
   q<{total:string;issued:string;lapsed:string;other:string;cin:string;listed:string;unlisted:string;gstin:string;region:string}>(
    `SELECT count(*)::text total,count(*) FILTER (WHERE registration_status='ISSUED')::text issued,
     count(*) FILTER (WHERE registration_status='LAPSED')::text lapsed,
@@ -155,22 +184,24 @@ export async function indiaOverview(){
   q<{code:string;n:string}>(`SELECT registration_authority code,count(*)::text n FROM public.cq_india_entities GROUP BY 1 ORDER BY count(*) DESC LIMIT 8`),
   rel?q<{country:string;n:string}>(`SELECT coalesce(p.country_code,'—') country,count(*)::text n
    FROM public.cq_india_entities i JOIN public.cq_lei_relationships r ON r.child_lei=i.lei AND r.relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY'
-   LEFT JOIN public.cq_lei_catalogue p ON p.lei=r.parent_lei GROUP BY 1 ORDER BY count(*) DESC LIMIT 12`):Promise.resolve([]),
+   AND r.last_seen_run_id>=$1 LEFT JOIN public.cq_lei_catalogue p ON p.lei=r.parent_lei GROUP BY 1 ORDER BY count(*) DESC LIMIT 12`,[rr]):Promise.resolve([]),
   rel?q<{lei:string;name:string|null;country:string|null;n:string}>(`SELECT r.parent_lei lei,p.legal_name name,p.country_code country,count(*)::text n
    FROM public.cq_india_entities i JOIN public.cq_lei_relationships r ON r.child_lei=i.lei AND r.relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY'
-   LEFT JOIN public.cq_lei_catalogue p ON p.lei=r.parent_lei GROUP BY 1,2,3 ORDER BY count(*) DESC LIMIT 15`):Promise.resolve([]),
+   AND r.last_seen_run_id>=$1 LEFT JOIN public.cq_lei_catalogue p ON p.lei=r.parent_lei GROUP BY 1,2,3 ORDER BY count(*) DESC LIMIT 15`,[rr]):Promise.resolve([]),
   rel?q<{reason:string;n:string}>(`SELECT unnest(e.reasons) reason,count(*)::text n FROM public.cq_india_entities i
    JOIN public.cq_lei_reporting_exceptions e ON e.lei=i.lei AND e.category='ULTIMATE_ACCOUNTING_CONSOLIDATION_PARENT'
-   GROUP BY 1 ORDER BY count(*) DESC`):Promise.resolve([])
+   AND e.last_seen_run_id>=$1 GROUP BY 1 ORDER BY count(*) DESC`,[rx]):Promise.resolve([]),
+  rel?q<{n:string}>(`SELECT count(DISTINCT i.lei)::text n FROM public.cq_india_entities i JOIN public.cq_lei_relationships r
+   ON r.child_lei=i.lei AND r.relationship_type='IS_ULTIMATELY_CONSOLIDATED_BY' AND r.last_seen_run_id>=$1`,[rr]):Promise.resolve([{n:'0'}])
  ]);
  const t=totals[0];
  const num=(s:string|undefined)=>Number(s||0);
- const withParent=foreignParents.reduce((s,r)=>s+num(r.n),0);
+ const withParent=num(parentTotal[0]?.n);
  return {
   totals:{entities:num(t.total),issued:num(t.issued),lapsed:num(t.lapsed),otherStatus:num(t.other),withCin:num(t.cin),
    listedByCin:num(t.listed),unlistedByCin:num(t.unlisted),withGstin:num(t.gstin),withAddressRegion:num(t.region),
    withReportedUltimateParent:withParent},
-  byRegion:regions.map(r=>({code:r.code,name:IN_REGION[r.code]||'not decoded',entities:num(r.n),issued:num(r.issued)})),
+  byRegion:mergeRegions(regions.map(r=>({code:r.code,entities:num(r.n),issued:num(r.issued)}))),
   byCompanyClass:classes.map(c=>({code:c.code,label:CIN_CLASS[c.code]||'not decoded',entities:num(c.n),listed:num(c.listed)})),
   byIncorporationDecade:decades.map(d=>({decade:d.decade,entities:num(d.n)})),
   byIncorporationYearRecent:recent.map(y=>({year:y.year,entities:num(y.n)})),
@@ -190,7 +221,7 @@ export async function indiaEntities(f:{q?:string;region?:string;cls?:string;list
  const where:string[]=[],p:(string|number)[]=[];
  const q=(f.q||'').trim().toLowerCase();
  if(q){if(q.length<2||q.length>90)throw new Error('BAD_QUERY');p.push(q.replace(/[\\%_]/g,'\\$&')+'%');where.push(`lower(legal_name) LIKE $${p.length}`);}
- if(f.region){if(!/^[A-Z]{2}$/.test(f.region))throw new Error('BAD_REGION');p.push(f.region);where.push(`address_region=$${p.length}`);}
+ if(f.region){if(!/^[A-Z]{2}$/.test(f.region))throw new Error('BAD_REGION');p.push(`{${(REGION_ALIASES[f.region]||[f.region]).join(',')}}`);where.push(`address_region=ANY($${p.length}::text[])`);}
  if(f.cls){if(!/^[A-Z]{3}$/.test(f.cls))throw new Error('BAD_CLASS');p.push(f.cls);where.push(`cin_class=$${p.length}`);}
  if(f.listing){if(!/^[LU]$/.test(f.listing))throw new Error('BAD_LISTING');p.push(f.listing);where.push(`cin_listing=$${p.length}`);}
  if(f.status){if(!/^[A-Z_]{3,30}$/.test(f.status))throw new Error('BAD_STATUS');p.push(f.status);where.push(`registration_status=$${p.length}`);}
@@ -205,7 +236,7 @@ export async function indiaEntities(f:{q?:string;region?:string;cls?:string;list
   db.query<{n:string}>(`SELECT count(*)::text n FROM public.cq_india_entities${sql}`,p)
  ]);
  const total=Number(count.rows[0]?.n||0);
- return {total,page,pageSize:50,hasMore:page*50<total,records:rows.rows.map(r=>({lei:r.lei.trim(),name:r.legal_name,
+ return {total,page,pageSize:50,maxPage:200,hasMore:page*50<total&&page<200,records:rows.rows.map(r=>({lei:r.lei.trim(),name:r.legal_name,
   registrationStatus:r.registration_status,region:r.address_region,regionName:r.address_region?IN_REGION[r.address_region]||null:null,
   registeredAs:r.registered_as,companyClass:r.cin_class,companyClassLabel:r.cin_class?CIN_CLASS[r.cin_class]||'not decoded':null,
   listing:r.cin_listing==='L'?'Listed':r.cin_listing==='U'?'Unlisted':null,incorporationYear:r.cin_year,
