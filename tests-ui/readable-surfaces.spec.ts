@@ -34,3 +34,14 @@ test('homepage coverage names CREQOR’s private index count when the engine rep
  await expect(coverage).toContainText('3,498,919 legal entities stored in CREQOR’s private index, including 411,587 Indian entities.');
  await expect(coverage).not.toContainText(/not yet activated/i);
 });
+
+test('private index count still shows when official GLEIF figures are unavailable, without a global count',async({page})=>{
+ await page.route('**/api/public-records/coverage',async r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+  source:'GLEIF',referenceRecords:null,asOf:null,locallyIndexed:3498919,locallyIndexedOperational:true,indexLocation:'private-engine',indiaIndexed:411587})}));
+ await page.route('**/api/companies/featured',async r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({source:'GLEIF',records:[]})}));
+ await page.goto('/');
+ const coverage=page.getByRole('region',{name:/official public legal-entity dataset coverage/i});
+ await expect(coverage).toContainText('3,498,919');
+ await expect(coverage).toContainText(/no global count is shown/i);
+ await expect(coverage).not.toContainText(/in the official GLEIF index/i);
+});

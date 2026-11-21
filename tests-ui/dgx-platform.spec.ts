@@ -115,6 +115,8 @@ test('company profile header shows readable identity badges aligned with the pro
  await expect(badges).toContainText('India (IN)');
  const x=async(sel:string)=>(await page.locator(sel).first().boundingBox())!.x;
  const column=await x('.lp-hero h1');
- for(const sel of ['.lp-tabs a','.lei-record-data','#corporate-structure h2'])
+ const aligned=['.lp-tabs a','.lei-record-data','#provenance h2'];
+ if(await page.locator('#corporate-structure').count())aligned.push('#corporate-structure h2');
+ for(const sel of aligned)
   expect(Math.abs((await x(sel))-column),sel).toBeLessThan(18);
 });

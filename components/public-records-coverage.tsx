@@ -20,10 +20,14 @@ export default function PublicRecordsCoverage(){
    .catch(()=>{});
   return ()=>controller.abort();
  },[]);
- if(!data?.referenceRecords)return null;
+ if(!data)return null;
+ const official=typeof data.referenceRecords==='number'&&data.referenceRecords>0;
+ if(!official&&!data.locallyIndexedOperational)return null;
  return <section className="cq-public-coverage" aria-label="Official public legal-entity dataset coverage">
-  <div className="cq-public-coverage-metric"><strong>{new Intl.NumberFormat('en-US').format(data.referenceRecords)}</strong><span>legal-entity records in the official GLEIF index</span></div>
-  <div className="cq-public-coverage-detail"><p>Published {data.asOf?.slice(0,10)} · Global public coverage, not CREQOR's stored company count.</p>
+  <div className="cq-public-coverage-metric">{official?<><strong>{fmt(data.referenceRecords!)}</strong><span>legal-entity records in the official GLEIF index</span></>:
+   <><strong>{fmt(data.locallyIndexed)}</strong><span>legal entities stored in CREQOR’s index</span></>}</div>
+  <div className="cq-public-coverage-detail">{official?<p>Published {data.asOf?.slice(0,10)} · Global public coverage, not CREQOR's stored company count.</p>:
+   <p>Official GLEIF publication figures are temporarily unavailable; no global count is shown.</p>}
    <p>{indexedLine(data)}</p>
    <Link href="/directory">Explore official records ↗</Link>
   </div>

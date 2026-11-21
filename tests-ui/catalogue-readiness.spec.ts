@@ -21,6 +21,7 @@ test('source catalogue ingestion requires the private cron credential',async({re
 });
 
 test('indexed catalogue falls back to live discovery when a DB is absent',async({page})=>{
+ const before=(await (await page.request.get('/api/engine/status')).json()).counts?.leiEntities??0;
  await page.goto('/catalogue');
  await expect(page.getByRole('heading',{name:/Indexed companies/i})).toBeVisible();
  const status=await page.request.get('/api/catalogue/status');
@@ -29,8 +30,11 @@ test('indexed catalogue falls back to live discovery when a DB is absent',async(
   // Without a website database, a connected private engine shows its own stored count; otherwise live discovery.
   const engine=page.getByRole('heading',{name:/legal entities stored/i});
   if(await engine.count()){
-   const stored=(await (await page.request.get('/api/engine/status')).json()).counts.leiEntities;
-   await expect(engine).toContainText(new Intl.NumberFormat('en-US').format(stored));
+   // Ingestion may move the count between snapshots; the page must show one of them, never an estimate.
+   const shown=Number(((await engine.textContent())||'').replace(/[^0-9]/g,''));
+   const after=(await (await page.request.get('/api/engine/status')).json()).counts.leiEntities;
+   expect(shown).toBeGreaterThan(0);
+   expect(Math.abs(after-shown)).toBeLessThanOrEqual(Math.max(0,after-before));
    await expect(page.getByRole('link',{name:/Search Indian companies/i})).toHaveAttribute('href','/india');
   }else{
    await expect(page.getByRole('link',{name:/Explore real companies/i})).toHaveAttribute('href','/directory');
