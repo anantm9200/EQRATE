@@ -83,13 +83,13 @@ export default function Home(){return <>
   <div className="ux-integrity-copy">
    <span className="ux-kicker">TRANSPARENCY, BY DESIGN</span>
    <h2 id="ux-integrity-title">Useful intelligence.<br/>Without invented certainty.</h2>
-   <p>Valuation calculations, local research drafts and reports are available today. Live global prices, independent published ratings and the private AI gateway require additional integrations.</p>
+   <p>Valuation calculations, research drafts, India company intelligence and analyst research on CREQOR’s private engine are available today. Live market prices and independent published ratings need licensed sources.</p>
    <Link href="/status" className="ux-text-link">See what's connected <span aria-hidden="true">↗</span></Link>
   </div>
   <div className="ux-integrity-list">
-   <div><span className="ux-status-dot is-live"/><strong>Valuation modelling and sensitivity</strong><small>AVAILABLE</small></div>
-   <div><span className="ux-status-dot is-live"/><strong>Saved research drafts and exports</strong><small>AVAILABLE</small></div>
-   <div><span className="ux-status-dot is-pending"/><strong>Licensed prices and private AI analysis</strong><small>NOT FULLY CONNECTED</small></div>
+   <div><span className="ux-status-dot is-live"/><strong>Valuation modelling, drafts and exports</strong><small>AVAILABLE</small></div>
+   <div><span className="ux-status-dot is-live"/><strong>India company intelligence and analyst AI research</strong><small>AVAILABLE</small></div>
+   <div><span className="ux-status-dot is-pending"/><strong>Licensed market prices and published ratings</strong><small>NOT CONNECTED</small></div>
   </div>
  </section>
  </>;}

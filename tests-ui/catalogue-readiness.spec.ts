@@ -26,7 +26,15 @@ test('indexed catalogue falls back to live discovery when a DB is absent',async(
  const status=await page.request.get('/api/catalogue/status');
  const body=await status.json();
  if(body.status!=='ready'){
-  await expect(page.getByRole('link',{name:/Explore real companies/i})).toHaveAttribute('href','/directory');
+  // Without a website database, a connected private engine shows its own stored count; otherwise live discovery.
+  const engine=page.getByRole('heading',{name:/legal entities stored/i});
+  if(await engine.count()){
+   const stored=(await (await page.request.get('/api/engine/status')).json()).counts.leiEntities;
+   await expect(engine).toContainText(new Intl.NumberFormat('en-US').format(stored));
+   await expect(page.getByRole('link',{name:/Search Indian companies/i})).toHaveAttribute('href','/india');
+  }else{
+   await expect(page.getByRole('link',{name:/Explore real companies/i})).toHaveAttribute('href','/directory');
+  }
   await expect(page.locator('.gd-company')).toHaveCount(0);
  }else{
   await expect(page.getByRole('searchbox',{name:'Search global company directory'})).toBeVisible();

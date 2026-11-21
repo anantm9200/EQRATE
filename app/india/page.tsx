@@ -4,6 +4,9 @@ import {callDgxEngine,dgxGatewayConfigured} from '@/lib/dgx-gateway';
 import {IN_REGION,CIN_CLASS} from '@/lib/india';
 import {BarList,ColumnChart,StatTile} from '@/components/data-bars';
 import IndiaCompanySearch from '@/components/india-company-search';
+const regionNames=new Intl.DisplayNames(['en'],{type:'region'});
+/** ISO country code → English name; unknown codes stay as reported. */
+function countryName(code:string){try{const n=regionNames.of(code);return n&&n!==code?n:code;}catch{return code;}}
 
 export const metadata:Metadata={title:'India company intelligence | CREQOR',
  description:'Every Indian legal entity with an LEI, decoded from official GLEIF records: states, company classes, listing status, incorporation history and corporate groups.'};
@@ -87,7 +90,7 @@ export default async function IndiaPage(){
   <div><div className="in-section-head"><span className="in-kicker">WHO CONTROLS</span><h2>Country of the ultimate parent</h2>
    <p>For Indian entities that report an ultimate accounting-consolidation parent.</p></div>
    <BarList title="Indian entities by ultimate parent country" unit="entities" total={data.totals.withReportedUltimateParent}
-    rows={data.ultimateParentCountries.slice(0,10).map(c=>({key:c.country,label:c.country==='IN'?'India (domestic group)':c.country,value:c.entities}))}/></div>
+    rows={data.ultimateParentCountries.slice(0,10).map(c=>({key:c.country,label:c.country==='IN'?'India (domestic group)':countryName(c.country),value:c.entities}))}/></div>
   <div><div className="in-section-head"><span className="in-kicker">GROUPS</span><h2>Largest groups in India</h2>
    <p>Ultimate parents with the most Indian entities. Open one to see its tree.</p></div>
    <BarList title="Ultimate parents by number of Indian entities" unit="Indian entities"

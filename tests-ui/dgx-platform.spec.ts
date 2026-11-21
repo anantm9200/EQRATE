@@ -102,3 +102,19 @@ for(const width of [320,375,768,1440]){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(2);
  });
 }
+
+test('company profile header shows readable identity badges aligned with the profile column',async({page,request})=>{
+ const status=await (await request.get('/api/engine/status')).json();
+ test.skip(!status.connected||!status.counts?.leiEntities,'requires a connected DGX with indexed records');
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('/lei/335800ZJKU9GPQRE2U66');
+ await expect(page.getByRole('heading',{level:1})).toContainText(/TATA CONSULTANCY SERVICES/i);
+ const badges=page.getByRole('list',{name:'Identity summary'});
+ await expect(badges).toContainText('335800ZJKU9GPQRE2U66');
+ await expect(badges).toContainText(/LEI issued/i);
+ await expect(badges).toContainText('India (IN)');
+ const x=async(sel:string)=>(await page.locator(sel).first().boundingBox())!.x;
+ const column=await x('.lp-hero h1');
+ for(const sel of ['.lp-tabs a','.lei-record-data','#corporate-structure h2'])
+  expect(Math.abs((await x(sel))-column),sel).toBeLessThan(18);
+});

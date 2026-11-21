@@ -34,6 +34,14 @@ export async function generateMetadata({params}:{params:Promise<{lei:string}>}){
   description:'Source-linked legal-entity identity, corporate structure and India identifiers from official GLEIF records.'};
 }
 const day=(s:string|null|undefined)=>s?s.slice(0,10):'Not provided';
+const regionNames=new Intl.DisplayNames(['en'],{type:'region'});
+/** "IN" → "India (IN)"; subdivision or unknown codes are shown exactly as reported. */
+function region(code:string|null|undefined){
+ if(!code)return 'Not provided';
+ if(!/^[A-Z]{2}$/.test(code))return code;
+ try{const name=regionNames.of(code);return name&&name!==code?name+' ('+code+')':code;}catch{return code;}
+}
+const sentence=(s:string)=>s.charAt(0)+s.slice(1).toLowerCase().replaceAll('_',' ');
 const EX:Record<string,string>={NATURAL_PERSONS:'controlled by individuals, not a legal-entity parent',NON_CONSOLIDATING:'the controlling entity does not consolidate this entity',
  NO_KNOWN_PERSON:'no known controlling person or entity',NON_PUBLIC:'parent withheld as non-public',NO_LEI:'the parent has no LEI'};
 function ParentCard({label,e}:{label:string;e:Edge}){
@@ -50,8 +58,8 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
  const info=[
   {label:'Legal entity',value:entity.name},
   {label:'Legal Entity Identifier',value:entity.lei},
-  {label:'Legal jurisdiction',value:entity.jurisdiction||'Not provided'},
-  {label:'Country',value:entity.country||'Not provided'},
+  {label:'Legal jurisdiction',value:region(entity.jurisdiction)},
+  {label:'Country',value:region(entity.country)},
   {label:'Entity status',value:entity.status||'Not provided'},
   {label:'LEI registration status',value:entity.registrationStatus||'Not provided'},
   {label:'Registered authority number',value:entity.registeredAs||'Not provided'},
@@ -62,11 +70,19 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
  ];
  const id=detail?.india?.identifier;
  const c=detail?.corporate;
- return <><section className="lei-record-hero">
-  <div className="command-eyebrow"><span className="command-signal"/> VERIFIED SOURCE LOCATION / GLEIF LEI REFERENCE{entity.country==='IN'?' / INDIA':''}</div>
-  <div className="lei-record-hero-main"><div><span className="command-mini">ENTITY IDENTITY / NO MARKET PRICING</span><h1>{entity.name}</h1><p>Legal-entity reference record{detail?' with corporate structure and screening from CREQOR’s private index':''}. An LEI does not establish share prices, audited financials or a valuation.</p><div className="lei-record-code"><small>LEI</small><strong>{entity.lei}</strong></div></div>
-   <div className="lei-record-seal"><span>◇</span><strong>{entity.registrationStatus}</strong><small>LEI REGISTRATION STATUS</small></div></div>
- </section>
+ const reg=entity.registrationStatus||'';
+ return <><section className="lp-hero" aria-labelledby="lp-title"><div className="lp-hero-inner">
+  <nav className="lp-crumbs" aria-label="Breadcrumb"><Link href={entity.country==='IN'?'/india':'/directory'}>{entity.country==='IN'?'India company intelligence':'Global directory'}</Link><span aria-hidden="true">/</span><span>Company profile</span></nav>
+  <h1 id="lp-title">{entity.name}</h1>
+  <ul className="lp-badges" aria-label="Identity summary">
+   <li className="lp-lei"><small>LEI</small><code>{entity.lei}</code></li>
+   {reg&&<li className={'lp-badge '+(reg==='ISSUED'?'is-good':'is-warn')}><i aria-hidden="true"/>LEI {sentence(reg).toLowerCase()}</li>}
+   {entity.status&&<li className="lp-badge">{entity.status==='ACTIVE'?'Active legal entity':sentence(entity.status)}</li>}
+   {entity.country&&<li className="lp-badge">{region(entity.country)}</li>}
+   {id?.kind==='CIN'&&<li className="lp-badge">{id.listing} · {id.companyClassLabel}</li>}
+  </ul>
+  <p>Legal-entity reference record{detail?' with corporate structure and screening from CREQOR’s private index':''}. An LEI does not establish share prices, audited financials or a valuation.</p>
+ </div></section>
  {detail&&<nav className="lp-tabs" aria-label="Profile sections">
   {id&&<a href="#india-identifiers">India identifiers</a>}{c&&<a href="#corporate-structure">Corporate structure</a>}
   <a href="#screening">Screening leads ({detail.flags.length})</a><a href="#provenance">Source provenance</a><a href="#research">Analyst research</a></nav>}
