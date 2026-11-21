@@ -431,3 +431,24 @@ html,body,main{color:var(--cq-ink)!important;background:#fff!important}
 @media(max-width:540px){.cq-engine-freshness,.cq-engine-facts{grid-template-columns:minmax(0,1fr)}.cq-engine-research>div{flex-wrap:wrap}.cq-engine-research button{flex:1}}
 @media(max-width:800px){.cq-engine-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:540px){.cq-engine-stats{gap:8px}.cq-engine-stats>div{padding:12px}.cq-engine-search>div{flex-wrap:wrap}.cq-engine-search input{flex-basis:100%}.cq-engine-search button{flex:1}.cq-engine-result{gap:8px;flex-wrap:wrap}.cq-engine-result>a{margin-left:auto}}
+
+/* Dark functional surfaces: every text element must stay readable (WCAG AA on #1c2e46). */
+:is(.panel.dark,.wk-side) :is(h2,h3,h4,strong,.result-big){color:#f2f5fa!important}
+:is(.panel.dark,.wk-side) :is(p,small,li,.source-note){color:#b9c6d8!important}
+:is(.panel.dark,.wk-side,.lei-record-aside) :is(.micro-label,.wk-label,.command-mini){color:#9dbcf5!important}
+.wk-side-number{color:#eef2f8!important}
+.wk-side-number span{color:#b9c6d8!important}
+.wk-side-stat{color:#b9c6d8!important}
+.wk-tab-nav button:not(.is-selected),.wk-tab-nav button:not(.is-selected) span{color:#c3cfdf!important}
+.wk-tab-nav button:not(.is-selected) small{color:#a3b2c8!important}
+/* Light surfaces: links and labels that were tuned for a former dark section. */
+.cx-section-dark .cx-inline-link,.cx-statement .cx-inline-link{color:var(--cq-accent)!important}
+.rd-stats span{color:#5f7189!important}
+.signal-node-last .signal-node-glyph{color:#fff!important}
+.cq-indexed-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+/* A current LEI registration is a real success state: the reserved status green marks it, with its label. */
+.lp-badge.is-good i{background:#248a58}
+.cq-indexed-setup .eyebrow{color:var(--cq-accent)!important}
+.cq-indexed-actions a{display:inline-flex;align-items:center;min-height:43px;padding:0 16px;border-radius:8px;border:1px solid var(--cq-accent);font-size:.75rem;font-weight:650}
+.wk-side-estimate{color:#e6ecf5!important}
+.ux-preview-tabs button small{color:#5f7189!important}

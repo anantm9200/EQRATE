@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import GlobalDirectory from '@/components/global-directory';
 import {catalogueStatus,listIndexedRecords} from '@/lib/catalogue-store';
+import {callDgxEngine,dgxGatewayConfigured} from '@/lib/dgx-gateway';
 import type {LeiDirectoryPage} from '@/lib/gleif';
 export const dynamic='force-dynamic';
 export const metadata:Metadata={title:'Indexed company catalogue — CREQOR',
@@ -20,6 +21,11 @@ export default async function Catalogue({searchParams}:{
   try{initial=await listIndexedRecords({q,country,page:1});}
   catch{initialError='The indexed catalogue could not complete this search; browse live GLEIF records instead.';}
  }
+ // Without a website database, the stored index lives on CREQOR's private engine; show its real counts.
+ const engine=status.status==='ready'||!dgxGatewayConfigured()?null:
+  await callDgxEngine<{counts?:{leiEntities?:number;indiaEntities?:number}}>('/v1/status',{timeoutMs:8000}).catch(()=>null);
+ const stored=engine?.counts?.leiEntities||0;
+ const fmt=(n:number)=>new Intl.NumberFormat('en-US').format(n);
  return <>
   <section className="page-hero cq-indexed-hero">
    <span className="eyebrow">CREQOR / SOURCE-ATTRIBUTED COMPANY CATALOGUE</span>
@@ -36,7 +42,14 @@ export default async function Catalogue({searchParams}:{
     initialQuery={q} initialCountry={/^[A-Z]{2}$/.test(country)?country:''}
     apiPath="/api/catalogue" routePath="/catalogue" showFeatured={false}
     sourceNote="Indexed copies of public GLEIF legal-entity records. Original registry links remain authoritative."/>
-  </>:<section className="body-wrap cq-indexed-not-ready">
+  </>:stored>0?<section className="body-wrap cq-indexed-not-ready">
+    <div className="cq-indexed-setup">
+     <span className="eyebrow">CATALOGUE / PRIVATE ENGINE</span>
+     <h2>{fmt(stored)} legal entities stored.</h2>
+     <p>The indexed GLEIF catalogue runs on CREQOR’s private engine{engine?.counts?.indiaEntities?', including '+fmt(engine.counts.indiaEntities)+' Indian entities':''}. Every record keeps its publication date, source fingerprint and version history.</p>
+     <div className="cq-indexed-actions"><Link href="/india" className="primary-button">Search Indian companies ↗</Link><Link href="/engine" className="secondary-button">Open the intelligence engine ↗</Link></div>
+    </div>
+   </section>:<section className="body-wrap cq-indexed-not-ready">
     <div className="cq-indexed-setup">
      <span className="eyebrow">CATALOGUE SETUP / {status.status.toUpperCase()}</span>
      <h2>Live discovery is available now.</h2>
