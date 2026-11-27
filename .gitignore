@@ -10,3 +10,6 @@ coverage/
 
 playwright-report/
 test-results/
+
+# The public /coverage route is source, not test coverage output.
+!app/coverage/
