@@ -105,12 +105,12 @@ export async function verify(pool:Pool,body:Record<string,unknown>){
   const second=typeof body.totp==='string'?body.totp.trim():'';
   if(!second)return {mfaRequired:true} as const;
   const matched=verifyTotp(open_(u.totp_secret_enc),second,u.totp_last_step===null?null:Number(u.totp_last_step));
-  if(matched!==null)await pool.query('UPDATE cq_users SET totp_last_step=$2 WHERE user_id=$1',[u.user_id,matched]);
-  else if(u.recovery_code_hashes.includes(codeHash(second))){
-   // Each recovery code works once.
-   await pool.query('UPDATE cq_users SET recovery_code_hashes=array_remove(recovery_code_hashes,$2) WHERE user_id=$1',[u.user_id,codeHash(second)]);
-   await audit(pool,u.user_id,null,'mfa.recovery_code_used');
-  }else{await recordFailure(pool,u.user_id);await audit(pool,u.user_id,null,'login.mfa_failed');return null;}
+  // Consuming a code is a conditional update, so two concurrent sign-ins cannot both use it.
+  const used=matched!==null
+   ?(await pool.query('UPDATE cq_users SET totp_last_step=$2 WHERE user_id=$1 AND (totp_last_step IS NULL OR totp_last_step<$2)',[u.user_id,matched])).rowCount
+   :(await pool.query('UPDATE cq_users SET recovery_code_hashes=array_remove(recovery_code_hashes,$2) WHERE user_id=$1 AND $2=ANY(recovery_code_hashes)',[u.user_id,codeHash(second)])).rowCount;
+  if(used&&matched===null)await audit(pool,u.user_id,null,'mfa.recovery_code_used');
+  if(!used){await recordFailure(pool,u.user_id);await audit(pool,u.user_id,null,'login.mfa_failed');return null;}
  }
  await pool.query('UPDATE cq_users SET failed_logins=0,locked_until=NULL,last_login_at=now() WHERE user_id=$1',[u.user_id]);
  await audit(pool,u.user_id,null,'login.succeeded');
@@ -243,13 +243,17 @@ export const mfa={
   const matched=verifyTotp(open_(u.totp_secret_enc),String(body.code||''),null);
   if(matched===null)throw new Error('BAD_MFA_CODE');
   const codes=Array.from({length:8},()=>randomBytes(5).toString('hex').toUpperCase().replace(/(.{5})/,'$1-'));
-  await pool.query('UPDATE cq_users SET totp_enabled=true,totp_last_step=$2,recovery_code_hashes=$3 WHERE user_id=$1',[userId,matched,codes.map(codeHash)]);
+  // Only the secret that was just verified can be enabled (a concurrent re-setup invalidates this attempt).
+  const w=await pool.query('UPDATE cq_users SET totp_enabled=true,totp_last_step=$2,recovery_code_hashes=$3 WHERE user_id=$1 AND totp_secret_enc=$4 AND NOT totp_enabled',
+   [userId,matched,codes.map(codeHash),u.totp_secret_enc]);
+  if(!w.rowCount)throw new Error('BAD_MFA_STATE');
   await audit(pool,userId,null,'mfa.enabled');
   return {enabled:true,recoveryCodes:codes};
  },
  async disable(pool:Pool,userId:string,body:Record<string,unknown>){
-  const r=await pool.query<{password_hash:string}>('SELECT password_hash FROM cq_users WHERE user_id=$1',[userId]);
+  const r=await pool.query<{password_hash:string;locked_until:Date|null}>('SELECT password_hash,locked_until FROM cq_users WHERE user_id=$1',[userId]);
   if(!r.rowCount)throw new Error('NOT_FOUND');
+  if(r.rows[0].locked_until&&r.rows[0].locked_until.getTime()>Date.now())throw new Error('FORBIDDEN');
   if(typeof body.password!=='string'||!await verifyPassword(body.password,r.rows[0].password_hash)){await recordFailure(pool,userId);throw new Error('FORBIDDEN');}
   await pool.query("UPDATE cq_users SET totp_enabled=false,totp_secret_enc=NULL,totp_last_step=NULL,recovery_code_hashes='{}' WHERE user_id=$1",[userId]);
   await audit(pool,userId,null,'mfa.disabled');

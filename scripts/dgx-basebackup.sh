@@ -11,6 +11,7 @@ age_bin="${AGE_BIN:-$(command -v age || true)}"
 [[ "${DGX_BACKUP_RECIPIENT:-}" =~ ^age1[a-z0-9]{58}$ ]] || { echo 'DGX_BACKUP_RECIPIENT must be an age public recipient.' >&2; exit 2; }
 backup_dir="${DGX_BACKUP_DIR:-${CREQOR_DATA_DIR}/backups}"; wal_dir="${CREQOR_DATA_DIR}/wal-archive"
 compose=(docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml)
+[[ "$("${compose[@]}" exec -T postgres psql -X -At -U creqor -d creqor -c 'SHOW archive_mode')" == "on" ]] || { echo 'WAL_ARCHIVING_NOT_ACTIVE: a base backup without WAL cannot provide PITR' >&2; exit 2; }
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"; final="$backup_dir/creqor-postgres-base-$stamp.tar.gz.age"; partial="$final.partial"
 trap 'rm -f "$partial"' EXIT
 "${compose[@]}" exec -T postgres pg_basebackup -U creqor -D - -Ft -z -X none --checkpoint=spread -l "creqor-base-$stamp" \
@@ -21,7 +22,10 @@ mv "$partial" "$final"; sha256sum "$final" | sed "s#  .*/#  #" > "$final.sha256"
 # Retention: two base backups; WAL older than the oldest kept base backup is no longer needed.
 ls -1t "$backup_dir"/creqor-postgres-base-*.tar.gz.age | tail -n +3 | while read -r old; do rm -f "$old" "$old.sha256"; done
 oldest="$(ls -1t "$backup_dir"/creqor-postgres-base-*.tar.gz.age | tail -1)"
-[[ -d "$wal_dir" && -n "$oldest" ]] && find "$wal_dir" -maxdepth 1 -type f ! -newer "$oldest" -mmin +1440 -delete
+# Remove only WAL older than the start of the oldest kept base backup, using its backup-history file.
+label="creqor-base-$(basename "$oldest" | sed -E 's/^creqor-postgres-base-(.*)\.tar\.gz\.age$/\1/')"
+history="$(grep -l "LABEL: $label" "$wal_dir"/*.backup 2>/dev/null | head -1 || true)"
+[[ -n "$history" ]] && "${compose[@]}" exec -T postgres pg_archivecleanup /var/lib/postgresql/wal-archive "$(basename "$history")"
 "${compose[@]}" exec -T postgres psql -X -q -U creqor -d creqor -c \
  "INSERT INTO cq_job_runs (job,status,started_at,finished_at,detail) VALUES ('basebackup','ok',now(),now(),jsonb_build_object('file','$(basename "$final")'))" >/dev/null 2>&1 || true
 echo "{\"baseBackup\":\"$(basename "$final")\",\"bytes\":$(stat -c %s "$final")}"

@@ -10,6 +10,8 @@
 | Operator Mac (launchd) | com.creqor.refresh | 05:15 daily | `scripts/relay/scheduled-refresh.sh`: GLEIF LEI + RR + REPEX relay, backup pull + checksum |
 
 ## Runbooks
+- Timers install/update: `cp infrastructure/dgx/systemd/* ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now creqor-{health,quality,backup,basebackup}.timer`.
+- Before the first PostgreSQL start with WAL archiving: `scripts/dgx-provision-wal.sh`.
 - Full DGX runbook: `docs/DGX_PLATFORM.md`.
 - After a DGX reboot: `sudo ~/creqor-platform/app/infrastructure/dgx/encrypted-volume.sh unlock`.
 - Deploy engine code: `scripts/relay/dgx-relay.sh sync` → on DGX `scripts/dgx-migrate.sh` → `docker build -f infrastructure/dgx/Dockerfile.code-update -t creqor-engine:local .` → `docker compose … up -d engine`.

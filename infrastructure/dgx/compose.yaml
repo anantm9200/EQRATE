@@ -54,7 +54,7 @@ services:
       - -c
       - archive_mode=on
       - -c
-      - archive_command=test ! -f /var/lib/postgresql/wal-archive/%f && cp %p /var/lib/postgresql/wal-archive/%f
+      - archive_command=if test -f /var/lib/postgresql/wal-archive/%f; then cmp -s %p /var/lib/postgresql/wal-archive/%f; else cp %p /var/lib/postgresql/wal-archive/%f.tmp && mv /var/lib/postgresql/wal-archive/%f.tmp /var/lib/postgresql/wal-archive/%f; fi
       - -c
       - archive_timeout=3600
     ports:
