@@ -81,7 +81,7 @@ export type DgxRun={runId:number;source?:string;status:string;publishDate:string
  retrievedAt:string|null;retrievalPath:string|null;archiveSha256:string|null};
 export type DgxStatus={
  status:string;storage:string;
- counts:{leiEntities:number;leiSourceVersions?:number;leiCountries?:number;secTickerAssociations:number;secIssuers?:number;
+ counts:{leiEntities:number|null;leiSourceVersions?:number;leiCountries?:number;secTickerAssociations:number;secIssuers?:number;
   secFinancialFacts:number;secIssuersWithFinancials?:number;researchRuns:number};
  databaseBytes?:number;
  freshness?:{gleif:DgxRun[];staleNotInLatestPublication:number|null;

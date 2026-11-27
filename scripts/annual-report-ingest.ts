@@ -79,6 +79,7 @@ async function main(){
   await c.query('COMMIT');
   console.log(JSON.stringify({step:'done',documentId:doc,sha256:sha,statementPages:result.pages.length,figures:result.figures.length,inserted,
    validations:{passed:result.validations.filter(v=>v.passed).length,failed:result.validations.filter(v=>v.passed===false).length}}));
+  await pool.query('SELECT public.cq_refresh_stat_counts()').catch(()=>{});
   if(!result.figures.length)process.exitCode=3;
  }catch(e){await c.query('ROLLBACK').catch(()=>{});throw e;}finally{c.release();await pool.end();}
 }

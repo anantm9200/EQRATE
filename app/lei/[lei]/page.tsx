@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {cache} from 'react';
 import {notFound} from 'next/navigation';
 import {getLEI,type LeiEntity} from '@/lib/gleif';
 import {callDgxEngine,dgxGatewayConfigured} from '@/lib/dgx-gateway';
@@ -23,18 +24,27 @@ type Detail={entity:LeiEntity;flags:Flag[];missingFields:string[];
    companyClass:string;companyClassLabel:string;registrationNumber:string}|{kind:'GSTIN';value:string;stateCode:string;state:string;pan:string;
    panHolderType:string;panHolderLabel:string});addressRegion:{code:string;name:string}|null}|null};
 
-async function load(lei:string){
+// One upstream round per request: metadata and page share this result.
+const load=cache(async function load(lei:string){
  const [live,detail,financials]=await Promise.all([
   getLEI(lei).catch(()=>null),
   dgxGatewayConfigured()?callDgxEngine<Detail>('/v1/lei/'+lei.toUpperCase(),{timeoutMs:10000}).catch(()=>null):Promise.resolve(null),
   dgxGatewayConfigured()?callDgxEngine<FinancialProfileData>('/v1/lei/'+lei.toUpperCase()+'/financials',{timeoutMs:10000}).catch(()=>null):Promise.resolve(null)]);
  return {entity:live||detail?.entity||null,live:Boolean(live),detail,financials};
-}
+});
 export async function generateMetadata({params}:{params:Promise<{lei:string}>}){
  const {lei}=await params;
- const {entity}=/^[A-Z0-9]{20}$/i.test(lei)?await load(lei):{entity:null};
+ if(!/^[A-Z0-9]{20}$/i.test(lei))return {title:'Legal entity record',robots:{index:false,follow:true}};
+ const {entity,detail,financials}=await load(lei.toUpperCase());
+ // Index only profiles with original value beyond the public GLEIF record: stored
+ // financial statements, or a listed Indian company with decoded identifiers and group data.
+ const listed=detail?.india?.identifier?.kind==='CIN'&&detail.india.identifier.listing==='Listed';
+ const valuable=Boolean(financials?.available)||listed;
  return {title:entity?entity.name+' — company identity profile | CREQOR':'Legal entity record',
-  description:'Source-linked legal-entity identity, corporate structure and India identifiers from official GLEIF records.'};
+  description:entity?`${entity.name}: legal identity, ${detail?.corporate?'corporate group, ':''}${detail?.india?'India identifiers, ':''}source provenance${financials?.available?' and reviewed financial statements':''} from official records.`:
+   'Source-linked legal-entity identity, corporate structure and India identifiers from official GLEIF records.',
+  alternates:{canonical:'/lei/'+lei.toUpperCase()},
+  robots:{index:valuable,follow:true}};
 }
 const day=(s:string|null|undefined)=>s?s.slice(0,10):'Not provided';
 const regionNames=new Intl.DisplayNames(['en'],{type:'region'});
@@ -74,7 +84,13 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
  const id=detail?.india?.identifier;
  const c=detail?.corporate;
  const reg=entity.registrationStatus||'';
- return <><section className="lp-hero" aria-labelledby="lp-title"><div className="lp-hero-inner">
+ const jsonLd={'@context':'https://schema.org','@type':'Organization',name:entity.name,leiCode:entity.lei,
+  ...(entity.country?{address:{'@type':'PostalAddress',addressCountry:entity.country}}:{}),
+  ...(id?.kind==='CIN'?{identifier:[{'@type':'PropertyValue',propertyID:'CIN',value:id.value}]}:{}),
+  ...(c?.ultimateParent?.indexed?{parentOrganization:{'@type':'Organization',name:c.ultimateParent.name,leiCode:c.ultimateParent.lei}}:{}),
+  sameAs:[entity.sourceUrl]};
+ return <><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,'\\u003c')}}/>
+ <section className="lp-hero" aria-labelledby="lp-title"><div className="lp-hero-inner">
   <nav className="lp-crumbs" aria-label="Breadcrumb"><Link href={entity.country==='IN'?'/india':'/directory'}>{entity.country==='IN'?'India company intelligence':'Global directory'}</Link><span aria-hidden="true">/</span><span>Company profile</span></nav>
   <h1 id="lp-title">{entity.name}</h1>
   <ul className="lp-badges" aria-label="Identity summary">

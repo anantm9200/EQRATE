@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {useEffect,useState} from 'react';
-type Counts={leiEntities:number;leiSourceVersions?:number;leiCountries?:number;secTickerAssociations:number;
+type Counts={leiEntities:number|null;leiSourceVersions?:number;leiCountries?:number;secTickerAssociations:number;
  leiRelationships?:number|null;leiReportingExceptions?:number|null;indiaEntities?:number|null;indiaIssued?:number|null;
  secIssuers?:number;secFinancialFacts:number;secIssuersWithFinancials?:number;researchRuns:number};
 type Run={runId:number;source?:string;status:string;publishDate:string|null;officialRecords:number|null;rowsRead:number;rowsValid:number;

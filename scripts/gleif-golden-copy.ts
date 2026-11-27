@@ -191,6 +191,11 @@ async function main(){
    duplicateRowsInSource:confirmed===null?null:Math.max(0,stats.rowsValid-confirmed),
    staleNotInLatestPublication:stale,officialPublishDate:meta?.publishDate||null,
    officialRecordCount:meta?.recordCount??null,source:'GLEIF',persisted:!options.dryRun}));
+  if(!options.dryRun&&status==='complete'){
+   // Maintained exact counts for the status page (migration 009); best effort.
+  await getSourceCataloguePool().query('SELECT public.cq_refresh_stat_counts()').then(()=>console.log(JSON.stringify({step:'stat-counts-refreshed'})))
+   .catch(e=>console.error(JSON.stringify({step:'stat-counts-refresh-skipped',code:String(e?.message||e).slice(0,120)})));
+  }
   if(quality)throw new Error('GLEIF_IMPORT_DATA_QUALITY_CHECK_FAILED');
  }catch(e){
   if(runId!==null)await checkpointBulkRun(runId,progress,{status:'failed',

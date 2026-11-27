@@ -173,3 +173,4 @@
 .fp-table th[scope=row],.fp-table thead th:first-child{text-align:left;font-weight:600;color:#2a4466}
 .fp-table thead th{font-size:.64rem;color:#5f7189;font-weight:650}
 .fp-table a{color:#264f8f}
+@media(max-width:560px){.v2-account-link{display:none}}

@@ -4,7 +4,7 @@ import Link from 'next/link';
 type Health={product:string;status:string;officialRegistryConfigured:boolean;privateIntelligenceConfigured:boolean};
 type CatalogueStatus={configured:boolean;status:'ready'|'unconfigured'|'unavailable';indexed:number;updatedAt:string|null;note:string};
 type PublicCoverage={referenceRecords:number|null;asOf:string|null;locallyIndexed:number;locallyIndexedOperational:boolean};
-type EngineStatus={connected:boolean;status:string;counts:null|{leiEntities:number;secTickerAssociations:number;secFinancialFacts:number;researchRuns:number};aiConfigured?:boolean;note:string};
+type EngineStatus={connected:boolean;status:string;counts:null|{leiEntities:number|null;secTickerAssociations:number;secFinancialFacts:number;researchRuns:number};aiConfigured?:boolean;note:string};
 export default function StatusPage(){
  const [health,setHealth]=useState<Health|null>(null);
  const [error,setError]=useState('');
@@ -64,7 +64,7 @@ export default function StatusPage(){
   {name:'Private DGX company and financial index',
    active:engine?.connected===true,
    value:engine?.connected&&engine.counts?
-    new Intl.NumberFormat('en-US').format(engine.counts.leiEntities)+' indexed LEIs':'Not connected',
+    (typeof engine.counts.leiEntities==='number'?new Intl.NumberFormat('en-US').format(engine.counts.leiEntities)+' indexed LEIs':'Connected · counts being refreshed'):'Not connected',
    detail:'Private DGX PostgreSQL record count verified through the authenticated engine. Source coverage is not local storage.'},
   {name:'Private DGX financial history',
    active:engine?.connected===true&&Boolean(engine.counts?.secFinancialFacts),

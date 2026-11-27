@@ -5,12 +5,10 @@ import {test,expect} from '@playwright/test';
  * company to the watchlist, exports data, then deletes the account (leaves no data).
  * Skips when the engine is not connected or does not offer accounts yet.
  */
-test('sign up, watch a company, export and delete the account',async({page,request,baseURL})=>{
+test('sign up, watch a company, export and delete the account',async({page,request})=>{
  const status=await (await request.get('/api/engine/status')).json();
  test.skip(!status.connected,'requires a connected DGX engine');
- // An empty registration reaches the engine: 400 = accounts deployed; 404/503 = not yet.
- const probe=await request.post('/api/account/register',{data:{},headers:{Origin:new URL(baseURL!).origin}});
- test.skip(probe.status()!==400,'accounts not deployed on this engine');
+ test.skip(!status.features?.accounts,'accounts not deployed on this engine');
  const email=`e2e-${Date.now()}-${Math.floor(Math.random()*1e6)}@example.com`,password='e2e research phrase '+Date.now();
  await page.goto('/signup?next=/lei/335800ZJKU9GPQRE2U66');
  await page.getByLabel('Name').fill('E2E Analyst');

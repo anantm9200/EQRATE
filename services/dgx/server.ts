@@ -137,25 +137,46 @@ const STATS_TTL_MS=300000;
 async function stats(){
  return cached('stats',STATS_TTL_MS,computeStats);
 }
+let countsRefresh:Promise<unknown>|null=null;
+/** Exact counts of the large tables come from cq_stat_counts (maintained by
+ *  cq_refresh_stat_counts after imports); stale or missing counts trigger one background
+ *  refresh. Small tables are counted live. Nothing is estimated. */
+function refreshCounts(){
+ // Full counts take longer than the 15 s request timeout of the engine role, so this one
+ // background statement runs on its own connection without that limit.
+ countsRefresh??=(async()=>{
+  const c=await getSourceCataloguePool().connect();
+  try{await c.query('SET statement_timeout = 0');await c.query('SELECT public.cq_refresh_stat_counts()');}
+  finally{await c.query('RESET statement_timeout').catch(()=>{});c.release();}
+ })().catch(e=>console.error(JSON.stringify({event:'STAT_COUNTS_REFRESH_FAILED',code:String(e?.message||e).slice(0,120)})))
+  .finally(()=>{countsRefresh=null;});
+ return countsRefresh;
+}
 async function computeStats(){
  {
   const db=getSourceCataloguePool();
   const n=(sql:string)=>db.query<{n:string}>(sql).then(r=>Number(r.rows[0]?.n||0));
-  const [lei,sec,secCiks,facts,factCiks,audits,observations]=await Promise.all([
-   n('SELECT count(*)::text n FROM public.cq_lei_catalogue'),
+  const optional=(sql:string)=>n(sql).catch(()=>null);
+  const maintained=await db.query<{name:string;value:string|null;computed_at:Date}>('SELECT name,value::text,computed_at FROM public.cq_stat_counts');
+  // Missing counts are reported as null ("being computed"), never estimated; a refresh starts in the background.
+  const countsAsOf=maintained.rowCount?new Date(Math.min(...maintained.rows.map(r=>r.computed_at.getTime()))):null;
+  if(!countsAsOf||Date.now()-countsAsOf.getTime()>6*3600000)void refreshCounts();
+  const kept=(name:string)=>{const r=maintained!.rows.find(x=>x.name===name);return r&&r.value!==null?Number(r.value):null;};
+  const lei=kept('leiEntities'),observations=kept('leiSourceVersions');
+  const relationships=kept('leiRelationships'),exceptions=kept('leiReportingExceptions');
+  const indiaTotal=kept('indiaEntities'),indiaIssued=kept('indiaIssued');
+  const [sec,secCiks,facts,factCiks,audits]=await Promise.all([
    n('SELECT count(*)::text n FROM public.cq_sec_issuers'),
    n('SELECT count(DISTINCT cik)::text n FROM public.cq_sec_issuers'),
    n('SELECT count(*)::text n FROM public.cq_sec_financial_facts'),
    n('SELECT count(DISTINCT cik)::text n FROM public.cq_sec_financial_facts'),
-   n('SELECT count(*)::text n FROM public.cq_ai_research_audit'),
-   n('SELECT count(*)::text n FROM public.cq_lei_observations')
+   n('SELECT count(*)::text n FROM public.cq_ai_research_audit')
   ]);
-  const optional=(sql:string)=>n(sql).catch(()=>null);
-  const [relationships,exceptions,indiaTotal,indiaIssued]=await Promise.all([
-   optional('SELECT count(*)::text n FROM public.cq_lei_relationships'),
-   optional('SELECT count(*)::text n FROM public.cq_lei_reporting_exceptions'),
-   optional('SELECT count(*)::text n FROM public.cq_india_entities'),
-   optional("SELECT count(*)::text n FROM public.cq_india_entities WHERE registration_status='ISSUED'")
+  const [finDocs,finCompanies,finReviewed,finObservations]=await Promise.all([
+   optional('SELECT count(*)::text n FROM public.cq_financial_documents'),
+   optional('SELECT count(DISTINCT lei)::text n FROM public.cq_financial_observations'),
+   optional("SELECT count(DISTINCT lei)::text n FROM public.cq_financial_observations WHERE review_status IN ('validator_passed','accepted')"),
+   optional('SELECT count(*)::text n FROM public.cq_financial_observations')
   ]);
   const runs=await db.query<{id:string;source:string;source_publish_date:string|null;source_reported_records:string|null;
    status:string;rows_read:string;rows_valid:string;rows_rejected:string;rows_inserted:string;changed:string;
@@ -165,20 +186,13 @@ async function computeStats(){
     FROM public.cq_bulk_source_runs ORDER BY id DESC LIMIT 12`);
   const jobs=await db.query<{job:string;status:string;started_at:Date;finished_at:Date|null;error_code:string|null}>(
    `SELECT DISTINCT ON (job) job,status,started_at,finished_at,error_code FROM public.cq_job_runs ORDER BY job,started_at DESC`);
-  const latestComplete=runs.rows.find(r=>r.source==='GLEIF_GOLDEN_COPY'&&r.status==='complete');
-  const extra=await cached('slow-stats',1800000,async()=>{
-   const [countries,size,stale]=await Promise.all([
-    n('SELECT count(DISTINCT country_code)::text n FROM public.cq_lei_catalogue'),
-    n('SELECT pg_database_size(current_database())::text n'),
-    latestComplete?db.query<{n:string}>('SELECT count(*)::text n FROM public.cq_lei_catalogue WHERE last_seen_run_id IS DISTINCT FROM $1',
-     [Number(latestComplete.id)]).then(r=>Number(r.rows[0]?.n||0)):Promise.resolve(null)
-   ]);
-   return {countries,databaseBytes:size,staleNotInLatestPublication:stale};
-  });
+  const extra={countries:kept('leiCountries'),databaseBytes:await n('SELECT pg_database_size(current_database())::text n'),
+   staleNotInLatestPublication:kept('staleNotInLatestPublication')};
   const ai=await modelHealth();
   return {status:'ready',storage:'PostgreSQL 17 on private DGX',
    counts:{leiEntities:lei,leiSourceVersions:observations,leiCountries:extra.countries,
     leiRelationships:relationships,leiReportingExceptions:exceptions,indiaEntities:indiaTotal,indiaIssued,
+    financialDocuments:finDocs,companiesWithFinancialFigures:finCompanies,companiesWithReviewedFinancials:finReviewed,financialObservations:finObservations,
     secTickerAssociations:sec,secIssuers:secCiks,secFinancialFacts:facts,secIssuersWithFinancials:factCiks,researchRuns:audits},
    databaseBytes:extra.databaseBytes,
    freshness:{
@@ -194,7 +208,8 @@ async function computeStats(){
     jobs:jobs.rows.map(j=>({job:j.job,status:j.status,startedAt:j.started_at.toISOString(),
      finishedAt:j.finished_at?.toISOString()||null,errorCode:j.error_code}))},
    ai:{configured:ai.configured,reachable:ai.reachable,model:ai.model},
-   computedAt:new Date().toISOString(),
+   features:{accounts:true,financialEvidence:true},
+   computedAt:new Date().toISOString(),countsAsOf:countsAsOf?.toISOString()||null,
    aiConfigured:ai.configured&&ai.reachable,
    note:'Counts are rows actually stored on the private DGX. LEIs, CIKs, tickers and individual financial facts are different entities.'};
  }
