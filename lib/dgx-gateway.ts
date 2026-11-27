@@ -7,7 +7,7 @@
 export function dgxGatewayConfigured():boolean{
  return Boolean(process.env.DGX_ENGINE_HTTPS_URL&&process.env.DGX_ENGINE_TOKEN);
 }
-export const DGX_ROUTE=/^\/v1\/(status|search|research|india\/(overview|entities)|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/(research|group|financials))?|auth\/(register|verify)|account(\/(export|delete))?|workspace\/items(\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?)$/;
+export const DGX_ROUTE=/^\/v1\/(status|search|research|india\/(overview|entities)|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/(research|group|financials))?|auth\/(register|verify)|account(\/(export|delete|mfa(\/(setup|enable|disable))?))?|workspace\/(alerts|items(\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?))$/;
 export function dgxEndpoint(path:string,base=process.env.DGX_ENGINE_HTTPS_URL||''):URL{
  if(!DGX_ROUTE.test(path))throw new Error('DGX_UNSUPPORTED_ROUTE');
  let url:URL;

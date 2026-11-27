@@ -1,0 +1,7 @@
+[Unit]
+Description=CREQOR weekly encrypted PostgreSQL base backup (PITR)
+[Service]
+Type=oneshot
+WorkingDirectory=%h/creqor-platform/app
+ExecStart=%h/creqor-platform/app/scripts/dgx-basebackup.sh
+Nice=10

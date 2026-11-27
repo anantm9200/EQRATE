@@ -174,3 +174,5 @@
 .fp-table thead th{font-size:.64rem;color:#5f7189;font-weight:650}
 .fp-table a{color:#264f8f}
 @media(max-width:560px){.v2-account-link{display:none}}
+.mfa-secret{display:block;font:600 .9rem/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;color:#13243a;background:#f4f7fb;border:1px solid #e1e8f2;border-radius:8px;padding:10px 12px;word-break:break-all}
+.mfa-codes{font:600 .8rem/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f4f7fb;border:1px solid #e1e8f2;border-radius:8px;padding:12px;margin:0}

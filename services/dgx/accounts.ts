@@ -9,6 +9,21 @@
  */
 import {randomBytes,scrypt as scryptCb,timingSafeEqual,type ScryptOptions} from 'node:crypto';
 import type {Pool,PoolClient} from 'pg';
+import {createCipheriv,createDecipheriv,createHash} from 'node:crypto';
+import {newSecret,verifyTotp,otpauthUri} from '../../lib/totp';
+
+/** AES-256-GCM for TOTP secrets; key from CREQOR_MFA_KEY (64 hex chars), never stored in the DB. */
+function mfaKey(){
+ const k=process.env.CREQOR_MFA_KEY||'';
+ if(!/^[0-9a-f]{64}$/i.test(k))throw new Error('MFA_NOT_CONFIGURED');
+ return Buffer.from(k,'hex');
+}
+function seal(plain:string){const iv=randomBytes(12),c=createCipheriv('aes-256-gcm',mfaKey(),iv);
+ const enc=Buffer.concat([c.update(plain,'utf8'),c.final()]);return ['v1',iv.toString('base64'),c.getAuthTag().toString('base64'),enc.toString('base64')].join('.');}
+function open_(sealed:string){const [v,iv,tag,enc]=sealed.split('.');if(v!=='v1')throw new Error('BAD_SEALED');
+ const d=createDecipheriv('aes-256-gcm',mfaKey(),Buffer.from(iv,'base64'));d.setAuthTag(Buffer.from(tag,'base64'));
+ return Buffer.concat([d.update(Buffer.from(enc,'base64')),d.final()]).toString('utf8');}
+const codeHash=(c:string)=>createHash('sha256').update(c.replace(/[\s-]/g,'').toUpperCase()).digest('hex');
 
 const scrypt=(pw:string,salt:Buffer,len:number,o:ScryptOptions)=>new Promise<Buffer>((ok,fail)=>scryptCb(pw,salt,len,o,(e,k)=>e?fail(e):ok(k)));
 const SCRYPT={N:32768,r:8,p:1,maxmem:64*1024*1024};
@@ -73,8 +88,9 @@ export async function register(pool:Pool,body:Record<string,unknown>){
 export async function verify(pool:Pool,body:Record<string,unknown>){
  const email=normalizeEmail(body.email);
  const password=typeof body.password==='string'?body.password:'';
- const r=await pool.query<{user_id:string;password_hash:string;display_name:string|null;disabled:boolean;locked_until:Date|null;failed_logins:number}>(
-  'SELECT user_id,password_hash,display_name,disabled,locked_until,failed_logins FROM cq_users WHERE email=$1',[email]);
+ const r=await pool.query<{user_id:string;password_hash:string;display_name:string|null;disabled:boolean;locked_until:Date|null;failed_logins:number;
+  totp_enabled:boolean;totp_secret_enc:string|null;totp_last_step:string|null;recovery_code_hashes:string[]}>(
+  'SELECT user_id,password_hash,display_name,disabled,locked_until,failed_logins,totp_enabled,totp_secret_enc,totp_last_step,recovery_code_hashes FROM cq_users WHERE email=$1',[email]);
  const u=r.rows[0];
  if(!u){dummy??=hashPassword('dummy-password-for-timing');await verifyPassword(password,await dummy);return null;}
  if(u.disabled)return null;
@@ -84,6 +100,17 @@ export async function verify(pool:Pool,body:Record<string,unknown>){
   await recordFailure(pool,u.user_id);
   await audit(pool,u.user_id,null,'login.failed');
   return null;
+ }
+ if(u.totp_enabled&&u.totp_secret_enc){
+  const second=typeof body.totp==='string'?body.totp.trim():'';
+  if(!second)return {mfaRequired:true} as const;
+  const matched=verifyTotp(open_(u.totp_secret_enc),second,u.totp_last_step===null?null:Number(u.totp_last_step));
+  // Consuming a code is a conditional update, so two concurrent sign-ins cannot both use it.
+  const used=matched!==null
+   ?(await pool.query('UPDATE cq_users SET totp_last_step=$2 WHERE user_id=$1 AND (totp_last_step IS NULL OR totp_last_step<$2)',[u.user_id,matched])).rowCount
+   :(await pool.query('UPDATE cq_users SET recovery_code_hashes=array_remove(recovery_code_hashes,$2) WHERE user_id=$1 AND $2=ANY(recovery_code_hashes)',[u.user_id,codeHash(second)])).rowCount;
+  if(used&&matched===null)await audit(pool,u.user_id,null,'mfa.recovery_code_used');
+  if(!used){await recordFailure(pool,u.user_id);await audit(pool,u.user_id,null,'login.mfa_failed');return null;}
  }
  await pool.query('UPDATE cq_users SET failed_logins=0,locked_until=NULL,last_login_at=now() WHERE user_id=$1',[u.user_id]);
  await audit(pool,u.user_id,null,'login.succeeded');
@@ -177,6 +204,62 @@ export const workspace={
  })
 };
 
+/** Watchlist alerts: what changed in official records or stored evidence since a company was added. */
+export const watchChanges=(pool:Pool,u:string,o:string)=>withOrg(pool,u,o,'viewer',async c=>{
+ const r=await c.query<{lei:string;added_at:Date;legal_name:string|null;registration_status:string|null;entity_status:string|null;
+  changed_publication:string|null;changed_at:Date|null;new_documents:string;latest_document:Date|null}>(`
+  WITH watched AS (
+   SELECT DISTINCT ON (l.lei) l.lei, i.created_at AS added_at
+   FROM cq_workspace_items i, jsonb_array_elements_text(i.payload->'leis') AS l(lei)
+   WHERE i.kind='watchlist' AND l.lei ~ '^[A-Z0-9]{20}$' ORDER BY l.lei, i.created_at)
+  SELECT w.lei, w.added_at, e.legal_name, e.registration_status, e.entity_status,
+   r.source_publish_date::text AS changed_publication, r.finished_at AS changed_at,
+   (SELECT count(*) FROM cq_financial_documents d WHERE d.lei=w.lei AND d.created_at>w.added_at)::text AS new_documents,
+   (SELECT max(d.created_at) FROM cq_financial_documents d WHERE d.lei=w.lei) AS latest_document
+  FROM watched w LEFT JOIN cq_lei_catalogue e ON e.lei=w.lei LEFT JOIN cq_bulk_source_runs r ON r.id=e.last_changed_run_id
+  ORDER BY w.lei LIMIT 500`);
+ return {companies:r.rows.map(x=>({lei:x.lei,name:x.legal_name,registrationStatus:x.registration_status,entityStatus:x.entity_status,
+  addedAt:x.added_at.toISOString(),recordChangedAt:x.changed_at?.toISOString()||null,recordChangedPublication:x.changed_publication,
+  changedSinceAdded:Boolean(x.changed_at&&x.changed_at>x.added_at),newFinancialDocuments:Number(x.new_documents),
+  alert:Boolean((x.changed_at&&x.changed_at>x.added_at)||Number(x.new_documents)>0||(x.registration_status&&x.registration_status!=='ISSUED'))}))};
+});
+export const mfa={
+ async status(pool:Pool,userId:string){
+  const r=await pool.query<{totp_enabled:boolean;n:number}>('SELECT totp_enabled,cardinality(recovery_code_hashes) n FROM cq_users WHERE user_id=$1',[userId]);
+  if(!r.rowCount)throw new Error('NOT_FOUND');
+  return {enabled:r.rows[0].totp_enabled,recoveryCodesLeft:r.rows[0].n};
+ },
+ async setup(pool:Pool,userId:string){
+  const r=await pool.query<{email:string;totp_enabled:boolean}>('SELECT email,totp_enabled FROM cq_users WHERE user_id=$1',[userId]);
+  if(!r.rowCount)throw new Error('NOT_FOUND');
+  if(r.rows[0].totp_enabled)throw new Error('BAD_MFA_ALREADY_ENABLED');
+  const secret=newSecret();
+  await pool.query('UPDATE cq_users SET totp_secret_enc=$2,totp_last_step=NULL WHERE user_id=$1',[userId,seal(secret)]);
+  return {secret,otpauthUri:otpauthUri(secret,r.rows[0].email)};
+ },
+ async enable(pool:Pool,userId:string,body:Record<string,unknown>){
+  const r=await pool.query<{totp_secret_enc:string|null;totp_enabled:boolean}>('SELECT totp_secret_enc,totp_enabled FROM cq_users WHERE user_id=$1',[userId]);
+  const u=r.rows[0];if(!u?.totp_secret_enc||u.totp_enabled)throw new Error('BAD_MFA_STATE');
+  const matched=verifyTotp(open_(u.totp_secret_enc),String(body.code||''),null);
+  if(matched===null)throw new Error('BAD_MFA_CODE');
+  const codes=Array.from({length:8},()=>randomBytes(5).toString('hex').toUpperCase().replace(/(.{5})/,'$1-'));
+  // Only the secret that was just verified can be enabled (a concurrent re-setup invalidates this attempt).
+  const w=await pool.query('UPDATE cq_users SET totp_enabled=true,totp_last_step=$2,recovery_code_hashes=$3 WHERE user_id=$1 AND totp_secret_enc=$4 AND NOT totp_enabled',
+   [userId,matched,codes.map(codeHash),u.totp_secret_enc]);
+  if(!w.rowCount)throw new Error('BAD_MFA_STATE');
+  await audit(pool,userId,null,'mfa.enabled');
+  return {enabled:true,recoveryCodes:codes};
+ },
+ async disable(pool:Pool,userId:string,body:Record<string,unknown>){
+  const r=await pool.query<{password_hash:string;locked_until:Date|null}>('SELECT password_hash,locked_until FROM cq_users WHERE user_id=$1',[userId]);
+  if(!r.rowCount)throw new Error('NOT_FOUND');
+  if(r.rows[0].locked_until&&r.rows[0].locked_until.getTime()>Date.now())throw new Error('FORBIDDEN');
+  if(typeof body.password!=='string'||!await verifyPassword(body.password,r.rows[0].password_hash)){await recordFailure(pool,userId);throw new Error('FORBIDDEN');}
+  await pool.query("UPDATE cq_users SET totp_enabled=false,totp_secret_enc=NULL,totp_last_step=NULL,recovery_code_hashes='{}' WHERE user_id=$1",[userId]);
+  await audit(pool,userId,null,'mfa.disabled');
+  return {enabled:false};
+ }
+};
 export async function exportAccount(pool:Pool,userId:string){
  const orgs=await memberships(pool,userId);
  const user=await pool.query('SELECT email,display_name AS "name",created_at AS "createdAt",last_login_at AS "lastLoginAt" FROM cq_users WHERE user_id=$1',[userId]);

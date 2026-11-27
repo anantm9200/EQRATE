@@ -18,7 +18,7 @@ import type {FinancialFact} from '../../lib/sec-financial-history';
 import type {LeiEntity} from '../../lib/gleif';
 import {decodeIndianIdentifier,regionFromAddress,indiaLeads} from '../../lib/india';
 import {financialProfile} from './financials';
-import {register,verify,memberships,workspace,exportAccount,deleteAccount,UUID} from './accounts';
+import {register,verify,memberships,workspace,exportAccount,deleteAccount,watchChanges,mfa,UUID} from './accounts';
 import {corporateLinks,corporateLinkLeads,corporateGroup,indiaOverview,indiaEntities,type CorporateLinks} from './relationships';
 
 export const PROMPT_VERSION='creqor-grounded-v2';
@@ -562,14 +562,20 @@ export function startEngine(){
     if(req.method==='POST'&&url.pathname==='/v1/auth/register')return json(res,201,await register(pool,await readBody(req,4000) as Record<string,unknown>));
     if(req.method==='POST'&&url.pathname==='/v1/auth/verify'){
      const v=await verify(pool,await readBody(req,4000) as Record<string,unknown>);
+     if(v&&'mfaRequired' in v)return json(res,401,{error:'Authenticator code required',code:'MFA_REQUIRED'});
      return v?json(res,200,v):json(res,401,{error:'Email or password not recognised'});
     }
     const user=String(req.headers['x-creqor-user']||'');
     if(!UUID.test(user))return json(res,401,{error:'Signed-in user required'});
     if(req.method==='GET'&&url.pathname==='/v1/account')return json(res,200,{orgs:await memberships(pool,user)});
+    if(req.method==='GET'&&url.pathname==='/v1/account/mfa')return json(res,200,await mfa.status(pool,user));
+    if(req.method==='POST'&&url.pathname==='/v1/account/mfa/setup')return json(res,200,await mfa.setup(pool,user));
+    if(req.method==='POST'&&url.pathname==='/v1/account/mfa/enable')return json(res,200,await mfa.enable(pool,user,await readBody(req,1000) as Record<string,unknown>));
+    if(req.method==='POST'&&url.pathname==='/v1/account/mfa/disable')return json(res,200,await mfa.disable(pool,user,await readBody(req,1000) as Record<string,unknown>));
     if(req.method==='GET'&&url.pathname==='/v1/account/export')return json(res,200,await exportAccount(pool,user));
     if(req.method==='POST'&&url.pathname==='/v1/account/delete')return json(res,200,await deleteAccount(pool,user,await readBody(req,1000) as Record<string,unknown>));
     const org=String(req.headers['x-creqor-org']||'');
+    if(req.method==='GET'&&url.pathname==='/v1/workspace/alerts')return json(res,200,await watchChanges(pool,user,org));
     if(req.method==='GET'&&url.pathname==='/v1/workspace/items')return json(res,200,await workspace.list(pool,user,org,url.searchParams.get('kind')||undefined));
     if(req.method==='POST'&&url.pathname==='/v1/workspace/items')return json(res,201,await workspace.create(pool,user,org,await readBody(req,260000) as Record<string,unknown>));
     m=url.pathname.match(/^\/v1\/workspace\/items\/([0-9a-f-]{36})$/);

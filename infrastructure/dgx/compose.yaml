@@ -49,10 +49,19 @@ services:
       - log_lock_waits=on
       - -c
       - track_io_timing=on
+      # Point-in-time recovery: completed WAL segments are archived to the encrypted volume;
+      # a segment is forced at least hourly so local RPO is <= 1 h. See docs/execution/OPERATIONS.md.
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=if test -f /var/lib/postgresql/wal-archive/%f; then cmp -s %p /var/lib/postgresql/wal-archive/%f; else cp %p /var/lib/postgresql/wal-archive/%f.tmp && mv /var/lib/postgresql/wal-archive/%f.tmp /var/lib/postgresql/wal-archive/%f; fi
+      - -c
+      - archive_timeout=3600
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
       - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/postgres:/var/lib/postgresql/data"
+      - "${CREQOR_DATA_DIR:?Set a dedicated durable storage path}/wal-archive:/var/lib/postgresql/wal-archive"
     shm_size: "1g"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U creqor -d creqor"]
@@ -82,7 +91,9 @@ services:
       PG_POOL_MAX: "${PG_POOL_MAX:-8}"
       DGX_ENGINE_BIND_HOST: "127.0.0.1"
       DGX_ENGINE_PORT: "${DGX_ENGINE_PORT:-8196}"
-      # Runtime role: SELECT on public records + INSERT on the research audit only.
+      # AES-256-GCM key for TOTP secrets (64 hex chars); two-factor setup is refused without it.
+      CREQOR_MFA_KEY: "${CREQOR_MFA_KEY:-}"
+      # Runtime role: SELECT on public records, research audit, accounts/workspaces under row-level security.
       DATABASE_URL: "postgresql://creqor_app:${CREQOR_APP_DB_PASSWORD:?Set CREQOR_APP_DB_PASSWORD}@127.0.0.1:5432/creqor"
       DGX_VLLM_ENDPOINT: "${DGX_VLLM_ENDPOINT:-http://127.0.0.1:8002/v1/chat/completions}"
       NODE_OPTIONS: "--max-old-space-size=768"
