@@ -7,7 +7,7 @@
 export function dgxGatewayConfigured():boolean{
  return Boolean(process.env.DGX_ENGINE_HTTPS_URL&&process.env.DGX_ENGINE_TOKEN);
 }
-export const DGX_ROUTE=/^\/v1\/(status|search|research|india\/(overview|entities)|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/(research|group))?)$/;
+export const DGX_ROUTE=/^\/v1\/(status|search|research|india\/(overview|entities)|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/(research|group|financials))?|auth\/(register|verify)|account(\/(export|delete))?|workspace\/items(\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?)$/;
 export function dgxEndpoint(path:string,base=process.env.DGX_ENGINE_HTTPS_URL||''):URL{
  if(!DGX_ROUTE.test(path))throw new Error('DGX_UNSUPPORTED_ROUTE');
  let url:URL;
@@ -18,8 +18,10 @@ export function dgxEndpoint(path:string,base=process.env.DGX_ENGINE_HTTPS_URL||'
  return new URL(url.pathname+path.slice(1),url.origin);
 }
 export async function callDgxEngine<T>(path:string,options:{
- method?:'GET'|'POST';body?:object;timeoutMs?:number;query?:{q:string;country?:string;limit?:number};
- params?:Partial<Record<'q'|'region'|'class'|'listing'|'status'|'page',string>>
+ method?:'GET'|'POST'|'PUT'|'DELETE';body?:object;timeoutMs?:number;query?:{q:string;country?:string;limit?:number};
+ params?:Partial<Record<'q'|'region'|'class'|'listing'|'status'|'page'|'kind'|'asOf',string>>;
+ /** Signed-in identity from the website session; only sent to account/workspace routes. */
+ identity?:{userId:string;orgId?:string};
 }={}):Promise<T>{
  if(!dgxGatewayConfigured())throw new Error('DGX_ENGINE_NOT_CONNECTED');
  const token=process.env.DGX_ENGINE_TOKEN!;
@@ -37,16 +39,24 @@ export async function callDgxEngine<T>(path:string,options:{
   if(options.query.country)url.searchParams.set('country',options.query.country);
   if(options.query.limit)url.searchParams.set('limit',String(options.query.limit));
  }
+ if(options.identity){
+  if(!/^\/v1\/(account|workspace)/.test(path))throw new Error('DGX_IDENTITY_NOT_ALLOWED');
+  headers['X-Creqor-User']=options.identity.userId;
+  if(options.identity.orgId)headers['X-Creqor-Org']=options.identity.orgId;
+ }
  if(options.params){
-  if(path!=='/v1/india/entities')throw new Error('DGX_QUERY_NOT_ALLOWED');
+  const only=(k:string)=>Object.keys(options.params!).every(x=>x===k);
+  if(path!=='/v1/india/entities'&&!(path==='/v1/workspace/items'&&only('kind'))&&!(/^\/v1\/lei\/[A-Z0-9]{20}\/financials$/.test(path)&&only('asOf')))throw new Error('DGX_QUERY_NOT_ALLOWED');
   for(const [k,v] of Object.entries(options.params))if(v)url.searchParams.set(k,v);
  }
  const response=await fetch(url,{method:options.method||'GET',headers,redirect:'error',
   body:options.body?JSON.stringify(options.body):undefined,
   signal:AbortSignal.timeout(Math.max(1000,Math.min(options.timeoutMs||9000,55000))),cache:'no-store'});
  if(!response.ok){
-  const err=new Error('DGX_ENGINE_UPSTREAM_'+response.status) as Error&{status?:number};
-  err.status=response.status;throw err;
+  const err=new Error('DGX_ENGINE_UPSTREAM_'+response.status) as Error&{status?:number;body?:unknown};
+  err.status=response.status;
+  err.body=await response.json().catch(()=>null);
+  throw err;
  }
  const size=Number(response.headers.get('content-length')||0);
  if(size>2000000)throw new Error('DGX_ENGINE_RESPONSE_TOO_LARGE');

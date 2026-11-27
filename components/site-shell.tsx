@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {useSession} from 'next-auth/react';
 import {usePathname} from 'next/navigation';
 import {useEffect,useRef,useState} from 'react';
 import Brand from '@/components/brand';
@@ -51,6 +52,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
    <Brand/>
    <nav className="v2-top-nav" aria-label="Primary navigation">{primary.map(item=><Link href={item.href} key={item.href} className={path===item.href?'is-current':''}>{item.label}</Link>)}</nav>
    <div className="v2-header-actions">
+    <AccountLink/>
     <CommandPalette/>
     <button ref={menuButton} className={'v2-menu-button'+(open?' is-open':'')} onClick={()=>setOpen(x=>!x)} aria-expanded={open} aria-controls="creqor-menu" aria-label={open?'Close navigation':'Open full-screen navigation'}>
       <span className="v2-menu-text">{open?'Close':'Menu'}</span><span className="v2-menu-icon"><i/><i/></span>
@@ -80,4 +82,10 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
     <div className="v2-footer-bottom"><span>© {new Date().getFullYear()} CREQOR</span><span>Designed for clarity. Built for scrutiny.</span><Link href="/status">System status ↗</Link></div>
   </footer>
  </>;
+}
+function AccountLink(){
+ const {status,data}=useSession();
+ if(status==='loading')return null;
+ return status==='authenticated'?<Link className="v2-account-link" href="/account" aria-label="Your account">{(data?.user?.name||data?.user?.email||'Account').split(' ')[0].slice(0,18)}</Link>:
+  <Link className="v2-account-link" href="/signin">Sign in</Link>;
 }

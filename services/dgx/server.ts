@@ -16,6 +16,8 @@ import {screenLegalEntity,missingIdentityFields,type IdentityFlag} from '../../l
 import type {FinancialFact} from '../../lib/sec-financial-history';
 import type {LeiEntity} from '../../lib/gleif';
 import {decodeIndianIdentifier,regionFromAddress,indiaLeads} from '../../lib/india';
+import {financialProfile} from './financials';
+import {register,verify,memberships,workspace,exportAccount,deleteAccount,UUID} from './accounts';
 import {corporateLinks,corporateLinkLeads,corporateGroup,indiaOverview,indiaEntities,type CorporateLinks} from './relationships';
 
 export const PROMPT_VERSION='creqor-grounded-v2';
@@ -460,14 +462,14 @@ async function valuation(cik:number,body:Record<string,unknown>){
 export function startEngine(){
  const {host,port,token}=config();
  modelConfiguration(); // Reject unsafe/non-local inference configuration at startup.
- let window={start:Date.now(),ok:0,failedAuth:0};
+ let window={start:Date.now(),ok:0,failedAuth:0,auth:0};
  const server=createServer(async(req,res)=>{
   try{
    const url=new URL(req.url||'/', 'http://localhost');
    if(req.method==='GET'&&url.pathname==='/health')
     return json(res,200,{product:'CREQOR DGX',status:'online'});
    const now=Date.now();
-   if(now-window.start>60000)window={start:now,ok:0,failedAuth:0};
+   if(now-window.start>60000)window={start:now,ok:0,failedAuth:0,auth:0};
    // Behind the HTTPS gateway every request arrives from loopback, so limits are global.
    if(window.failedAuth>60)return json(res,429,{error:'Too many unauthorized requests'});
    const auth=(req.headers.authorization||'').replace(/^Bearer\s+/i,'');
@@ -485,6 +487,8 @@ export function startEngine(){
     const d=await leiDetail(parseLei(m[1]));
     return d?json(res,200,d):json(res,404,{error:'LEI not in the private index'});
    }
+   m=url.pathname.match(/^\/v1\/lei\/([A-Za-z0-9]{20})\/financials$/);
+   if(req.method==='GET'&&m)return json(res,200,await financialProfile(getSourceCataloguePool(),parseLei(m[1]),url.searchParams.get('asOf')||undefined));
    m=url.pathname.match(/^\/v1\/lei\/([A-Za-z0-9]{20})\/group$/);
    if(req.method==='GET'&&m){
     const g=await corporateGroup(parseLei(m[1]));
@@ -531,13 +535,38 @@ export function startEngine(){
     }
     return json(res,200,await research(cik,question,assumptions));
    }
+   // Accounts: the website authenticates with the engine token and names the user; every
+   // workspace call re-checks membership and runs under PostgreSQL row-level security.
+   if(url.pathname.startsWith('/v1/auth/')||url.pathname.startsWith('/v1/account')||url.pathname.startsWith('/v1/workspace')){
+    const pool=getSourceCataloguePool();
+    if(url.pathname.startsWith('/v1/auth/')&&++window.auth>60)return json(res,429,{error:'Too many sign-in attempts; try again shortly'});
+    if(req.method==='POST'&&url.pathname==='/v1/auth/register')return json(res,201,await register(pool,await readBody(req,4000) as Record<string,unknown>));
+    if(req.method==='POST'&&url.pathname==='/v1/auth/verify'){
+     const v=await verify(pool,await readBody(req,4000) as Record<string,unknown>);
+     return v?json(res,200,v):json(res,401,{error:'Email or password not recognised'});
+    }
+    const user=String(req.headers['x-creqor-user']||'');
+    if(!UUID.test(user))return json(res,401,{error:'Signed-in user required'});
+    if(req.method==='GET'&&url.pathname==='/v1/account')return json(res,200,{orgs:await memberships(pool,user)});
+    if(req.method==='GET'&&url.pathname==='/v1/account/export')return json(res,200,await exportAccount(pool,user));
+    if(req.method==='POST'&&url.pathname==='/v1/account/delete')return json(res,200,await deleteAccount(pool,user,await readBody(req,1000) as Record<string,unknown>));
+    const org=String(req.headers['x-creqor-org']||'');
+    if(req.method==='GET'&&url.pathname==='/v1/workspace/items')return json(res,200,await workspace.list(pool,user,org,url.searchParams.get('kind')||undefined));
+    if(req.method==='POST'&&url.pathname==='/v1/workspace/items')return json(res,201,await workspace.create(pool,user,org,await readBody(req,260000) as Record<string,unknown>));
+    m=url.pathname.match(/^\/v1\/workspace\/items\/([0-9a-f-]{36})$/);
+    if(m&&req.method==='PUT')return json(res,200,await workspace.update(pool,user,org,m[1],await readBody(req,260000) as Record<string,unknown>));
+    if(m&&req.method==='DELETE')return json(res,200,await workspace.remove(pool,user,org,m[1]));
+   }
    return json(res,404,{error:'Not found'});
   }catch(e){
    const error=e instanceof Error?e.message:'INTERNAL_ERROR';
    const bad=/^(BAD_|INVALID_|SOURCE_|PAYLOAD_|REPORTED_|VALUATION_)/.test(error);
-   console.error(JSON.stringify({event:'DGX_ENGINE_REQUEST_ERROR',kind:bad?'validation':'internal',
+   console.error(JSON.stringify({event:'DGX_ENGINE_REQUEST_ERROR',kind:bad||/^(FORBIDDEN|NOT_FOUND)$/.test(error)?'client':'internal',
     code:error.replace(/postgres(?:ql)?:\/\/\S+/gi,'[redacted database]').slice(0,160)}));
    if(error==='SOURCE_NOT_INDEXED')return json(res,404,{error:'Record not in the private index'});
+   if(error==='FORBIDDEN')return json(res,403,{error:'Not permitted for this workspace'});
+   if(error==='NOT_FOUND')return json(res,404,{error:'Not found'});
+   if(error==='BAD_ACCOUNT_EXISTS'||error==='BAD_VERSION_CONFLICT')return json(res,409,{error:error==='BAD_ACCOUNT_EXISTS'?'An account with this email already exists':'This item changed since you opened it',code:error});
    return json(res,bad?400:503,{error:bad?'Invalid source or request parameters':'Intelligence backend unavailable; retry after checking source and database health.',
     ...(bad?{code:error.slice(0,80)}:{})});
   }

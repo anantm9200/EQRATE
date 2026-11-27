@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Daily official-data relay from the operator Mac. Install:
+     sed "s#__REPO__#$PWD#g; s#__DGX__#dgxadmin@<tailnet-ip>#g; s#__HOME__#$HOME#g" infrastructure/operator/com.creqor.refresh.plist > ~/Library/LaunchAgents/com.creqor.refresh.plist
+     launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.creqor.refresh.plist -->
+<plist version="1.0"><dict>
+ <key>Label</key><string>com.creqor.refresh</string>
+ <key>ProgramArguments</key><array>
+  <string>/usr/bin/caffeinate</string><string>-i</string>
+  <string>__REPO__/scripts/relay/scheduled-refresh.sh</string></array>
+ <key>EnvironmentVariables</key><dict>
+  <key>CREQOR_DGX_SSH</key><string>__DGX__</string>
+  <key>CREQOR_DGX_DIR</key><string>creqor-platform</string></dict>
+ <key>StartCalendarInterval</key><dict><key>Hour</key><integer>5</integer><key>Minute</key><integer>15</integer></dict>
+ <key>StandardOutPath</key><string>__HOME__/Library/Logs/creqor-refresh.log</string>
+ <key>StandardErrorPath</key><string>__HOME__/Library/Logs/creqor-refresh.log</string>
+ <key>Nice</key><integer>10</integer>
+</dict></plist>

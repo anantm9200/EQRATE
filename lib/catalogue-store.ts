@@ -19,6 +19,9 @@ function database():Pool{
   const max=Math.min(20,Math.max(1,Number(process.env.PG_POOL_MAX)||3));
   pool=new Pool({connectionString:url,max,idleTimeoutMillis:10000,connectionTimeoutMillis:5000,
    ssl:parsed.hostname==='localhost'||parsed.hostname==='127.0.0.1'?undefined:{rejectUnauthorized:true}});
+  // An idle client dropped by the server (restart, failover, timeout) must not crash the
+  // process: pg removes the broken client and the next query opens a new connection.
+  pool.on('error',err=>console.error(JSON.stringify({event:'DATABASE_IDLE_CLIENT_ERROR',code:(err as {code?:string}).code||'unknown'})));
  }
  return pool;
 }

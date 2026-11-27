@@ -2,6 +2,8 @@
 # Only the runtime dependencies the engine and import scripts use are installed;
 # the Next.js website is not part of this image.
 FROM node:22-bookworm-slim
+# poppler-utils: pdftotext for annual-report text extraction (run without network, with timeouts).
+RUN apt-get update && apt-get install -y --no-install-recommends poppler-utils && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/creqor
 ENV NODE_ENV=production
 COPY package.json ./

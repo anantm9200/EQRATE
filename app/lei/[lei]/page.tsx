@@ -5,6 +5,8 @@ import {callDgxEngine,dgxGatewayConfigured} from '@/lib/dgx-gateway';
 import LEIStartAssessment from '@/components/lei-start-assessment';
 import CorporateGroup from '@/components/corporate-group';
 import LeiResearchPanel from '@/components/lei-research-panel';
+import WatchButton from '@/components/watch-button';
+import FinancialProfile,{type FinancialProfileData} from '@/components/financial-profile';
 
 export const dynamic='force-dynamic';
 type Edge={lei:string;name:string|null;country:string|null;registrationStatus:string|null;indexed:boolean;type:string;status:string;
@@ -22,10 +24,11 @@ type Detail={entity:LeiEntity;flags:Flag[];missingFields:string[];
    panHolderType:string;panHolderLabel:string});addressRegion:{code:string;name:string}|null}|null};
 
 async function load(lei:string){
- const [live,detail]=await Promise.all([
+ const [live,detail,financials]=await Promise.all([
   getLEI(lei).catch(()=>null),
-  dgxGatewayConfigured()?callDgxEngine<Detail>('/v1/lei/'+lei.toUpperCase(),{timeoutMs:10000}).catch(()=>null):Promise.resolve(null)]);
- return {entity:live||detail?.entity||null,live:Boolean(live),detail};
+  dgxGatewayConfigured()?callDgxEngine<Detail>('/v1/lei/'+lei.toUpperCase(),{timeoutMs:10000}).catch(()=>null):Promise.resolve(null),
+  dgxGatewayConfigured()?callDgxEngine<FinancialProfileData>('/v1/lei/'+lei.toUpperCase()+'/financials',{timeoutMs:10000}).catch(()=>null):Promise.resolve(null)]);
+ return {entity:live||detail?.entity||null,live:Boolean(live),detail,financials};
 }
 export async function generateMetadata({params}:{params:Promise<{lei:string}>}){
  const {lei}=await params;
@@ -53,7 +56,7 @@ function ParentCard({label,e}:{label:string;e:Edge}){
 export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
  const {lei:raw}=await params;if(!/^[A-Z0-9]{20}$/i.test(raw))notFound();
  const lei=raw.toUpperCase();
- const {entity,live,detail}=await load(lei);
+ const {entity,live,detail,financials}=await load(lei);
  if(!entity)return <><section className="lei-explore-hero"><span className="command-mini">GLEIF / RECORD UNAVAILABLE</span><h1>We couldn't retrieve this LEI record.</h1><p>The entity lookup may be temporarily unavailable or the identifier may not exist. No company information has been invented.</p></section><section className="lei-detail-bottom"><Link href="/india">Search Indian companies ↗</Link><a href={'https://search.gleif.org/#/record/'+encodeURIComponent(lei)} target="_blank" rel="noopener noreferrer">Check the official GLEIF database ↗</a></section></>;
  const info=[
   {label:'Legal entity',value:entity.name},
@@ -81,10 +84,11 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
    {entity.country&&<li className="lp-badge">{region(entity.country)}</li>}
    {id?.kind==='CIN'&&<li className="lp-badge">{id.listing} · {id.companyClassLabel}</li>}
   </ul>
+  <div className="lp-hero-actions"><WatchButton lei={entity.lei} name={entity.name}/></div>
   <p>Legal-entity reference record{detail?' with corporate structure and screening from CREQOR’s private index':''}. An LEI does not establish share prices, audited financials or a valuation.</p>
  </div></section>
  {detail&&<nav className="lp-tabs" aria-label="Profile sections">
-  {id&&<a href="#india-identifiers">India identifiers</a>}{c&&<a href="#corporate-structure">Corporate structure</a>}
+  {id&&<a href="#india-identifiers">India identifiers</a>}<a href="#financials">Financials</a>{c&&<a href="#corporate-structure">Corporate structure</a>}
   <a href="#screening">Screening leads ({detail.flags.length})</a><a href="#provenance">Source provenance</a><a href="#research">Analyst research</a></nav>}
  <section className="lei-record-layout">
   <div className="lei-record-data"><div className="lei-block-header"><span className="command-mini">SOURCE-LINKED REFERENCE DATA</span><h2>Entity record</h2></div>
@@ -123,6 +127,9 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
      <strong>{k.name||k.lei}</strong><span className="in-result-meta">{[k.country,k.type==='IS_INTERNATIONAL_BRANCH_OF'?'International branch':'Directly consolidated',k.registrationStatus].filter(Boolean).join(' · ')}</span></Link></li>)}</ul></>}
    {(c.ultimateParent||c.ultimateChildren>0)&&<CorporateGroup lei={entity.lei} members={c.ultimateChildren}/>}
   </section>}
+  <section id="financials" className="lp-section"><div className="in-section-head"><span className="in-kicker">FINANCIAL · RISK · CONFIDENCE</span><h2>Financial statements</h2>
+   <p>From the company’s published annual reports, extracted deterministically with page citations and validated before use. Screening indicators are not ratings.</p></div>
+   <FinancialProfile data={financials}/></section>
   <section id="screening" className="lp-section"><div className="in-section-head"><span className="in-kicker">SCREENING</span><h2>Identity and structure leads</h2>
    <p>Deterministic checks on the source records. Prompts for investigation, not findings of wrongdoing.</p></div>
    {detail.flags.length?<ul className="cq-engine-flags">{detail.flags.map(f=><li key={f.code} data-severity={f.severity}><span>{f.severity}</span><div><strong>{f.title}</strong><p>{f.explanation}</p></div></li>)}</ul>:
