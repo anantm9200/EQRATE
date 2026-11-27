@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {useSession} from 'next-auth/react';
 import {usePathname} from 'next/navigation';
 import {useEffect,useRef,useState} from 'react';
 import Brand from '@/components/brand';
@@ -31,7 +32,9 @@ const menu=[
   {href:'/verification',label:'Verification',index:'09',detail:'Separate claims from proof'},
   {href:'/methodology',label:'Methodology',index:'10',detail:'Our standards and limitations'},
   {href:'/watchlist',label:'My watchlist',index:'11',detail:'Return to your research'},
-  {href:'/status',label:'System readiness',index:'12',detail:'Check configured integrations'}
+  {href:'/coverage',label:'Data coverage',index:'12',detail:'What CREQOR actually holds, counted separately'},
+  {href:'/account',label:'Your account',index:'13',detail:'Saved research, watchlists and your data'},
+  {href:'/status',label:'System readiness',index:'14',detail:'Check configured integrations'}
 ];
 export default function SiteShell({children}:{children:React.ReactNode}) {
  const path=usePathname();const [open,setOpen]=useState(false);const menuButton=useRef<HTMLButtonElement>(null);const firstLink=useRef<HTMLAnchorElement>(null);
@@ -51,6 +54,7 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
    <Brand/>
    <nav className="v2-top-nav" aria-label="Primary navigation">{primary.map(item=><Link href={item.href} key={item.href} className={path===item.href?'is-current':''}>{item.label}</Link>)}</nav>
    <div className="v2-header-actions">
+    <AccountLink/>
     <CommandPalette/>
     <button ref={menuButton} className={'v2-menu-button'+(open?' is-open':'')} onClick={()=>setOpen(x=>!x)} aria-expanded={open} aria-controls="creqor-menu" aria-label={open?'Close navigation':'Open full-screen navigation'}>
       <span className="v2-menu-text">{open?'Close':'Menu'}</span><span className="v2-menu-icon"><i/><i/></span>
@@ -74,10 +78,16 @@ export default function SiteShell({children}:{children:React.ReactNode}) {
   </section>
   <footer className="v2-footer">
     <div className="v2-footer-top"><Brand/><p>Company intelligence built on evidence.<br/>Every number should withstand a second look.</p></div>
-    <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/india">India company intelligence</Link><Link href="/workbench">Company workbench</Link><Link href="/desk">Research desk</Link><Link href="/directory">Global directory</Link><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link><Link href="/intelligence">Forensic intelligence</Link><Link href="/engine">Private intelligence engine</Link></div>
+    <div className="v2-footer-middle"><div><span className="v2-footer-label">PLATFORM</span><Link href="/india">India company intelligence</Link><Link href="/workbench">Company workbench</Link><Link href="/desk">Research desk</Link><Link href="/directory">Global directory</Link><Link href="/explore">Company explorer</Link><Link href="/lab">Valuation laboratory</Link><Link href="/compare">Compare companies</Link><Link href="/analyst">AI analyst</Link><Link href="/intelligence">Forensic intelligence</Link><Link href="/engine">Private intelligence engine</Link><Link href="/coverage">Data coverage</Link></div>
     <div><span className="v2-footer-label">RESEARCH</span><Link href="/intelligence">Intelligence engine</Link><Link href="/research">Research centre</Link><Link href="/methodology">Methodology</Link><Link href="/verification">Verification</Link></div>
     <div className="v2-footer-statement"><span className="v2-footer-label">INDEPENDENCE MATTERS</span><p>CREQOR is a research and modelling platform—not a credit rating agency or an investment adviser. Estimates are not observable market prices. Claims and conclusions need traceable sources.</p></div></div>
     <div className="v2-footer-bottom"><span>© {new Date().getFullYear()} CREQOR</span><span>Designed for clarity. Built for scrutiny.</span><Link href="/status">System status ↗</Link></div>
   </footer>
  </>;
+}
+function AccountLink(){
+ const {status,data}=useSession();
+ if(status==='loading')return null;
+ return status==='authenticated'?<Link className="v2-account-link" href="/account" aria-label="Your account">{(data?.user?.name||data?.user?.email||'Account').split(' ')[0].slice(0,18)}</Link>:
+  <Link className="v2-account-link" href="/signin">Sign in</Link>;
 }

@@ -11,7 +11,7 @@ export async function GET(){
   const status=await callDgxEngine<DgxStatus>('/v1/status',{timeoutMs:12000});
   return NextResponse.json({connected:true,status:'ready',counts:status.counts,
    databaseBytes:status.databaseBytes??null,freshness:status.freshness??null,ai:status.ai??null,
-   aiConfigured:status.aiConfigured,latencyMs:Date.now()-started,checkedAt:new Date().toISOString(),
+   aiConfigured:status.aiConfigured,features:(status as {features?:Record<string,boolean>}).features??{},countsAsOf:(status as {countsAsOf?:string|null}).countsAsOf??null,latencyMs:Date.now()-started,checkedAt:new Date().toISOString(),
    note:'These are records actually stored on the private DGX PostgreSQL instance, not global source coverage.'},
    {headers:{'Cache-Control':'no-store'}});
  }catch{

@@ -69,6 +69,11 @@ async function main(){
   const total=await db.query<{n:string}>(`SELECT count(*)::text n FROM public.${table}`);
   console.log(JSON.stringify({step:'complete',kind,runId,...p,storedRows:Number(total.rows[0].n),
    staleNotInLatestPublication:Number(stale.rows[0].n),officialRecords:meta.recordCount,publishDate:meta.publishDate}));
+  if(!quality){
+  // Maintained exact counts for the status page (migration 009); best effort.
+  await getSourceCataloguePool().query('SELECT public.cq_refresh_stat_counts()').then(()=>console.log(JSON.stringify({step:'stat-counts-refreshed'})))
+   .catch(e=>console.error(JSON.stringify({step:'stat-counts-refresh-skipped',code:String(e?.message||e).slice(0,120)})));
+  }
   if(quality)process.exitCode=1;
  }catch(e){
   await checkpointBulkRun(runId,p,{status:'failed',errorCode:e instanceof Error?e.message.slice(0,200):'GLEIF_L2_FAILED'}).catch(()=>{});

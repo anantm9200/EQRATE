@@ -5,7 +5,9 @@
 #   CREQOR_DGX_SSH=user@host scripts/relay/pull-backups.sh [dest]
 set -euo pipefail
 : "${CREQOR_DGX_SSH:?Set CREQOR_DGX_SSH=user@host}"
-src="${CREQOR_DGX_DIR:-creqor-platform}/data/backups/"
+dgx_dir="${CREQOR_DGX_DIR:-creqor-platform}"
+# Backups live where the stack writes them (DGX_BACKUP_DIR in .env.dgx, e.g. the encrypted volume).
+src="$(ssh -o BatchMode=yes "$CREQOR_DGX_SSH" "v=\$(grep -E '^DGX_BACKUP_DIR=' $dgx_dir/app/.env.dgx | tail -1 | cut -d= -f2-); echo \${v:-\$HOME/$dgx_dir/data/backups}")/"
 dest="${1:-$HOME/CREQOR-backups/dumps}"
 mkdir -p "$dest"; chmod 700 "$dest"
 rsync -a --partial --timeout=120 --include 'creqor-postgres-*' --exclude '*.partial' --exclude '*' "$CREQOR_DGX_SSH:$src" "$dest/"
