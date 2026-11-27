@@ -83,12 +83,12 @@ case "${1:-}" in
     mkdir -p "$inbox/processed"
     tail -n +2 "$inbox/manifest.csv" | while IFS=, read -r lei file url fy published; do
       [[ -z "$lei" ]] && continue
-      [[ "$lei" =~ ^[A-Z0-9]{20}$ && "$url" =~ ^https:// && "$fy" =~ ^[0-9]{4}$ && -f "$inbox/$file" ]] || { echo "skipped invalid row: $lei $file" >&2; continue; }
+      [[ "$lei" =~ ^[A-Z0-9]{20}$ && "$url" =~ ^https://[A-Za-z0-9._~:/?#@!\&+,=%-]+$ && "$fy" =~ ^[0-9]{4}$ && ( -z "$published" || "$published" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ) && "$file" =~ ^[A-Za-z0-9._-]+\.pdf$ && -f "$inbox/$file" ]] || { echo "skipped invalid row: $lei $file" >&2; continue; }
       [[ "$(head -c 5 "$inbox/$file")" == "%PDF-" ]] || { echo "not a PDF: $file" >&2; continue; }
       sha="$(shasum -a 256 "$inbox/$file" | cut -d' ' -f1)"
       rsync -a --partial "$inbox/$file" "$CREQOR_DGX_SSH:$reports/$sha.pdf"
       remote "cd $dgx_dir/app && docker compose --env-file .env.dgx -f infrastructure/dgx/compose.yaml --profile jobs run --rm -T ingest \
-        scripts/annual-report-ingest.ts --lei=$lei --file=/var/creqor/imports/reports/$sha.pdf --source-url='$url' \
+        scripts/annual-report-ingest.ts --lei=$lei --file=/var/creqor/imports/reports/$sha.pdf --source-url=$(printf %q "$url") \
         --fiscal-year=$fy --retrieved-at=$(date -u +%FT%TZ) ${published:+--published-at=$published}" </dev/null \
         && mv "$inbox/$file" "$inbox/processed/"
     done ;;

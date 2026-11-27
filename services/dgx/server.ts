@@ -8,6 +8,7 @@
  */
 import {createServer,type IncomingMessage,type ServerResponse} from 'node:http';
 import {createHash,timingSafeEqual} from 'node:crypto';
+import {Client as PgClient} from 'pg';
 import {getSourceCataloguePool} from '../../lib/catalogue-store';
 import {summarizeAnnualFinancials,scenarioFromReportedCashFlow,type ModelAssumptions} from '../../lib/dgx-finance';
 import {analyzeFinancials,type FinancialAnalysis} from '../../lib/financial-analysis';
@@ -145,9 +146,12 @@ function refreshCounts(){
  // Full counts take longer than the 15 s request timeout of the engine role, so this one
  // background statement runs on its own connection without that limit.
  countsRefresh??=(async()=>{
-  const c=await getSourceCataloguePool().connect();
+  // Dedicated short-lived connection: the long count never occupies a pooled request slot.
+  const c=new PgClient({connectionString:process.env.DATABASE_URL});
+  c.on('error',()=>{});
+  await c.connect();
   try{await c.query('SET statement_timeout = 0');await c.query('SELECT public.cq_refresh_stat_counts()');}
-  finally{await c.query('RESET statement_timeout').catch(()=>{});c.release();}
+  finally{await c.end().catch(()=>{});}
  })().catch(e=>console.error(JSON.stringify({event:'STAT_COUNTS_REFRESH_FAILED',code:String(e?.message||e).slice(0,120)})))
   .finally(()=>{countsRefresh=null;});
  return countsRefresh;

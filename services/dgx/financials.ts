@@ -19,8 +19,16 @@ export async function financialProfile(pool:Pool,lei:string,asOf?:string){
   FROM cq_financials_as_of($1,$2) o JOIN cq_financial_documents d USING (document_id) ORDER BY o.period_end DESC`,[lei,at]);
  if(!r.rowCount)return {lei,asOf:at,available:false,reason:'No reviewed financial statements are stored for this company yet.',years:[]};
  // Consolidated figures are preferred; standalone used only when no consolidated statement exists.
- const scope=r.rows.some(x=>x.scope==='consolidated')?'consolidated':'standalone';
- const rows=r.rows.filter(x=>x.scope===scope);
+ // Scope chosen for the latest fiscal year: consolidated if it exists there, else standalone.
+ const latestFy=Math.max(...r.rows.map(x=>x.fiscal_year));
+ const scope=r.rows.some(x=>x.scope==='consolidated'&&x.fiscal_year===latestFy)?'consolidated':'standalone';
+ // One annual (or instant) period per concept and fiscal year: the latest period end wins.
+ const pick=new Map<string,Obs>();
+ for(const x of r.rows.filter(o=>o.scope===scope&&o.statement!=='quarterly')){
+  const k=x.fiscal_year+'|'+x.concept,prev=pick.get(k);
+  if(!prev||x.period_end>prev.period_end)pick.set(k,x);
+ }
+ const rows=[...pick.values()];
  const years=[...new Set(rows.map(x=>x.fiscal_year))].sort((a,b)=>b-a).slice(0,10);
  const byYear=new Map(years.map(y=>[y,new Map(rows.filter(x=>x.fiscal_year===y).map(x=>[x.concept,x]))]));
  const val=(y:number,c:string)=>{const o=byYear.get(y)?.get(c);return o?Number(o.normalized_value):undefined;};
@@ -38,13 +46,16 @@ export async function financialProfile(pool:Pool,lei:string,asOf?:string){
  const metrics=series.map((y,i)=>{
   const prev=series[i+1];
   return {fiscalYear:y.fiscalYear,
-   revenueGrowth:prev?ratio(y.revenue!==undefined&&prev.revenue!==undefined?y.revenue-prev.revenue:undefined,prev.revenue):null,
+   revenueGrowth:prev&&prev.fiscalYear===y.fiscalYear-1?ratio(y.revenue!==undefined&&prev.revenue!==undefined?y.revenue-prev.revenue:undefined,prev.revenue):null,
    netMargin:ratio(y.netIncome,y.revenue),returnOnEquity:ratio(y.netIncome,y.bookEquity),returnOnAssets:ratio(y.netIncome,y.totalAssets),
    currentRatio:ratio(y.currentAssets,y.currentLiabilities),liabilitiesToEquity:ratio(y.totalLiabilities,y.bookEquity),
    cashConversion:ratio(y.operatingCashFlow,y.netIncome),assetTurnover:ratio(y.revenue,y.totalAssets)};
  });
  const industry:Industry='services'; // Sector classification is not yet sourced; Z'' (no sales term) is the conservative variant.
- const latest=series[0],prior=series[1],prior2=series[2];
+ const latest=series[0];
+ // Year-on-year screens need consecutive fiscal years.
+ const prior=series[1]?.fiscalYear===latest.fiscalYear-1?series[1]:undefined;
+ const prior2=prior&&series[2]?.fiscalYear===latest.fiscalYear-2?series[2]:undefined;
  const facts:EvidenceFact[]=rows.map(x=>({concept:x.concept,fiscalYear:x.fiscal_year,periodEnd:x.period_end.toISOString().slice(0,10),scope:x.scope,
   value:Number(x.normalized_value),reviewStatus:x.review_status,extractionMethod:x.extraction_method,
   extractionConfidence:Number(x.extraction_confidence),sourceKind:'company_report'}));

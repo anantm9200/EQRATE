@@ -7,6 +7,8 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 export CREQOR_DGX_SSH="${CREQOR_DGX_SSH:?Set CREQOR_DGX_SSH in the launchd job}" CREQOR_DGX_DIR="${CREQOR_DGX_DIR:-creqor-platform}"
 lock="${TMPDIR:-/tmp}/creqor-refresh.lock"
+# A lock older than 12 h belongs to a crashed run.
+[[ -d "$lock" && -n "$(find "$lock" -maxdepth 0 -mmin +720 2>/dev/null)" ]] && rmdir "$lock"
 if ! mkdir "$lock" 2>/dev/null; then echo "$(date -u +%FT%TZ) refresh already running; skipped"; exit 0; fi
 trap 'rmdir "$lock"' EXIT
 echo "$(date -u +%FT%TZ) refresh start"

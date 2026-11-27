@@ -70,6 +70,8 @@ export function parseAmount(token:string):number|null{
 }
 function detectUnit(text:string):[string,number]|null{
  const head=text.split('\n').slice(0,25).join(' ');
+ // Figures are stored as INR, so the header must state the currency (₹ / Rs / INR).
+ if(!/₹|\brs\.?\s|\binr\b|rupees/i.test(head))return null;
  for(const [re,label,mult] of UNITS)if(re.test(head))return [label,mult];
  return null;
 }

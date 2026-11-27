@@ -71,3 +71,8 @@ Threat model, dependency/container scans, tenant-isolation and gateway tests, pe
 
 ## Incidents
 - 2026-11-27 ~10:40 UTC: after an engine restart during the REPEX import, `/v1/status` full-table counts exceeded the 15 s role timeout → public site showed "not connected" for ~10 min. Fix: migration 009 maintained exact counts + background refresh; status never runs multi-million-row counts per request. Verified recovered 10:48 UTC.
+
+## Deferred review items (PR #30, CodeRabbit)
+- Export/list responses can exceed the 2 MB gateway cap for very large workspaces → paginate export (Pass 2).
+- Financial table assumes one unit per document; normalise when mixed units appear (Pass 2).
+- Parser: ungrouped-number token edge cases and period order from value-column headers (validate on first real reports, B6).

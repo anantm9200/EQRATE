@@ -5,7 +5,7 @@
  */
 import NextAuth,{type DefaultSession} from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import {callDgxEngine,dgxGatewayConfigured} from '@/lib/dgx-gateway';
+import {callDgxEngine,dgxGatewayConfigured,rateLimited,clientKey} from '@/lib/dgx-gateway';
 
 export type OrgMembership={orgId:string;name:string;role:'owner'|'admin'|'analyst'|'viewer';personal:boolean;plan:string};
 declare module 'next-auth'{
@@ -19,8 +19,10 @@ export const {handlers,auth,signIn,signOut}=NextAuth({
  pages:{signIn:'/signin'},
  providers:[Credentials({
   credentials:{email:{type:'email'},password:{type:'password'}},
-  async authorize(raw){
+  async authorize(raw,request){
    if(!dgxGatewayConfigured())return null;
+   // Per-client limit in addition to the engine's global sign-in limit.
+   if(rateLimited(clientKey(request.headers,'signin'),10,300000))return null;
    const email=typeof raw?.email==='string'?raw.email.trim().toLowerCase().slice(0,254):'';
    const password=typeof raw?.password==='string'?raw.password.slice(0,200):'';
    if(!email||!password)return null;

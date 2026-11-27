@@ -81,8 +81,7 @@ export async function verify(pool:Pool,body:Record<string,unknown>){
  if(u.locked_until&&u.locked_until.getTime()>Date.now()){await audit(pool,u.user_id,null,'login.locked');return null;}
  if(!await verifyPassword(password,u.password_hash)){
   // Ten consecutive failures lock the account for 15 minutes.
-  await pool.query(`UPDATE cq_users SET failed_logins=failed_logins+1,
-   locked_until=CASE WHEN failed_logins+1>=10 THEN now()+interval '15 minutes' ELSE locked_until END WHERE user_id=$1`,[u.user_id]);
+  await recordFailure(pool,u.user_id);
   await audit(pool,u.user_id,null,'login.failed');
   return null;
  }
@@ -91,6 +90,13 @@ export async function verify(pool:Pool,body:Record<string,unknown>){
  return {userId:u.user_id,email,name:u.display_name,orgs:await memberships(pool,u.user_id)};
 }
 
+/** Ten consecutive failures lock for 15 minutes; a failure after an expired lock starts a new count. */
+async function recordFailure(pool:Pool,userId:string){
+ await pool.query(`UPDATE cq_users SET
+   failed_logins=CASE WHEN locked_until IS NOT NULL AND locked_until<=now() THEN 1 ELSE failed_logins+1 END,
+   locked_until=CASE WHEN locked_until IS NOT NULL AND locked_until<=now() THEN NULL
+     WHEN failed_logins+1>=10 THEN now()+interval '15 minutes' ELSE locked_until END WHERE user_id=$1`,[userId]);
+}
 export async function memberships(pool:Pool,userId:string){
  if(!UUID.test(userId))throw new Error('BAD_USER');
  const r=await pool.query<{org_id:string;name:string;role:Role;personal:boolean;plan:string}>(
@@ -182,10 +188,11 @@ export async function exportAccount(pool:Pool,userId:string){
 }
 export async function deleteAccount(pool:Pool,userId:string,body:Record<string,unknown>){
  if(!UUID.test(userId))throw new Error('BAD_USER');
- const r=await pool.query<{password_hash:string}>('SELECT password_hash FROM cq_users WHERE user_id=$1',[userId]);
+ const r=await pool.query<{password_hash:string;locked_until:Date|null}>('SELECT password_hash,locked_until FROM cq_users WHERE user_id=$1',[userId]);
  if(!r.rowCount)throw new Error('NOT_FOUND');
- // Re-authentication is required for an irreversible action.
- if(typeof body.password!=='string'||!await verifyPassword(body.password,r.rows[0].password_hash))throw new Error('FORBIDDEN');
+ if(r.rows[0].locked_until&&r.rows[0].locked_until.getTime()>Date.now())throw new Error('FORBIDDEN');
+ // Re-authentication is required for an irreversible action; failures count toward the lock.
+ if(typeof body.password!=='string'||!await verifyPassword(body.password,r.rows[0].password_hash)){await recordFailure(pool,userId);throw new Error('FORBIDDEN');}
  await pool.query('SELECT cq_delete_account($1)',[userId]);
  return {deleted:true};
 }
