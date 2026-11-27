@@ -13,7 +13,7 @@ mkdir -p "$dest"; chmod 700 "$dest"
 rsync -a --partial --timeout=120 --include 'creqor-postgres-*' --exclude '*.partial' --exclude '*' "$CREQOR_DGX_SSH:$src" "$dest/"
 cd "$dest"
 verified=0
-for manifest in creqor-postgres-*.dump.age.sha256; do
+for manifest in creqor-postgres-*.dump.age.sha256 creqor-postgres-base-*.tar.gz.age.sha256; do
   [[ -f "$manifest" ]] || continue
   expected="$(cut -d' ' -f1 "$manifest")"; file="${manifest%.sha256}"
   actual="$(shasum -a 256 "$file" | cut -d' ' -f1)"

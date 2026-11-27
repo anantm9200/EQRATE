@@ -2,6 +2,8 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {signOut} from 'next-auth/react';
+import WatchAlerts from './watch-alerts';
+import MfaPanel from './mfa-panel';
 
 type Item={itemId:string;kind:string;title:string;subjectLei:string|null;payload:Record<string,unknown>;version:number;updatedAt:string};
 const KIND_LABEL:Record<string,string>={watchlist:'Watchlists',assessment:'Assessments',valuation:'Valuations',note:'Notes'};
@@ -27,6 +29,7 @@ export default function AccountPanel(){
  }
  const groups=Object.keys(KIND_LABEL).map(k=>({k,list:(items||[]).filter(i=>i.kind===k)}));
  return <>
+  <section className="ac-section" aria-labelledby="ac-alerts"><h2 id="ac-alerts">Watchlist alerts</h2><WatchAlerts/></section>
   <section className="ac-section" aria-labelledby="ac-items">
    <h2 id="ac-items">Saved research</h2>
    {error&&<p role="alert" className="ac-error">{error}</p>}
@@ -39,6 +42,7 @@ export default function AccountPanel(){
        {i.subjectLei&&<Link href={'/lei/'+i.subjectLei}>Open company profile ↗</Link>}</div>
       <button type="button" onClick={()=>void remove(i.itemId)} aria-label={'Remove '+i.title}>Remove</button></li>)}</ul></div>)}
   </section>
+  <section className="ac-section" aria-labelledby="ac-mfa"><h2 id="ac-mfa">Two-factor sign-in</h2><MfaPanel/></section>
   <section className="ac-section" aria-labelledby="ac-data">
    <h2 id="ac-data">Your data</h2>
    <div className="ac-actions"><a href="/api/account/export" download>Download all my data (JSON)</a>

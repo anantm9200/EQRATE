@@ -4,18 +4,20 @@ import Link from 'next/link';
 import {signIn} from 'next-auth/react';
 
 export function SignInForm({next}:{next:string}){
- const [error,setError]=useState('');const [busy,setBusy]=useState(false);
+ const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [needCode,setNeedCode]=useState(false);
  async function submit(e:React.FormEvent<HTMLFormElement>){
   e.preventDefault();setBusy(true);setError('');
   const f=new FormData(e.currentTarget);
-  const r=await signIn('credentials',{email:f.get('email'),password:f.get('password'),redirect:false});
+  const r=await signIn('credentials',{email:f.get('email'),password:f.get('password'),totp:f.get('totp')||'',redirect:false});
   setBusy(false);
-  if(!r||r.error){setError('Email or password not recognised, or sign-in is temporarily unavailable.');return;}
+  if(r?.code==='mfa_required'&&!needCode){setNeedCode(true);setError('');return;}
+  if(!r||r.error){setError(needCode?'Code not accepted. Use the current code from your app or a recovery code.':'Email or password not recognised, or sign-in is temporarily unavailable.');return;}
   window.location.assign(next);
  }
  return <form className="ac-form" onSubmit={submit} aria-describedby={error?'ac-error':undefined}>
   <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254}/></label>
   <label>Password<input name="password" type="password" autoComplete="current-password" required minLength={1} maxLength={200}/></label>
+  {needCode&&<label>Authenticator code (or recovery code)<input name="totp" autoComplete="one-time-code" inputMode="numeric" required maxLength={20} autoFocus/></label>}
   {error&&<p id="ac-error" role="alert" className="ac-error">{error}</p>}
   <button type="submit" disabled={busy}>{busy?'Signing in…':'Sign in'}</button>
   <p className="ac-alt">New to CREQOR? <Link href={'/signup?next='+encodeURIComponent(next)}>Create an account</Link></p>

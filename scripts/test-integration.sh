@@ -12,7 +12,7 @@ docker run -d --name "$name" -p 127.0.0.1:$port:5432 -e POSTGRES_PASSWORD="$opw"
 for _ in $(seq 1 60); do docker exec "$name" pg_isready -U creqor -d creqor >/dev/null 2>&1 && break; sleep 1; done; sleep 2
 for f in db/migrations/*.sql; do docker exec -i "$name" psql -X -q -v ON_ERROR_STOP=1 -U creqor -d creqor < "$f" >/dev/null; done
 docker exec "$name" psql -X -q -U creqor -d creqor -c "ALTER ROLE creqor_app LOGIN PASSWORD '$apw'" >/dev/null
-export DGX_ENGINE_TOKEN="$(openssl rand -hex 32)" DGX_ENGINE_PORT=$eport DGX_AI_ENABLED=false \
+export CREQOR_MFA_KEY="$(openssl rand -hex 32)" DGX_ENGINE_TOKEN="$(openssl rand -hex 32)" DGX_ENGINE_PORT=$eport DGX_AI_ENABLED=false \
  DATABASE_URL="postgresql://creqor_app:$apw@127.0.0.1:$port/creqor"
 npx tsx services/dgx/server.ts > /tmp/creqor-int-engine.log 2>&1 & engine=$!
 for _ in $(seq 1 30); do curl -s -o /dev/null "http://127.0.0.1:$eport/health" && break; sleep 1; done
