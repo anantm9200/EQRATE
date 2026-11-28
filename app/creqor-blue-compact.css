@@ -452,3 +452,12 @@ html,body,main{color:var(--cq-ink)!important;background:#fff!important}
 .cq-indexed-actions a{display:inline-flex;align-items:center;min-height:43px;padding:0 16px;border-radius:8px;border:1px solid var(--cq-accent);font-size:.75rem;font-weight:650}
 .wk-side-estimate{color:#e6ecf5!important}
 .ux-preview-tabs button small{color:#5f7189!important}
+
+/* Engine provenance label: fixed footprint (two lines reserved) so state changes never shift layout. */
+.cq-engine-provenance{display:flex;align-items:flex-start;gap:.5em;box-sizing:border-box;max-width:100%;min-height:2.9em;margin:.55rem 0 0;
+ font-size:.68rem;line-height:1.45;letter-spacing:.02em;color:inherit;opacity:.8;overflow-wrap:anywhere;text-align:left}
+.cq-engine-dot{flex:0 0 auto;width:.55em;height:.55em;margin-top:.45em;border-radius:50%;background:currentColor;opacity:.45}
+.cq-engine-provenance.is-engine .cq-engine-dot{background:var(--cq-accent);opacity:1}
+.cq-engine-provenance.is-pending .cq-engine-dot{opacity:.25}
+.cq-engine-provenance.is-browser{opacity:.95;font-weight:600}
+@media print{.cq-engine-provenance{min-height:0}}

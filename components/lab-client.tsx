@@ -1,6 +1,8 @@
 'use client';
 import {useMemo,useState} from 'react';
-import {calculateDcf,type DcfInput,type DcfResult} from '@/lib/valuation';
+import type {DcfInput} from '@/lib/valuation';
+import {useDcfCases} from '@/lib/use-engine';
+import EngineProvenance from '@/components/engine-provenance';
 const initial={baseFreeCashFlow:100,annualGrowth:6,discountRate:11,terminalGrowth:3,forecastYears:5,netDebt:25,sharesOutstanding:50};
 type Field=keyof typeof initial;
 const fields:{key:Field;label:string;suffix:string;help:string}[]=[
@@ -13,20 +15,20 @@ const fields:{key:Field;label:string;suffix:string;help:string}[]=[
  {key:'sharesOutstanding',label:'Fully diluted shares',suffix:'million shares',help:'Illustrative per-share calculation'}
 ];
 function outputNumber(n:number){return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n)}
-function resultFrom(x:typeof initial):DcfResult{
- const input:DcfInput={baseFreeCashFlow:x.baseFreeCashFlow,annualGrowth:x.annualGrowth/100,discountRate:x.discountRate/100,
+function inputFrom(x:typeof initial):DcfInput{
+ return {baseFreeCashFlow:x.baseFreeCashFlow,annualGrowth:x.annualGrowth/100,discountRate:x.discountRate/100,
  terminalGrowth:x.terminalGrowth/100,forecastYears:x.forecastYears,netDebt:x.netDebt,sharesOutstanding:x.sharesOutstanding};
- return calculateDcf(input);
 }
+const discountDeltas=[-2,-1,0,1,2],terminalDeltas=[-1,-.5,0,.5,1];
 export default function LabClient(){
  const [values,setValues]=useState(initial);const [scenario,setScenario]=useState<'bear'|'base'|'bull'>('base');
  const adjusted=useMemo(()=>scenario==='base'?values:scenario==='bear'?{...values,annualGrowth:values.annualGrowth-3,discountRate:values.discountRate+1.5,terminalGrowth:values.terminalGrowth-.5}:{...values,annualGrowth:values.annualGrowth+3,discountRate:values.discountRate-1,terminalGrowth:values.terminalGrowth+.5},[scenario,values]);
- const calculation=useMemo(()=>{try{return {result:resultFrom(adjusted),error:''}}catch(e){return {result:null,error:e instanceof Error?e.message:'Invalid inputs'}}},[adjusted]);
- const sensitivity=useMemo(()=>{
-  return [-2,-1,0,1,2].map(d=>({delta:d,values:[-1,-.5,0,.5,1].map(t=>{
-   try{return resultFrom({...values,discountRate:values.discountRate+d,terminalGrowth:values.terminalGrowth+t}).equityValue;}catch{return null;}
-  })}));
- },[values]);
+ // One batch to the private DGX engine: the selected scenario followed by the 5×5 sensitivity grid.
+ const cases=useMemo(()=>[inputFrom(adjusted),...discountDeltas.flatMap(d=>terminalDeltas.map(t=>inputFrom({...values,discountRate:values.discountRate+d,terminalGrowth:values.terminalGrowth+t})))],[adjusted,values]);
+ const engine=useDcfCases(cases);
+ const outcomes=engine.value;
+ const calculation=outcomes[0]?.ok?{result:outcomes[0].result,error:''}:{result:null,error:outcomes[0]&&!outcomes[0].ok?outcomes[0].error:'Invalid inputs'};
+ const sensitivity=discountDeltas.map((d,i)=>({delta:d,values:terminalDeltas.map((_,j)=>{const o=outcomes[1+i*terminalDeltas.length+j];return o?.ok?o.result.equityValue:null;})}));
  function update(key:Field,value:string){setValues(v=>({...v,[key]:value.trim()===''?NaN:Number(value)}))}
  const result=calculation.result;
  return <div className="lab-grid">
@@ -34,7 +36,7 @@ export default function LabClient(){
     <div className="form-grid">{fields.map(field=><div className="field" key={field.key}><label htmlFor={field.key}>{field.label}</label><div style={{position:'relative'}}><input id={field.key} type="number" inputMode="decimal" step={field.key==='forecastYears'?1:'any'} value={Number.isNaN(values[field.key])?'':values[field.key]} onChange={e=>update(field.key,e.target.value)}/></div><small className="muted" style={{fontSize:'.63rem'}}>{field.suffix} · {field.help}</small></div>)}</div>
     <div className="button-row" style={{marginTop:27}}><button className="secondary-button" onClick={()=>{setValues(initial);setScenario('base')}}>Reset illustrative inputs ↺</button><span className="source-note" style={{margin:0}}>Inputs are hypothetical, not a company estimate.</span></div>
   </div>
-  <div className="panel dark lab-result"><span className="micro-label">HYPOTHETICAL EQUITY VALUATION</span>
+  <div className="panel dark lab-result"><span className="micro-label">HYPOTHETICAL EQUITY VALUATION</span><EngineProvenance view={engine}/>
    <div className="lab-scenarios" role="group" aria-label="Valuation scenario">{(['bear','base','bull'] as const).map(s=><button key={s} type="button" aria-pressed={scenario===s} className={scenario===s?'active':''} onClick={()=>setScenario(s)}>{s} case</button>)}</div>
    {result?<><div className="metric-small">ESTIMATED EQUITY VALUE / USD MILLION</div><div className="result-big">$ {outputNumber(result.equityValue)}M</div><p>DCF scenario output using the selected hypothetical inputs. Not a publicly traded market capitalisation.</p>
    <div className="metric-list"><div><span className="metric-small">ENTERPRISE VALUE</span><strong>$ {outputNumber(result.enterpriseValue)}M</strong></div><div><span className="metric-small">IMPLIED / SHARE</span><strong>{result.impliedPerShare===null?'Not available':'$ '+outputNumber(result.impliedPerShare)}</strong></div><div><span className="metric-small">TERMINAL VALUE</span><strong>$ {outputNumber(result.terminalValue)}M</strong></div><div><span className="metric-small">NET DEBT</span><strong>$ {outputNumber(adjusted.netDebt)}M</strong></div></div>

@@ -1,9 +1,10 @@
 'use client';
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import AnalysisCockpit from '@/components/analysis-cockpit';
-import {reviewAssessment} from '@/lib/research-intelligence';
-import {createAssessment,computeAssessment,formatMillions,formatPerShare,parseAssessment,methodNames,methodUnits,numberKeys,ratingCategories,ratingNames,ratingWeights,type Assessment,type Evidence,type FinancialInputs,type Method,type NumberKey,type ClaimType,type SourceKind} from '@/lib/assessment';
+import EngineProvenance from '@/components/engine-provenance';
+import {useAssessmentIntelligence} from '@/lib/use-engine';
+import {createAssessment,formatMillions,formatPerShare,parseAssessment,methodNames,methodUnits,numberKeys,ratingCategories,ratingNames,ratingWeights,type Assessment,type Evidence,type FinancialInputs,type Method,type NumberKey,type ClaimType,type SourceKind} from '@/lib/assessment';
 
 const tabs=[{id:'company',label:'Company',number:'01'},{id:'financials',label:'Valuation',number:'02'},{id:'analysis',label:'Analysis',number:'03'},{id:'evidence',label:'Evidence',number:'04'},{id:'rating',label:'Score draft',number:'05'},{id:'report',label:'Report',number:'06'}] as const;
 type Tab=(typeof tabs)[number]['id'];
@@ -101,8 +102,10 @@ export default function AssessmentWorkbench(){
   if(!loaded)return;
   try{sessionStorage.setItem(draftKey,JSON.stringify(assessment));}catch{}
  },[assessment,loaded]);
- const results=useMemo(()=>computeAssessment(assessment),[assessment]);
- const readiness=useMemo(()=>reviewAssessment(assessment),[assessment]);
+ // Computed by the private DGX engine; the previous result stays visible while it recalculates.
+ const intelligence=useAssessmentIntelligence(assessment);
+ const results=intelligence.value.result;
+ const readiness=intelligence.value.review;
  const hasName=assessment.name.trim().length>0;
  const meaningfulEvidence=assessment.evidence.filter(s=>s.title.trim()&&s.url.trim()&&s.asOf.trim()).length;
  function updateTop<K extends keyof Assessment>(key:K,value:Assessment[K]){
@@ -306,7 +309,7 @@ export default function AssessmentWorkbench(){
     </section>}
     {activeTab==='report'&&<section className="wk-panel wk-report" id="wk-panel-report" aria-labelledby="wk-tab-report">
       <div className="wk-report-top"><div><span className="wk-label">CREQOR / ASSESSMENT REPORT</span><h2>{headerTitle}</h2><p>{assessment.kind==='listed'?'Listed issuer':'Unlisted or privately held'} · {assessment.country} · {assessment.industry} · As of {assessment.asOf||'undated'} · {assessment.currency}</p><p className="wk-report-id">Identifier: {assessment.identifier||'Not provided'}</p></div><div className="wk-report-seal">DRAFT<br/>NOT VERIFIED</div></div>
-      <div className="wk-report-alert"><strong>{results.status==='insufficient'?'INSUFFICIENT DATA FOR A DEFENSIBLE VALUATION':'DRAFT ANALYST ESTIMATE — NOT INDEPENDENTLY VERIFIED'}</strong><p>Calculation outputs use user-supplied assumptions. Evidence links are recorded but not authenticated or checked by CREQOR. This is not a credit rating, live price, investment advice or an independent valuation opinion.</p></div>
+      <div className="wk-report-alert"><strong>{results.status==='insufficient'?'INSUFFICIENT DATA FOR A DEFENSIBLE VALUATION':'DRAFT ANALYST ESTIMATE — NOT INDEPENDENTLY VERIFIED'}</strong><p>Calculation outputs use user-supplied assumptions. Evidence links are recorded but not authenticated or checked by CREQOR. This is not a credit rating, live price, investment advice or an independent valuation opinion.</p><EngineProvenance view={intelligence}/></div>
       <div className="wk-report-kpis">
         <div><span>{assessment.kind==='listed'?'Calculated market capitalisation':'Weighted private equity estimate'}</span><strong>{assessment.kind==='listed'?prettyMillions(results.marketCap,assessment.currency):prettyMillions(results.blended,assessment.currency)}</strong><small>{assessment.kind==='listed'?'Entered price × share count; not live or independently verified':'Analyst-weighted mean across valid selected methods'}</small></div>
         <div><span>Valuation methods completed</span><strong>{results.readyMethods} / {assessment.active.length}</strong><small>Deterministic calculations</small></div>
@@ -346,6 +349,7 @@ export default function AssessmentWorkbench(){
     <span className="wk-label">LATEST CALCULATION</span>
     <div className="wk-side-estimate">{prettyMillions(assessment.kind==='listed'?results.marketCap:results.blended,assessment.currency)}</div>
     <p className="wk-side-foot">User-entered values. This draft is not an observed market quote or independent valuation.</p>
+    <EngineProvenance view={intelligence}/>
     <button className="wk-button wk-outline wk-side-report" onClick={()=>setActiveTab('analysis')}>Stress-test value ↗</button>
      <button className="wk-button wk-primary wk-side-report" onClick={()=>setActiveTab('report')}>Open report →</button>
    </aside>

@@ -20,6 +20,7 @@ import {decodeIndianIdentifier,regionFromAddress,indiaLeads} from '../../lib/ind
 import {financialProfile} from './financials';
 import {compareCompanies} from './compare-routes';
 import {register,verify,memberships,workspace,exportAccount,deleteAccount,watchChanges,mfa,UUID} from './accounts';
+import {intelligenceRoute} from './intelligence-routes';
 import {corporateLinks,corporateLinkLeads,corporateGroup,indiaOverview,indiaEntities,type CorporateLinks} from './relationships';
 
 export const PROMPT_VERSION='creqor-grounded-v2';
@@ -639,6 +640,9 @@ export function startEngine(){
     if(m&&req.method==='PUT')return json(res,200,await workspace.update(pool,user,org,m[1],await readBody(req,260000) as Record<string,unknown>));
     if(m&&req.method==='DELETE')return json(res,200,await workspace.remove(pool,user,org,m[1]));
    }
+   // Deterministic intelligence over user-supplied inputs (services/dgx/intelligence-routes.ts).
+   const intelligence=await intelligenceRoute(req.method||'',url.pathname,req);
+   if(intelligence)return json(res,intelligence.status,intelligence.body);
    return json(res,404,{error:'Not found'});
   }catch(e){
    const error=e instanceof Error?e.message:'INTERNAL_ERROR';

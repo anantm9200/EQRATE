@@ -1,7 +1,9 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {useState} from 'react';
 import type {Assessment} from '@/lib/assessment';
-import {runForensicIntelligence,type ForensicSignal,type SignalSeverity} from '@/lib/forensic-intelligence';
+import type {ForensicSignal,SignalSeverity} from '@/lib/forensic-intelligence';
+import {useForensicReport} from '@/lib/use-engine';
+import EngineProvenance from '@/components/engine-provenance';
 
 const severityNames:Record<SignalSeverity,string>={critical:'BLOCKER',high:'HIGH PRIORITY',review:'REVIEW',info:'INFORMATION'};
 function secureCsv(s:string){const v=String(s||'');return '"'+(/^[=+@\-]/.test(v.trim())?"'"+v:v).replace(/"/g,'""')+'"';}
@@ -15,10 +17,11 @@ export default function ForensicReportPanel({assessment,compact=false}:{assessme
  const [filter,setFilter]=useState<'all'|SignalSeverity>('all');
  const [traceOpen,setTraceOpen]=useState(false);
  const [openSignals,setOpenSignals]=useState<string[]>([]);
- const report=useMemo(()=>runForensicIntelligence(assessment),[assessment]);
+ const forensic=useForensicReport(assessment);
+ const report=forensic.value;
  const findings=filter==='all'?report.signals:report.signals.filter(x=>x.severity===filter);
  function exportReport(){
-  const payload={...report,exportedAt:new Date().toISOString(),disclaimer:'Unverified analyst input; not an independent rating or advice.'};
+  const payload={...report,computedBy:forensic.source==='engine'?'creqor-dgx-engine':'browser-fallback',exportedAt:new Date().toISOString(),disclaimer:'Unverified analyst input; not an independent rating or advice.'};
   download(JSON.stringify(payload,null,2),'CREQOR-'+filename(assessment.name)+'-forensic-review.json','application/json');
  }
  function exportIssues(){
@@ -31,6 +34,7 @@ export default function ForensicReportPanel({assessment,compact=false}:{assessme
    <div><span className="fi-kicker"><span className="fi-signal"/> DETERMINISTIC COMPANY INTELLIGENCE</span>
     <h3>Follow the evidence. Challenge the numbers.</h3>
     <p>Rules examine your current assessment, surface discrepancies and produce an investigation queue. No source link is treated as independently authenticated.</p>
+    <EngineProvenance view={forensic}/>
    </div>
    <div className="fi-report-tools">
     <button type="button" onClick={exportReport}>Export JSON ↗</button>

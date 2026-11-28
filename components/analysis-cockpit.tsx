@@ -1,7 +1,9 @@
 'use client';
-import {useMemo,useState} from 'react';
-import {computeAssessment,formatMillions,type Assessment,type NumberKey} from '@/lib/assessment';
-import {buildSensitivity,buildScenarios,reviewAssessment,type Scenario} from '@/lib/research-intelligence';
+import {useState} from 'react';
+import {formatMillions,type Assessment,type NumberKey} from '@/lib/assessment';
+import type {Scenario} from '@/lib/research-intelligence';
+import {useAssessmentIntelligence} from '@/lib/use-engine';
+import EngineProvenance from '@/components/engine-provenance';
 import ForensicReportPanel from '@/components/forensic-report-panel';
 
 type Props={
@@ -26,10 +28,9 @@ export default function AnalysisCockpit({assessment,onChangeInputs,onOpenEvidenc
  const [discountShift,setDiscountShift]=useState(2);
  const [selected,setSelected]=useState<{value:number|null;wacc:number;terminal:number}|null>(null);
  const [feedback,setFeedback]=useState('');
- const result=useMemo(()=>computeAssessment(assessment),[assessment]);
- const review=useMemo(()=>reviewAssessment(assessment),[assessment]);
- const sensitivity=useMemo(()=>buildSensitivity(assessment,discountStep,terminalStep),[assessment,discountStep,terminalStep]);
- const scenarios=useMemo(()=>buildScenarios(assessment,growthShift,discountShift),[assessment,growthShift,discountShift]);
+ // Result, review, sensitivity and scenarios all come from the private DGX engine in one call.
+ const intelligence=useAssessmentIntelligence(assessment,{discountStep,terminalStep,growthShift,discountShift});
+ const {result,review,sensitivity,scenarios}=intelligence.value;
  const available=result.methods.filter(m=>m.status==='calculated'&&typeof m.equityValue==='number');
  const maxValue=Math.max(1,...available.map(m=>Math.abs(m.equityValue||0)));
  const critical=review.findings.filter(x=>x.level==='critical').length;
@@ -55,7 +56,7 @@ export default function AnalysisCockpit({assessment,onChangeInputs,onOpenEvidenc
  }
  return <div className="ic-root">
   <div className="ic-top">
-   <div><span className="wk-label">CREQOR / MODEL INTELLIGENCE</span><h3>Find out what moves the valuation.</h3><p>Compare model outcomes, stress-test the DCF and inspect missing source support. Every calculation uses the inputs in this assessment.</p></div>
+   <div><span className="wk-label">CREQOR / MODEL INTELLIGENCE</span><h3>Find out what moves the valuation.</h3><p>Compare model outcomes, stress-test the DCF and inspect missing source support. Every calculation uses the inputs in this assessment.</p><EngineProvenance view={intelligence}/></div>
    <button type="button" className="wk-button wk-outline" onClick={onOpenReport}>Open report ↗</button>
   </div>
   <div className="ic-kpis">
