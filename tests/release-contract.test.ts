@@ -14,14 +14,19 @@ test('navy CREQOR theme remains the last global stylesheet',()=>{
  assert.match(theme,/--cq-hero-space:clamp\(27px/);
  assert.match(theme,/--cq-app-space:clamp\(22px/);
 });
-test('source catalogue is opt-in, private ingestion is bearer-protected, and no credentials are front-end variables',()=>{
+test('website catalogue sync is retired, no Vercel cron copies registry data, and no credentials are front-end variables',()=>{
  const env=text('.env.example'),handler=text('app/api/ops/catalogue-sync/route.ts');
  assert.match(env,/^DATABASE_URL=/m);
  assert.match(env,/^CRON_SECRET=/m);
  assert.doesNotMatch(env,/NEXT_PUBLIC_DATABASE_URL|NEXT_PUBLIC_CRON_SECRET/);
- assert.match(handler,/timingSafeEqual/);
- assert.match(handler,/if\(!authorized\(request\)\)/);
- assert.match(handler,/CATALOGUE_REGIONS/);
+ // The catalogue is the Golden Copy on the private DGX; the website route answers 410 and never writes.
+ assert.match(handler,/status:410/);
+ assert.doesNotMatch(handler,/^import .*catalogue-store|synchronizeCatalogue\(/m);
+ const crons=(JSON.parse(text('vercel.json')) as {crons?:{path:string}[]}).crons||[];
+ assert.ok(!crons.some(c=>c.path.includes('catalogue-sync')),'catalogue-sync cron removed');
+ // Identity reads on the website go through the DGX gateway, never straight to the website DB.
+ for(const f of ['app/catalogue/page.tsx','app/api/catalogue/route.ts','app/api/catalogue/status/route.ts','app/api/public-records/coverage/route.ts'])
+  assert.doesNotMatch(text(f),/catalogue-store|fetchGoldenCopyMetadata/,f);
 });
 test('global company catalogue retains official provenance instead of generating arbitrary records',()=>{
  const schema=text('db/migrations/001_lei_catalogue.sql');

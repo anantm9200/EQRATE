@@ -38,3 +38,16 @@ test('production health response never leaks private DGX secrets',async({request
  expect(typeof data.privateIntelligenceConfigured).toBe('boolean');
  expect(JSON.stringify(data)).not.toMatch(/sk-|api_key|BEGIN PRIVATE KEY/i);
 });
+
+test('entity explorer labels results that came from the live GLEIF fallback',async({page})=>{
+ await page.route('**/api/lei/search?q=*',async route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+  source:'Global Legal Entity Identifier Foundation',total:1,origin:'live-gleif-fallback',
+  fallbackNote:'Shown from the live GLEIF API because the private index was unavailable.',
+  results:[{lei:'12345678901234567890',name:'Example Corporation Ltd.',country:'IN',registrationStatus:'ISSUED',
+   sourceUrl:'https://search.gleif.org/#/record/12345678901234567890'}]})}));
+ await page.goto('/explore');
+ await page.getByRole('combobox',{name:/Search global LEI legal entity records/i}).fill('Example Corporation');
+ await expect(page.locator('.lei-results')).toContainText('Example Corporation Ltd.');
+ await expect(page.locator('.lei-results')).toContainText('Shown from the live GLEIF API because the private index was unavailable.');
+ await expect(page.locator('.lei-results-head')).toContainText('LIVE GLEIF API');
+});

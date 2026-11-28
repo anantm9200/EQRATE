@@ -20,6 +20,7 @@ import {decodeIndianIdentifier,regionFromAddress,indiaLeads} from '../../lib/ind
 import {financialProfile} from './financials';
 import {register,verify,memberships,workspace,exportAccount,deleteAccount,watchChanges,mfa,UUID} from './accounts';
 import {corporateLinks,corporateLinkLeads,corporateGroup,indiaOverview,indiaEntities,type CorporateLinks} from './relationships';
+import {directoryPage,parseDirectoryFilters,featuredEntities,goldenCopyPublication} from './identity-routes';
 
 export const PROMPT_VERSION='creqor-grounded-v2';
 function validToken(input:string,expected:string){
@@ -494,13 +495,16 @@ export function startEngine(){
    const auth=(req.headers.authorization||'').replace(/^Bearer\s+/i,'');
    if(!auth||!validToken(auth,token)){window.failedAuth++;return json(res,401,{error:'Unauthorized'});}
    if(++window.ok>900)return json(res,429,{error:'Request rate limit exceeded'});
-   if(req.method==='GET'&&url.pathname==='/v1/status')return json(res,200,await stats());
+   if(req.method==='GET'&&url.pathname==='/v1/status')return json(res,200,{...await stats(),goldenCopy:await goldenCopyPublication(getSourceCataloguePool())});
    if(req.method==='GET'&&url.pathname==='/v1/search'){
     const q=url.searchParams.get('q')?.trim()||'';
     const country=url.searchParams.get('country')?.toUpperCase()||'';
     const limit=Number(url.searchParams.get('limit')||30);
     return json(res,200,await search(q,country,limit));
    }
+   // Identity routes (services/dgx/identity-routes.ts): directory and featured entities from the Golden Copy index.
+   if(req.method==='GET'&&url.pathname==='/v1/directory')return json(res,200,await directoryPage(getSourceCataloguePool(),parseDirectoryFilters(url.searchParams)));
+   if(req.method==='GET'&&url.pathname==='/v1/featured')return json(res,200,await cached('featured',3600000,()=>featuredEntities(getSourceCataloguePool())));
    let m=url.pathname.match(/^\/v1\/lei\/([A-Za-z0-9]{20})$/);
    if(req.method==='GET'&&m){
     const d=await leiDetail(parseLei(m[1]));

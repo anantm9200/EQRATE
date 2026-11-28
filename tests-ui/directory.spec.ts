@@ -97,3 +97,26 @@ test('suggested global company search uses official results, not static fake pro
  await expect.poll(()=>requests.some(url=>new URL(url).searchParams.get('q')==='Siemens')).toBe(true);
  await expect(page.getByRole('searchbox',{name:'Search global company directory'})).toHaveValue('Siemens');
 });
+
+test('private index pages carry no fallback label; live GLEIF fallback pages are labelled',async({page})=>{
+ let origin='private-index';
+ await page.route('**/api/directory?*',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...API,page:1,results:[A],total:1,hasMore:false,origin})});
+ });
+ await page.goto('/directory');
+ await page.getByRole('button',{name:'Germany'}).click();
+ await expect(page.locator('.gd-company')).toHaveCount(1);
+ await expect(page.getByText('Shown from the live GLEIF API because the private index was unavailable.')).toHaveCount(0);
+ origin='live-gleif-fallback';
+ await page.getByRole('button',{name:'France'}).click();
+ await expect(page.locator('.gd-fallback-note')).toHaveText('Shown from the live GLEIF API because the private index was unavailable.');
+ await expect(page.locator('.gd-company')).toHaveCount(1);
+});
+test('lower-bound totals are shown as lower bounds, never as exact counts',async({page})=>{
+ await page.route('**/api/directory?*',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...API,page:1,results:[A,B],total:250000,totalIsLowerBound:true,hasMore:true,maxPage:200,origin:'private-index'})});
+ });
+ await page.goto('/directory');
+ await page.getByRole('searchbox',{name:'Search global company directory'}).fill('Synthetic');
+ await expect(page.locator('.gd-view-stats')).toContainText('250,000+ matching records');
+});

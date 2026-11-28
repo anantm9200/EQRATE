@@ -26,6 +26,22 @@ test('public coverage source outage does not invent counts or block the homepage
  await expect(page.getByText('3,497,788')).toHaveCount(0);
 });
 
+test('coverage figures come from the private engine, never from a website-side GLEIF fetch',async({request})=>{
+ const res=await request.get('/api/public-records/coverage');
+ expect(res.ok()).toBeTruthy();
+ const body=await res.json();
+ expect(body.source).toBe('GLEIF');
+ if(!body.locallyIndexedOperational){
+  // Without the engine there is no publication metadata to report; nothing is fetched or estimated.
+  expect(body.referenceRecords).toBeNull();
+  expect(body.asOf).toBeNull();
+  expect(body.locallyIndexed).toBe(0);
+ }else{
+  expect(body.indexLocation).toBe('private-engine');
+  expect(body.locallyIndexed).toBeGreaterThan(0);
+ }
+});
+
 test('SEC issuer area does not fabricate public companies when no database is connected',async({page})=>{
  await page.goto('/issuers');
  await expect(page.getByRole('heading',{name:/Real public issuers/i})).toBeVisible();

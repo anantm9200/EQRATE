@@ -7,7 +7,7 @@
 export function dgxGatewayConfigured():boolean{
  return Boolean(process.env.DGX_ENGINE_HTTPS_URL&&process.env.DGX_ENGINE_TOKEN);
 }
-export const DGX_ROUTE=/^\/v1\/(status|search|research|india\/(overview|entities)|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/(research|group|financials))?|auth\/(register|verify)|account(\/(export|delete|mfa(\/(setup|enable|disable))?))?|workspace\/(alerts|items(\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?))$/;
+export const DGX_ROUTE=/^\/v1\/(status|search|directory|featured|research|india\/(overview|entities)|financials\/\d{1,10}|valuation\/\d{1,10}|lei\/[A-Z0-9]{20}(\/(research|group|financials))?|auth\/(register|verify)|account(\/(export|delete|mfa(\/(setup|enable|disable))?))?|workspace\/(alerts|items(\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?))$/;
 export function dgxEndpoint(path:string,base=process.env.DGX_ENGINE_HTTPS_URL||''):URL{
  if(!DGX_ROUTE.test(path))throw new Error('DGX_UNSUPPORTED_ROUTE');
  let url:URL;
@@ -19,7 +19,7 @@ export function dgxEndpoint(path:string,base=process.env.DGX_ENGINE_HTTPS_URL||'
 }
 export async function callDgxEngine<T>(path:string,options:{
  method?:'GET'|'POST'|'PUT'|'DELETE';body?:object;timeoutMs?:number;query?:{q:string;country?:string;limit?:number};
- params?:Partial<Record<'q'|'region'|'class'|'listing'|'status'|'page'|'kind'|'asOf',string>>;
+ params?:Partial<Record<'q'|'country'|'region'|'class'|'listing'|'status'|'page'|'kind'|'asOf',string>>;
  /** Signed-in identity from the website session; only sent to account/workspace routes. */
  identity?:{userId:string;orgId?:string};
 }={}):Promise<T>{
@@ -46,7 +46,8 @@ export async function callDgxEngine<T>(path:string,options:{
  }
  if(options.params){
   const only=(k:string)=>Object.keys(options.params!).every(x=>x===k);
-  if(path!=='/v1/india/entities'&&!(path==='/v1/workspace/items'&&only('kind'))&&!(/^\/v1\/lei\/[A-Z0-9]{20}\/financials$/.test(path)&&only('asOf')))throw new Error('DGX_QUERY_NOT_ALLOWED');
+  const directory=path==='/v1/directory'&&Object.keys(options.params).every(k=>['q','country','page'].includes(k));
+  if(!directory&&(path!=='/v1/india/entities'||'country' in options.params)&&!(path==='/v1/workspace/items'&&only('kind'))&&!(/^\/v1\/lei\/[A-Z0-9]{20}\/financials$/.test(path)&&only('asOf')))throw new Error('DGX_QUERY_NOT_ALLOWED');
   for(const [k,v] of Object.entries(options.params))if(v)url.searchParams.set(k,v);
  }
  const response=await fetch(url,{method:options.method||'GET',headers,redirect:'error',

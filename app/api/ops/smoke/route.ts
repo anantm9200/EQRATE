@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {timingSafeEqual} from 'node:crypto';
 import {calculateDcf,calculateMarketCap} from '@/lib/valuation';
-import {searchLEI} from '@/lib/gleif';
+import {searchEntities} from '@/lib/identity-directory';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 type Check={name:string;ok:boolean;detail:string};
@@ -38,10 +38,10 @@ export async function GET(request:NextRequest){
   checkRoute('health-route',origin+'/api/health'),
   (async():Promise<Check>=>{
    try{
-    const r=await searchLEI('Apple Inc.');
-    return {name:'gleif-source',ok:r.results.some(e=>e.lei==='HWUPKR0MPOU8FGXBT394'),
-      detail:r.results.length+' matching LEI records returned'};
-   }catch{return {name:'gleif-source',ok:false,detail:'GLEIF API unavailable'};}
+    const r=await searchEntities('Apple Inc.');
+    return {name:'identity-source',ok:r.results.some(e=>e.lei==='HWUPKR0MPOU8FGXBT394'),
+      detail:r.results.length+' matching LEI records returned from '+(r.origin==='private-index'?'the private index':'the live GLEIF fallback')};
+   }catch{return {name:'identity-source',ok:false,detail:'Private index and live GLEIF fallback both unavailable'};}
   })()
  ]);
  checks.push(home,workbench,desk,directory,explore,catalogue,catalogueStatus,health,lei);

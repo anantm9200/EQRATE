@@ -22,7 +22,7 @@ function exportCsv(rows:LeiEntity[]){
 }
 export default function GlobalDirectory({
  initial,initialCountry='',initialQuery='',initialError='',
- apiPath='/api/directory',routePath='/directory',showFeatured=true,sourceNote='Connected to the official GLEIF global legal-entity register'
+ apiPath='/api/directory',routePath='/directory',showFeatured=true,sourceNote='The official GLEIF Golden Copy legal-entity register, served from CREQOR’s private index'
 }:{
  initial:LeiDirectoryPage|null;initialCountry?:string;initialQuery?:string;initialError?:string;
  apiPath?:'/api/directory'|'/api/catalogue';routePath?:'/directory'|'/catalogue';
@@ -126,12 +126,13 @@ export default function GlobalDirectory({
   <div className="gd-quick-countries" aria-label="Browse popular countries"><span>EXPLORE BY COUNTRY</span><div>{POPULAR.map(code=><button type="button" key={code||'world'} aria-pressed={country===code} className={country===code?'is-active':''} onClick={()=>chooseCountry(code)}>{code?region(code):'Worldwide'}</button>)}</div></div>
   <div className="gd-search-ideas"><span>LOOK UP A COMPANY</span><div>{SEARCH_IDEAS.map(name=><button key={name} type="button" onClick={()=>{setQuery(name);setOnlySaved(false)}}>{name} ↗</button>)}</div></div>
   <div className="gd-prompt-row"><span className="gd-source-dot"/> {sourceNote}</div>
+  {data?.origin==='live-gleif-fallback'&&<div className="gd-message gd-fallback-note" role="note">Shown from the live GLEIF API because the private index was unavailable.</div>}
   {showFeatured&&indexedStatus?.status==='ready'&&indexedStatus.indexed>0&&
    <div className="cq-indexed-entry"><span>CREQOR has {new Intl.NumberFormat('en-US').format(indexedStatus.indexed)} publicly sourced company records indexed for faster repeat research.</span><Link href="/catalogue">Explore indexed catalogue ↗</Link></div>}
   <div className="gd-section-heading">
    <div><span className="gd-kicker">SOURCE-BACKED COMPANY RECORDS</span><h2>{onlySaved?'Your bookmarked companies':query?'Companies matching “'+query.trim()+'”':country?'Companies in '+region(country):'Companies around the world'}</h2>
     <p>Actual registered legal entities with traceable identifiers. Browse the registry, inspect a record and begin your CREQOR research.</p></div>
-   <div className="gd-view-stats"><span>{onlySaved?format(shown.length)+' saved':data?format(data.total)+' matching records':'GLEIF / GLOBAL'}</span><small>{onlySaved?'This device only':data?format(loaded)+' loaded · '+(data.published?'Source updated '+data.published.slice(0,10):'GLEIF registry response'):'Awaiting registry'}</small></div>
+   <div className="gd-view-stats"><span>{onlySaved?format(shown.length)+' saved':data?format(data.total)+(data.totalIsLowerBound?'+':'')+' matching records':'GLEIF / GLOBAL'}</span><small>{onlySaved?'This device only':data?format(loaded)+' loaded · '+(data.published?(data.origin==='private-index'?'Golden Copy published ':'Source updated ')+data.published.slice(0,10):'GLEIF registry response'):'Awaiting registry'}</small></div>
   </div>
   <div className="gd-tools"><div>{!onlySaved&&<span>{busy?'Updating registry…':data?.results.length?format(data.results.length)+' source-linked records on this page':'Registry results'}</span>}{onlySaved&&<span>Locally saved records · never a watchlist of live prices</span>}</div><button type="button" onClick={()=>{if(shown.length)exportCsv(shown);else setMessage('Load some records before exporting a CSV.');}} disabled={!shown.length}>Export loaded CSV <span aria-hidden="true">↗</span></button></div>
   {message&&<div role="status" className="gd-message">{message}<button type="button" onClick={()=>setMessage('')} aria-label="Dismiss message">×</button></div>}
@@ -144,7 +145,7 @@ export default function GlobalDirectory({
    <div className="gd-company-bottom"><span>LEI</span><code>{e.lei}</code></div>
    <Link className="gd-company-link" href={'/lei/'+e.lei}>View company record <span aria-hidden="true">↗</span></Link>
   </article>)}</div>:!busy&&!error&&<div className="gd-empty"><span aria-hidden="true">◇</span><h3>{onlySaved?'No matching bookmarks':'No legal-entity records returned'}</h3><p>{onlySaved?'Bookmark entities from the directory and they will appear here on this device.':'Try another company name or browse a different country. Not having an LEI record does not prove that a company does not exist.'}</p>{onlySaved&&<button type="button" onClick={()=>setOnlySaved(false)}>Browse all companies</button>}</div>}
-  {!onlySaved&&data?.hasMore&&<div className="gd-more"><button type="button" disabled={busy||loadingMore} onClick={loadNext}>{loadingMore?'Loading more companies…':'Load '+format(data.pageSize)+' more companies'} <span aria-hidden="true">↓</span></button><p>Showing {format(loaded)} of {format(data.total)} matching GLEIF records. The public API limits deep pagination to 10,000 records per search; filter by country or name to explore further.</p></div>}
+  {!onlySaved&&data?.hasMore&&<div className="gd-more"><button type="button" disabled={busy||loadingMore} onClick={loadNext}>{loadingMore?'Loading more companies…':'Load '+format(data.pageSize)+' more companies'} <span aria-hidden="true">↓</span></button><p>Showing {format(loaded)} of {format(data.total)}{data.totalIsLowerBound?'+':''} matching GLEIF records. Browsing goes {format((data.maxPage||200)*data.pageSize)} records deep per search; filter by country or name to explore further.</p></div>}
   <div className="gd-disclosure"><strong>Identity is not a rating.</strong> GLEIF records identify legal entities; their LEI status does not confirm exchange listing, profitability, company valuation or creditworthiness. Industry sectors and live share prices are not inferred. Bookmarks stay in this browser.</div>
  </div>;
 }

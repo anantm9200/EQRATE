@@ -76,6 +76,12 @@ export type LeiDirectoryFilters={q?:string;country?:string;page?:number};
 export type LeiDirectoryPage={
  results:LeiEntity[];total:number;page:number;pageSize:number;hasMore:boolean;
  published:string;source:'GLEIF';notice:string;
+ /** Where the page came from: CREQOR's private Golden Copy index, or the live GLEIF API as a labelled last resort. */
+ origin?:'private-index'|'live-gleif-fallback';
+ /** True when a large filtered total was counted only up to a bound. */
+ totalIsLowerBound?:boolean;
+ /** Deepest page the serving source allows for one filter. */
+ maxPage?:number;
 };
 export function directoryUrl(filters:LeiDirectoryFilters):URL{
  const q=(filters.q||'').trim();

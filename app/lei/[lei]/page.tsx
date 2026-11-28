@@ -3,6 +3,7 @@ import {cache} from 'react';
 import {notFound} from 'next/navigation';
 import {getLEI,type LeiEntity} from '@/lib/gleif';
 import {callDgxEngine,dgxGatewayConfigured} from '@/lib/dgx-gateway';
+import {engineLei,LIVE_FALLBACK_NOTE} from '@/lib/identity-directory';
 import LEIStartAssessment from '@/components/lei-start-assessment';
 import CorporateGroup from '@/components/corporate-group';
 import LeiResearchPanel from '@/components/lei-research-panel';
@@ -24,13 +25,16 @@ type Detail={entity:LeiEntity;flags:Flag[];missingFields:string[];
    companyClass:string;companyClassLabel:string;registrationNumber:string}|{kind:'GSTIN';value:string;stateCode:string;state:string;pan:string;
    panHolderType:string;panHolderLabel:string});addressRegion:{code:string;name:string}|null}|null};
 
-// One upstream round per request: metadata and page share this result.
+// One round per request: metadata and page share this result. The private DGX record is
+// primary; the live GLEIF API is consulted only when the engine has no record (404) or
+// cannot be reached, and that fallback is labelled on the page.
 const load=cache(async function load(lei:string){
- const [live,detail,financials]=await Promise.all([
-  getLEI(lei).catch(()=>null),
-  dgxGatewayConfigured()?callDgxEngine<Detail>('/v1/lei/'+lei.toUpperCase(),{timeoutMs:10000}).catch(()=>null):Promise.resolve(null),
+ const [engine,financials]=await Promise.all([
+  engineLei<Detail>(lei),
   dgxGatewayConfigured()?callDgxEngine<FinancialProfileData>('/v1/lei/'+lei.toUpperCase()+'/financials',{timeoutMs:10000}).catch(()=>null):Promise.resolve(null)]);
- return {entity:live||detail?.entity||null,live:Boolean(live),detail,financials};
+ const detail=engine.kind==='ok'?engine.detail:null;
+ const live=detail?null:await getLEI(lei).catch(()=>null);
+ return {entity:detail?.entity||live||null,live:Boolean(live),fallbackReason:engine.kind==='missing'?'missing' as const:engine.kind==='unreachable'?'unreachable' as const:null,detail,financials};
 });
 export async function generateMetadata({params}:{params:Promise<{lei:string}>}){
  const {lei}=await params;
@@ -66,7 +70,7 @@ function ParentCard({label,e}:{label:string;e:Edge}){
 export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
  const {lei:raw}=await params;if(!/^[A-Z0-9]{20}$/i.test(raw))notFound();
  const lei=raw.toUpperCase();
- const {entity,live,detail,financials}=await load(lei);
+ const {entity,live,fallbackReason,detail,financials}=await load(lei);
  if(!entity)return <><section className="lei-explore-hero"><span className="command-mini">GLEIF / RECORD UNAVAILABLE</span><h1>We couldn't retrieve this LEI record.</h1><p>The entity lookup may be temporarily unavailable or the identifier may not exist. No company information has been invented.</p></section><section className="lei-detail-bottom"><Link href="/india">Search Indian companies ↗</Link><a href={'https://search.gleif.org/#/record/'+encodeURIComponent(lei)} target="_blank" rel="noopener noreferrer">Check the official GLEIF database ↗</a></section></>;
  const info=[
   {label:'Legal entity',value:entity.name},
@@ -101,6 +105,7 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
    {id?.kind==='CIN'&&<li className="lp-badge">{id.listing} · {id.companyClassLabel}</li>}
   </ul>
   <div className="lp-hero-actions"><WatchButton lei={entity.lei} name={entity.name}/></div>
+  {live&&<p className="lp-fallback-note" role="note" data-source="live-gleif-fallback">{fallbackReason==='missing'?'Shown from the live GLEIF API because this LEI is not yet in the private index.':LIVE_FALLBACK_NOTE}</p>}
   <p>Legal-entity reference record{detail?' with corporate structure and screening from CREQOR’s private index':''}. An LEI does not establish share prices, audited financials or a valuation.</p>
  </div></section>
  {detail&&<nav className="lp-tabs" aria-label="Profile sections">
@@ -109,7 +114,7 @@ export default async function LEIPage({params}:{params:Promise<{lei:string}>}){
  <section className="lei-record-layout">
   <div className="lei-record-data"><div className="lei-block-header"><span className="command-mini">SOURCE-LINKED REFERENCE DATA</span><h2>Entity record</h2></div>
    <div className="lei-fact-list">{info.map(x=><div key={x.label}><span>{x.label}</span><strong>{x.value}</strong></div>)}</div>
-   <div className="lei-reference"><strong>Source: Global Legal Entity Identifier Foundation</strong><p>{live?'Live from the GLEIF API.':'From the latest GLEIF Golden Copy imported to CREQOR (the live API was unavailable).'} Registration status refers to the LEI record, not an exchange listing or a financial rating.</p><a href={entity.sourceUrl} target="_blank" rel="noopener noreferrer">Open original GLEIF record ↗</a></div>
+   <div className="lei-reference"><strong>Source: Global Legal Entity Identifier Foundation</strong><p>{live?(fallbackReason==='missing'?'Shown from the live GLEIF API because this LEI is not yet in the private index.':LIVE_FALLBACK_NOTE):'From the GLEIF Golden Copy held in CREQOR’s private index'+(detail?.provenance.latestCompletePublicationDate?' (publication '+day(detail.provenance.latestCompletePublicationDate)+')':'')+'.'} Registration status refers to the LEI record, not an exchange listing or a financial rating.</p><a href={entity.sourceUrl} target="_blank" rel="noopener noreferrer">Open original GLEIF record ↗</a></div>
   </div>
   <aside className="lei-record-aside"><span className="command-mini">TURN IDENTITY INTO A RESEARCH DRAFT</span><h2>Build a defensible assessment.</h2><p>Bring this legal name, LEI, country and source reference into CREQOR. You still need financial statements, capital structure, peer evidence and assumptions before modelling a valuation.</p>
    <LEIStartAssessment entity={entity}/>

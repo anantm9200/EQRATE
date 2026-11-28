@@ -1,10 +1,12 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import GlobalDirectory from '@/components/global-directory';
-import {directoryUrl,listLEIRecords,type LeiDirectoryPage} from '@/lib/gleif';
+import type {LeiDirectoryPage} from '@/lib/gleif';
+import {directoryFilters,loadDirectory} from '@/lib/identity-directory';
 
-export const metadata:Metadata={title:'Global company directory | CREQOR',description:'Explore real legal entities across the world using the GLEIF register. Search by company name, browse by country, save bookmarks and open source-linked company profiles.'};
-export const revalidate=300;
+export const metadata:Metadata={title:'Global company directory | CREQOR',description:'Explore real legal entities across the world from the GLEIF Golden Copy. Search by company name, browse by country, save bookmarks and open source-linked company profiles.'};
+// Served per request from CREQOR's private index (live GLEIF only as a labelled last resort).
+export const dynamic='force-dynamic';
 export default async function DirectoryPage({searchParams}:{searchParams:Promise<{q?:string;country?:string}>}){
  const search=await searchParams;
  const q=(search.q||'').trim().slice(0,90);
@@ -13,9 +15,8 @@ export default async function DirectoryPage({searchParams}:{searchParams:Promise
  let initialError='';
  try{
   if(q.length===1)throw new Error('Enter at least two letters to search by name.');
-  directoryUrl({q,country,page:1});
-  initial=await listLEIRecords({q,country,page:1});
- }catch(e){initialError=e instanceof Error&&e.message==='Enter at least two letters to search by name.'?e.message:'The GLEIF registry is temporarily unavailable. You can retry from the directory.';}
+  initial=await loadDirectory(directoryFilters({q,country:/^[A-Z]{2}$/.test(country)?country:'',page:1}));
+ }catch(e){initialError=e instanceof Error&&e.message==='Enter at least two letters to search by name.'?e.message:'The company directory is temporarily unavailable. You can retry from the directory.';}
  return <>
  <section className="gd-hero"><div className="gd-hero-light" aria-hidden="true"/><div className="gd-hero-inner">
   <div className="gd-hero-brow"><span className="gd-source-dot"/> CREQOR / THE GLOBAL COMPANY DIRECTORY</div>
