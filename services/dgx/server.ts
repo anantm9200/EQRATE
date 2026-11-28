@@ -546,7 +546,7 @@ export function startEngine(){
    if(window.failedAuth>60)return json(res,429,{error:'Too many unauthorized requests'});
    const auth=(req.headers.authorization||'').replace(/^Bearer\s+/i,'');
    if(!auth||!validToken(auth,token)){window.failedAuth++;return json(res,401,{error:'Unauthorized'});}
-   if(++window.ok>900)return json(res,429,{error:'Request rate limit exceeded'});
+   if(++window.ok>3000)return json(res,429,{error:'Request rate limit exceeded'});
    if(req.method==='GET'&&url.pathname==='/v1/status')return json(res,200,await stats());
    if(req.method==='GET'&&url.pathname==='/v1/search'){
     const q=url.searchParams.get('q')?.trim()||'';
