@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {dgxEndpoint,rateLimited} from '../lib/dgx-gateway';
-import {citationCheck,modelConfiguration} from '../services/dgx/server';
+import {citationCheck,modelConfiguration,validateAsk,unverifiedUrls} from '../services/dgx/server';
 
 test('gateway accepts an HTTPS origin with a fixed base path and only allow-listed routes',()=>{
  assert.equal(dgxEndpoint('/v1/status','https://spark.example.ts.net/creqor-engine/').toString(),
@@ -15,6 +15,24 @@ test('gateway accepts an HTTPS origin with a fixed base path and only allow-list
   assert.throws(()=>dgxEndpoint('/v1/status',bad),/REQUIRES_HTTPS/,bad);
  for(const route of ['/v1/admin','/v1/lei/short','/v1/financials/abc','/v1/search/../status','/health'])
   assert.throws(()=>dgxEndpoint(route,'https://gw.example.com/'),/UNSUPPORTED_ROUTE/,route);
+});
+test('free-form analyst question is an allow-listed engine route, without sub-paths or queries',()=>{
+ assert.equal(dgxEndpoint('/v1/ask','https://gw.example.com/creqor-engine/').toString(),'https://gw.example.com/creqor-engine/v1/ask');
+ for(const route of ['/v1/ask/','/v1/ask/x','/v1/asks','/v1/ask?x=1','/v1/ask/../status'])
+  assert.throws(()=>dgxEndpoint(route,'https://gw.example.com/'),/UNSUPPORTED_ROUTE/,route);
+});
+test('ask validation bounds question and evidence; model links must appear in the evidence',()=>{
+ assert.deepEqual(validateAsk({question:'  What proves a valuation?  '}),{question:'What proves a valuation?',evidence:''});
+ for(const bad of [null,[],'q',{question:'abcd'},{question:'x'.repeat(2001)},{question:'valid question',evidence:5},
+  {question:'valid question',evidence:'e'.repeat(12001)}])assert.throws(()=>validateAsk(bad),/^Error: BAD_/);
+ assert.deepEqual(unverifiedUrls('See https://www.sec.gov/a.htm.','From https://www.sec.gov/a.htm'),[]);
+ assert.deepEqual(unverifiedUrls('See https://invented.example/x','no links here'),['https://invented.example/x']);
+});
+test('website analyst route never calls an inference endpoint directly',()=>{
+ const src=readFileSync('app/api/analyst/route.ts','utf8');
+ assert.match(src,/callDgxEngine[^(]*\(\s*'\/v1\/ask'/);
+ for(const banned of ['DGX_OPENAI_BASE_URL','DGX_MODEL','CREQOR_AI_ENABLED','DGX_API_KEY','chat/completions'])
+  assert.ok(!src.includes(banned),banned);
 });
 test('public read limiter blocks after the configured budget',()=>{
  const key='test:'+Math.random();

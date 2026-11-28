@@ -14,12 +14,11 @@ CREQOR is the product brand; the existing repository remains named EQRATE. Front
 
 ## DGX integration
 
-Vercel (or a self-hosted app server) calls a **private HTTPS gateway** via a server-only `DGX_OPENAI_BASE_URL` ending in `/v1`. The gateway should securely route to an OpenAI-compatible inference endpoint backed by the DGX. Keep model hosts and ports private; do not forward vLLM's port directly to the Internet. For a Vercel deployment, use an authenticated outbound relay or zero-trust gateway with HTTPS and egress controls; private Tailscale machine IPs alone are not reachable from Vercel.
+Vercel (or a self-hosted app server) reaches the DGX only through the authenticated engine gateway (`DGX_ENGINE_HTTPS_URL` + `DGX_ENGINE_TOKEN`, `lib/dgx-gateway.ts`, fixed route allow-list). The engine alone talks to the loopback-bound vLLM; the website has no inference endpoint, model name or model API key. Keep model hosts and ports private; do not forward vLLM's port directly to the Internet.
 
-The analyst route:
-- is disabled by default;
+The analyst route (`/api/analyst` -> engine `POST /v1/ask`):
 - requires a server-configured bearer access token provided by an authorised analyst;
-- checks timeouts, input limits, HTTPS and basic process-local rate limiting;
+- checks input limits and basic process-local rate limiting on the website; the engine bounds GPU concurrency, rejects answers citing identifiers or URLs absent from the pasted evidence, writes an audit row (`cq_ai_research_audit`, subject `GENERAL`) and returns a deterministic, non-fabricated fallback when AI is disabled or unreachable;
 - sets strict research instructions, treats pasted evidence as untrusted, and refuses to fabricate financial evidence;
 - does **not** yet perform source-backed retrieval from filings; actual RAG and multi-agent validation remain roadmap items.
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 type Health={product:string;status:string;officialRegistryConfigured:boolean;privateIntelligenceConfigured:boolean};
 type CatalogueStatus={configured:boolean;status:'ready'|'unconfigured'|'unavailable';indexed:number;updatedAt:string|null;note:string};
 type PublicCoverage={referenceRecords:number|null;asOf:string|null;locallyIndexed:number;locallyIndexedOperational:boolean};
-type EngineStatus={connected:boolean;status:string;counts:null|{leiEntities:number|null;secTickerAssociations:number;secFinancialFacts:number;researchRuns:number};aiConfigured?:boolean;note:string};
+type EngineStatus={connected:boolean;status:string;counts:null|{leiEntities:number|null;secTickerAssociations:number;secFinancialFacts:number;researchRuns:number};aiConfigured?:boolean;ai?:{configured:boolean;reachable:boolean;model:string|null}|null;note:string};
 export default function StatusPage(){
  const [health,setHealth]=useState<Health|null>(null);
  const [error,setError]=useState('');
@@ -72,9 +72,10 @@ export default function StatusPage(){
     new Intl.NumberFormat('en-US').format(engine.counts.secFinancialFacts)+' imported facts':'Not connected',
    detail:'SEC CIK/XBRL filings retrieved and stored on the DGX; missing facts are not zeros.'},
   {name:'Private DGX model inference',
-   active:engine?.connected===true&&engine?.aiConfigured===true,
-   value:engine?.connected&&engine.aiConfigured?'Private model configured':'Not connected',
-   detail:'Optional vLLM inference on locally bound ports. Availability is checked only when an analysis is requested; model identity and hardware must be verified on the DGX.'},
+   active:engine?.connected===true&&engine.ai?.configured===true&&engine.ai?.reachable===true,
+   value:!engine?.connected?'Not connected':engine.ai?.configured&&engine.ai.reachable?'Private model responding':
+    engine.ai?.configured?'Model configured · not reachable':'AI disabled · deterministic answers only',
+   detail:'vLLM inference on loopback-bound ports of the private DGX, reached only through the authenticated engine. Entity research and the analyst desk both use it; when it is unavailable they return deterministic, non-fabricated fallbacks.'},
   {name:'Global market prices and published ratings',active:false,value:'Not connected',detail:'Licensed market data, identity resolution, methodology calibration and regulatory review remain required.'}
  ];
  return <div className="status-page">

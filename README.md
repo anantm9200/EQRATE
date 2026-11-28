@@ -27,7 +27,7 @@ npm run typecheck
 
 Set `SEC_USER_AGENT` to a responsible application identifier and real contact email for permitted SEC access. The app works without it, but company search correctly reports that the registry is not configured.
 
-For DGX, configure `DGX_OPENAI_BASE_URL` (ending in `/v1`, reachable privately over HTTPS), `DGX_MODEL`, optional `DGX_API_KEY`, `CREQOR_ANALYST_ACCESS_TOKEN`, and `CREQOR_AI_ENABLED=true`. The browser requests analyst access keys directly from authorised users and never receives the server's DGX credentials.
+For DGX, configure `DGX_ENGINE_HTTPS_URL`, `DGX_ENGINE_TOKEN` (and the optional Cloudflare Access pair) plus `CREQOR_ANALYST_ACCESS_TOKEN`. Every AI feature, including the `/analyst` desk, calls the private DGX engine, which owns the model configuration (`DGX_AI_ENABLED`, `DGX_MODEL`, loopback vLLM) and audits each answer. The browser requests analyst access keys directly from authorised users and never receives the server's DGX credentials.
 
 See [architecture and known limits](docs/ARCHITECTURE.md) and [schema](db/schema.sql).
 
