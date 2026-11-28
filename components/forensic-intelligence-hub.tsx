@@ -1,9 +1,9 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
+import {usePortfolioIntelligence} from '@/lib/use-engine';
+import EngineProvenance from '@/components/engine-provenance';
 import Link from 'next/link';
 import {createAssessment,parseAssessment,type Assessment} from '@/lib/assessment';
-import {runForensicIntelligence} from '@/lib/forensic-intelligence';
-import {analyzePortfolio} from '@/lib/portfolio-intelligence';
 import ForensicReportPanel from '@/components/forensic-report-panel';
 const savedKey='creqor.assessment-workspace.v1';
 const draftKey='creqor.assessment-active-draft.v1';
@@ -45,11 +45,13 @@ export default function ForensicIntelligenceHub(){
   }catch{if(items.length)setSelected(items[0]);}
   setReady(true);
  },[]);
- const graph=useMemo(()=>analyzePortfolio(saved),[saved]);
- const portfolio=useMemo(()=>saved.map(item=>{
-  const r=runForensicIntelligence(item);
-  return {id:item.id,name:item.name,critical:r.summary.critical,high:r.summary.high,coverage:r.summary.coverage,referenced:r.summary.sourceLinks,methods:r.summary.calculableMethods};
- }),[saved]);
+ // Cross-company graph and per-record forensic summaries are computed by the private DGX engine.
+ const intelligence=usePortfolioIntelligence(saved);
+ const graph=intelligence.value.portfolio;
+ const portfolio=useMemo(()=>intelligence.value.summaries.map(s=>{
+  const item=saved.find(a=>a.id===s.id);
+  return {id:s.id,name:item?.name||'Untitled',critical:s.forensic.critical,high:s.forensic.high,coverage:s.forensic.coverage,referenced:s.forensic.sourceLinks,methods:s.forensic.calculableMethods};
+ }),[intelligence.value,saved]);
  async function importFile(f:File|undefined){
   if(!f)return;
   if(f.size>1024*1024){setMessage('Import limited to 1 MB.');return;}
@@ -82,7 +84,7 @@ export default function ForensicIntelligenceHub(){
   {message&&<div className="fi-notice" role="status">{message}<button type="button" onClick={()=>setMessage('')} aria-label="Dismiss intelligence message">×</button></div>}
   {!ready?<p className="fi-hub-loading" role="status">Loading locally saved assessments…</p>:selected?<ForensicReportPanel key={selected.id} assessment={selected}/>:<div className="fi-no-assessment"><span>◇</span><h3>Start with a real assessment—or a synthetic example.</h3><p>You can create a company analysis in the valuation workbench, return here for deterministic intelligence screening, or import a previously exported JSON file.</p><div><Link href="/workbench">Create assessment ↗</Link><button type="button" onClick={()=>setSelected(sample())}>Explore example ↗</button></div></div>}
   {saved.length>1&&<section className="fi-portfolio" aria-label="Cross-company intelligence">
-   <div className="fi-portfolio-head"><span className="fi-kicker">CROSS-COMPANY INTELLIGENCE / V1</span><h3>Relationships worth investigating.</h3><p>Compare locally saved assessments for reused evidence, overlapping identities and material changes. These are research leads—not verified affiliations or ratings.</p></div>
+   <div className="fi-portfolio-head"><span className="fi-kicker">CROSS-COMPANY INTELLIGENCE / V1</span><h3>Relationships worth investigating.</h3><p>Compare locally saved assessments for reused evidence, overlapping identities and material changes. These are research leads—not verified affiliations or ratings.</p><EngineProvenance view={intelligence}/></div>
    <div className="fi-portfolio-table"><table><thead><tr><th scope="col">Signal</th><th scope="col">Companies</th><th scope="col">Reason and next step</th><th scope="col">Priority</th></tr></thead><tbody>
     {graph.alerts.slice(0,25).map(alert=><tr key={alert.id}><th scope="row">{alert.headline}</th><td>{alert.companyIds.map(id=>saved.find(a=>a.id===id)?.name||'Untitled').join(' / ')}</td><td>{alert.reason} {alert.nextAction}</td><td>{alert.priority}</td></tr>)}
     {graph.alerts.length===0&&<tr><td colSpan={4}>No cross-assessment conflicts detected from the current local records. This does not establish that the companies are independently verified.</td></tr>}
@@ -91,7 +93,7 @@ export default function ForensicIntelligenceHub(){
    {graph.sourceHosts.length>0&&<details><summary>Evidence-host concentration across saved assessments</summary><div className="fi-portfolio-table"><table><thead><tr><th scope="col">Source host</th><th scope="col">Companies</th><th scope="col">References</th></tr></thead><tbody>{graph.sourceHosts.slice(0,15).map(x=><tr key={x.host}><td>{x.host}</td><td>{x.companies}</td><td>{x.references}</td></tr>)}</tbody></table></div></details>}
   </section>}
   {portfolio.length>0&&<section className="fi-portfolio">
-   <div className="fi-portfolio-head"><span className="fi-kicker">YOUR SAVED RESEARCH / PORTFOLIO SCREEN</span><h3>Where should the team investigate next?</h3><p>Priority counts reflect the rules applied to your local saved drafts—not independent risk ratings.</p></div>
+   <div className="fi-portfolio-head"><span className="fi-kicker">YOUR SAVED RESEARCH / PORTFOLIO SCREEN</span><h3>Where should the team investigate next?</h3><p>Priority counts reflect the rules applied to your local saved drafts—not independent risk ratings.</p><EngineProvenance view={intelligence}/></div>
    <div className="fi-portfolio-table"><table><thead><tr><th scope="col">Company</th><th scope="col">Priority flags</th><th scope="col">Referenced categories</th><th scope="col">Methods</th><th scope="col">Review</th></tr></thead><tbody>
     {[...portfolio].sort((a,b)=>(b.critical*3+b.high)-(a.critical*3+a.high)).map(row=><tr key={row.id}><th scope="row">{row.name}</th><td>{row.critical} critical · {row.high} high</td><td>{row.coverage.referenced} / {row.coverage.required}</td><td>{row.methods}</td><td><button type="button" onClick={()=>{const a=saved.find(x=>x.id===row.id);if(a){setSelected(a);document.querySelector('.fi-hub-intro')?.scrollIntoView({behavior:'smooth',block:'start'});}}}>Investigate ↗</button></td></tr>)}
    </tbody></table></div>

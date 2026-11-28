@@ -2,8 +2,10 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {computeAssessment,createAssessment,formatMillions,parseAssessment,type Assessment} from '@/lib/assessment';
-import {reviewAssessment} from '@/lib/research-intelligence';
+import {createAssessment,formatMillions,parseAssessment,type Assessment} from '@/lib/assessment';
+import {headlineValue,type PortfolioSummary} from '@/lib/intelligence-summary';
+import {usePortfolioIntelligence} from '@/lib/use-engine';
+import EngineProvenance from '@/components/engine-provenance';
 
 const key='creqor.assessment-workspace.v1';
 const handoff='creqor.workbench.handoff.v1';
@@ -28,10 +30,6 @@ function escapedCsv(value:unknown){
  return '"'+safe.replace(/"/g,'""')+'"';
 }
 function sumSources(items:Assessment[]){return items.reduce((s,a)=>s+a.evidence.length,0);}
-function finiteValue(a:Assessment){
- const result=computeAssessment(a);
- return a.kind==='listed'?result.marketCap??result.blended:result.blended;
-}
 export default function ResearchDesk(){
  const router=useRouter();
  const [items,setItems]=useState<Assessment[]>([]);
@@ -43,6 +41,11 @@ export default function ResearchDesk(){
  const [notice,setNotice]=useState('');
  const [ready,setReady]=useState(false);
  const inputRef=useRef<HTMLInputElement>(null);
+ // Per-record values come from the private DGX engine; records awaiting a result show a placeholder.
+ const intelligence=usePortfolioIntelligence(items);
+ const summaries=useMemo(()=>new Map<string,PortfolioSummary>(intelligence.value.summaries.map(s=>[s.id,s])),[intelligence.value]);
+ const finiteValue=useCallback((a:Assessment):number|null=>{const s=summaries.get(a.id);return s?headlineValue(a,s.result):null;},[summaries]);
+ const methodsFor=(a:Assessment)=>summaries.get(a.id)?.result.readyMethods;
  const refresh=useCallback(()=>{setItems(readSaved());setReady(true)},[]);
  useEffect(()=>{refresh();window.addEventListener('storage',refresh);return()=>window.removeEventListener('storage',refresh)},[refresh]);
  const filtered=useMemo(()=>{
@@ -50,7 +53,7 @@ export default function ResearchDesk(){
   return items.filter(a=>(filter==='all'||a.kind===filter)&&(!q||[a.name,a.identifier,a.country,a.industry].some(x=>x.toLowerCase().includes(q))))
    .sort((a,b)=>sort==='newest'?b.updatedAt.localeCompare(a.updatedAt):sort==='company'?a.name.localeCompare(b.name):
     (finiteValue(b)??-Infinity)-(finiteValue(a)??-Infinity));
- },[items,query,filter,sort]);
+ },[items,query,filter,sort,finiteValue]);
  const chosen=selected.map(id=>items.find(x=>x.id===id)).filter((x):x is Assessment=>x!==undefined);
  function openAssessment(a:Assessment){
   try{sessionStorage.setItem(handoff,JSON.stringify(a));sessionStorage.setItem(context,'saved');router.push('/workbench');}
@@ -88,8 +91,8 @@ export default function ResearchDesk(){
  function exportIndex(){
   if(!items.length){setNotice('There are no saved assessments to export.');return;}
   const rows=[['Company','Identifier','Country','Kind','Industry','Currency','Valuation date','Draft value (millions)','Available methods','Source links','Last updated','Verification status'],
-   ...items.map(a=>{const result=computeAssessment(a);return [a.name,a.identifier,a.country,a.kind,a.industry,a.currency,a.asOf,
-   finiteValue(a)??'',result.readyMethods,a.evidence.length,a.updatedAt,'USER ENTERED / UNVERIFIED']})];
+   ...items.map(a=>{return [a.name,a.identifier,a.country,a.kind,a.industry,a.currency,a.asOf,
+   finiteValue(a)??'',methodsFor(a)??'',a.evidence.length,a.updatedAt,'USER ENTERED / UNVERIFIED']})];
   download('CREQOR-research-index.csv','text/csv;charset=utf-8',rows.map(r=>r.map(escapedCsv).join(',')).join('\r\n'));
   setNotice('Research index exported as CSV. Values in different currencies must not be added together.');
  }
@@ -123,7 +126,7 @@ export default function ResearchDesk(){
    </div>
    {notice&&<div className="rd-notice" role="status">{notice}<button type="button" aria-label="Dismiss" onClick={()=>setNotice('')}>×</button></div>}
    <div className="rd-stats"><div><span>Saved research records</span><strong>{items.length}</strong><small>Stored only in this browser</small></div><div><span>Evidence references</span><strong>{sumSources(items)}</strong><small>User-supplied URLs, not independently verified</small></div><div><span>Latest update</span><strong>{items.length?items.slice().sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))[0].updatedAt.slice(0,10):'—'}</strong><small>Across all saved draft records</small></div></div>
-   <div className="rd-index-head"><div><span className="wk-label">ASSESSMENT INDEX</span><h2>Saved company research</h2><p>Side-by-side comparison is based on analyst-entered results, not independent market valuations.</p></div><div className="rd-index-actions">
+   <div className="rd-index-head"><div><span className="wk-label">ASSESSMENT INDEX</span><h2>Saved company research</h2><p>Side-by-side comparison is based on analyst-entered results, not independent market valuations.</p><EngineProvenance view={intelligence}/></div><div className="rd-index-actions">
     <button className="wk-button wk-outline" type="button" onClick={()=>{setCompare(true);setNotice(chosen.length===2?'Comparing selected assessments.':'Select two assessment records to compare.')}} disabled={selected.length!==2}>Compare selected ({selected.length}/2)</button>
     <button className="wk-button wk-outline" type="button" onClick={exportIndex}>Export CSV</button>
     <button className="wk-button wk-outline" type="button" onClick={exportAll}>Backup JSON</button>
@@ -131,18 +134,18 @@ export default function ResearchDesk(){
     <input type="file" ref={inputRef} accept="application/json,.json" hidden onChange={e=>void importAll(e.target.files?.[0])}/>
    </div></div>
    <div className="rd-list" aria-live="polite">{filtered.length===0?<div className="rd-empty"><span>◇</span><h3>{ready&&items.length===0?'Your research desk is empty.':'No matching assessments.'}</h3><p>{ready&&items.length===0?'Create your first company assessment, save the draft, and it will appear here.':'Change your search or filters to see more records.'}</p><button className="wk-button wk-primary" onClick={startNew}>Start an assessment ↗</button></div>:
-    filtered.map(a=>{const result=computeAssessment(a),quality=reviewAssessment(a);const value=finiteValue(a);
+    filtered.map(a=>{const summary=summaries.get(a.id);const value=finiteValue(a);
      return <article className="rd-entry" key={a.id}>
        <label className="rd-select"><input type="checkbox" aria-label={'Select '+a.name+' for comparison'} checked={selected.includes(a.id)} onChange={()=>toggle(a.id)}/></label>
-       <div className="rd-entry-company"><span className="rd-entity-kind">{a.kind==='listed'?'LISTED · USER ENTERED':'UNLISTED · USER ENTERED'}</span><h3>{a.name}</h3><p>{a.identifier||'No identifier'} · {a.country} · {a.industry}</p><div className="rd-entity-tags"><span>{a.currency}</span><span>{result.readyMethods} methods</span><span>{a.evidence.length} sources</span><span>{quality.findings.filter(f=>f.level==='critical').length} critical review gaps</span></div></div>
-       <div className="rd-entry-value"><span>{a.kind==='listed'&&result.marketCap!==null?'MANUAL MARKET CAP':'DRAFT MODEL ESTIMATE'}</span><strong>{value===null?'Not calculated':formatMillions(value,a.currency)}</strong><small>As of {a.asOf||'undated'}</small></div>
+       <div className="rd-entry-company"><span className="rd-entity-kind">{a.kind==='listed'?'LISTED · USER ENTERED':'UNLISTED · USER ENTERED'}</span><h3>{a.name}</h3><p>{a.identifier||'No identifier'} · {a.country} · {a.industry}</p><div className="rd-entity-tags"><span>{a.currency}</span><span>{summary?summary.result.readyMethods:'…'} methods</span><span>{a.evidence.length} sources</span><span>{summary?summary.criticalFindings:'…'} critical review gaps</span></div></div>
+       <div className="rd-entry-value"><span>{a.kind==='listed'&&summary?.result.marketCap!=null?'MANUAL MARKET CAP':'DRAFT MODEL ESTIMATE'}</span><strong>{!summary?'Calculating…':value===null?'Not calculated':formatMillions(value,a.currency)}</strong><small>As of {a.asOf||'undated'}</small></div>
        <div className="rd-entry-actions"><button type="button" className="wk-button wk-primary" onClick={()=>openAssessment(a)}>Open ↗</button><button type="button" className="wk-button wk-outline" onClick={()=>duplicate(a)}>Duplicate</button><button type="button" className="wk-button wk-danger" onClick={()=>remove(a)}>Delete</button></div>
       </article>})}
    </div>
    {both&&<section className="rd-comparison" aria-label="Comparison of saved draft research">
     <div className="rd-compare-heading"><div><span className="wk-label">LOCAL PEER REVIEW / DRAFT COMPARISON</span><h2>Two cases. Different assumptions.</h2></div><button type="button" className="wk-button wk-outline" onClick={()=>setCompare(false)}>Close comparison ×</button></div>
     {!sameCurrency&&<p className="rd-currency-warning">Different entered currencies: {both[0].currency} and {both[1].currency}. Numeric value differences are not comparable without a documented FX conversion.</p>}
-    <div className="rd-compare-grid">{both.map(x=><article key={x.id}><span>{x.kind.toUpperCase()} / {x.currency}</span><h3>{x.name}</h3><strong>{finiteValue(x)===null?'Not calculated':formatMillions(finiteValue(x)!,x.currency)}</strong><p>{computeAssessment(x).readyMethods} valuation methods · {x.evidence.length} recorded sources</p><button type="button" className="wk-button wk-outline" onClick={()=>openAssessment(x)}>Review draft ↗</button></article>)}</div>
+    <div className="rd-compare-grid">{both.map(x=><article key={x.id}><span>{x.kind.toUpperCase()} / {x.currency}</span><h3>{x.name}</h3><strong>{finiteValue(x)===null?'Not calculated':formatMillions(finiteValue(x)!,x.currency)}</strong><p>{methodsFor(x)??'…'} valuation methods · {x.evidence.length} recorded sources</p><button type="button" className="wk-button wk-outline" onClick={()=>openAssessment(x)}>Review draft ↗</button></article>)}</div>
     <div className="rd-compare-table"><table><thead><tr><th>Financial input (millions unless noted)</th><th>{both[0].name}</th><th>{both[1].name}</th></tr></thead><tbody>{fields.map(k=><tr key={k}><th>{k}</th><td>{both[0].fields[k]??'Unavailable'}</td><td>{both[1].fields[k]??'Unavailable'}</td></tr>)}</tbody></table></div>
     {sameCurrency&&aValue!==null&&bValue!==null&&<p className="rd-difference">Numerical draft-value difference: {formatMillions(Math.abs(aValue-bValue),both[0].currency)}. Different methods or dates can make this comparison misleading; it is not evidence of investment attractiveness.</p>}
    </section>}
