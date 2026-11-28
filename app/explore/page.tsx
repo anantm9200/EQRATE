@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import GlobalCompanySearch from '@/components/global-company-search';
-import CompanySearch from '@/components/search';
 export const metadata={title:'Global company discovery',description:'Search real global LEI legal entity reference records via GLEIF. Distinguish company identity from financial verification and valuation.'};
 export default function Explore(){return <>
  <section className="lei-explore-hero">
@@ -15,5 +14,4 @@ export default function Explore(){return <>
   <div><span className="command-mini">WHAT YOU'LL LEARN</span><h2>Identity is the beginning.<br/>Not the valuation.</h2><p>An LEI record can identify a legal entity and its registered details. It does not prove the entity is exchange-listed, provide audited financial statements, or establish what its shares are worth.</p><Link href="/workbench">Take an entity into the valuation workbench ↗</Link></div>
   <div className="lei-proof-layers"><div><span>01 / IDENTITY</span><strong>Legal name, LEI, jurisdiction</strong><small>Available through GLEIF</small></div><div><span>02 / FINANCIAL PROOF</span><strong>Filing periods, audited records</strong><small>Source connection and review needed</small></div><div><span>03 / VALUATION</span><strong>Inputs, assumptions, models</strong><small>Build in CREQOR workbench</small></div></div>
  </section>
- <section className="lei-sec-section"><div><span className="command-mini">US LISTED / SEC FILINGS</span><h2>Need a US listed issuer?</h2><p>CREQOR also supports official SEC issuer records when the server-side SEC identity connection is configured. Until then, the SEC remains available directly.</p><a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener noreferrer">Open official SEC EDGAR ↗</a></div><div><CompanySearch variant="full"/></div></section>
  </>;}

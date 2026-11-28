@@ -51,9 +51,9 @@ export function HomeSections(){return <>
 
 export function ExplorerSections(){return <>
  <DetailSplit eyebrow="THE ISSUER FIRST" title="A company name is not enough." description="Similar names, corporate groups and multiple securities are easy to confuse. The first layer is about knowing which legal entity the research actually refers to." visual="coverage" points={[
-  {title:'Canonical identifiers',description:'CIK, ticker and exchange help distinguish a registered issuer from a brand or a different share class.'},
+  {title:'Canonical identifiers',description:'The LEI and registered legal name help distinguish a legal entity from a brand, a group member or a different share class.'},
   {title:'Context with every record',description:'Fiscal periods, filing dates and jurisdictions determine how a statement can be interpreted.'},
-  {title:'A clear boundary',description:'The current explorer covers US SEC identifiers only when its official data connection is configured.'}
+  {title:'A clear boundary',description:'The explorer covers global LEI registrations; SEC data is not collected by CREQOR.'}
  ]}/>
  <FeatureGallery eyebrow="WHAT TO CHECK" title="Four layers of entity research." cols={4} items={[
  {eyebrow:'IDENTITY',title:'Legal entity',description:'Confirm the precise issuer and the jurisdiction of its filings.'},
@@ -118,32 +118,32 @@ export function LabSections(){return <>
 
 export function CompareSections(){return <>
  <DetailSplit eyebrow="COMPARATIVE RESEARCH" title="Same columns. Different realities." description="A fair peer analysis starts by comparing like with like. Issuer-reported numbers may use different periods, accounting choices or capital structures." visual="comparison" points={[
-  {title:'Matched reporting periods',description:'Use filing dates and period ends before drawing trends from two sets of annual results.'},
+  {title:'Matched fiscal years',description:'CREQOR aligns both companies by fiscal year and shows each period end before trends are drawn.'},
   {title:'Comparable definitions',description:'Revenue, cash flows and equity should represent the same units and financial concepts.'},
   {title:'A comparison is not a conclusion',description:'Larger revenue does not automatically mean stronger credit, higher market value or a better investment.'}
  ]}/>
- <FeatureGallery eyebrow="SEVEN REPORTED METRICS" title="Know what you are comparing." cols={4} items={[
+ <FeatureGallery eyebrow="REPORTED FIGURES AND RATIOS" title="Know what you are comparing." cols={4} items={[
  {eyebrow:'01 / SCALE',title:'Revenue',description:'The top-line size of operations, subject to sector and accounting context.'},
  {eyebrow:'02 / PROFIT',title:'Net income',description:'Residual earnings after reported costs and other charges.'},
- {eyebrow:'03 / OPERATIONS',title:'Operating income',description:'A look at reported earnings before non-operating items.'},
- {eyebrow:'04 / LIQUIDITY',title:'Operating cash flow',description:'Cash generated or used by operating activities.'},
- {eyebrow:'05 / BALANCE SHEET',title:'Assets',description:'Resources recorded on an issuer’s balance sheet.'},
- {eyebrow:'06 / OWNERSHIP',title:'Stockholders’ equity',description:'The book-value claim of equity owners, not market cap.'},
- {eyebrow:'07 / CASH',title:'Cash equivalents',description:'Reported liquid balance-sheet resources; definitions vary.'}
+ {eyebrow:'03 / LIQUIDITY',title:'Operating cash flow',description:'Cash generated or used by operating activities.'},
+ {eyebrow:'04 / BALANCE SHEET',title:'Assets and liabilities',description:'Total, current and non-current balances as reported in the annual report.'},
+ {eyebrow:'05 / OWNERSHIP',title:'Book equity',description:'The book-value claim of equity owners, not market cap.'},
+ {eyebrow:'06 / RETURNS',title:'Margin and returns',description:'Net margin, return on equity and return on assets, computed only from reported inputs.'},
+ {eyebrow:'07 / RESILIENCE',title:'Liquidity and leverage',description:'Current ratio and liabilities to equity; missing inputs mean no ratio.'}
  ]}/>
  <ProcessTimeline eyebrow="COMPARE WITHOUT DISTORTION" title="A four-step peer review." steps={[
- {title:'Confirm identity',description:'Match two different, exact US tickers or CIKs.'},
- {title:'Read reporting dates',description:'Check source period ends and filing timestamps.'},
+ {title:'Confirm identity',description:'Pick two different legal entities by name or LEI.'},
+ {title:'Read reporting dates',description:'Check period ends, statement scope and the source page of each figure.'},
  {title:'Study the gaps',description:'Leave unavailable facts unavailable; never substitute a fabricated zero.'},
  {title:'Ask what differs',description:'Consider sector, capital structure, accounting and geography.'}
  ]}/>
  <QuestionSection title="The comparison questions." questions={[
- {question:'Does the comparison include current stock prices?',answer:'No. This workflow compares selected official annual filing facts when the SEC integration is available. Live stock pricing and market capitalisation require a separately sourced and licensed feed.'},
- {question:'Can I compare a private company against a listed peer?',answer:'Not yet through this interface. A valid private-company comparison would require independently supported, normalised financial statements and appropriate adjustments for liquidity and control.'},
- {question:'What does a missing comparison value mean?',answer:'It means the selected fact is unavailable in the supported source mapping; it does not mean that the company reported zero.'}
+ {question:'Does the comparison include current stock prices?',answer:'No. This workflow compares reviewed annual-report figures stored in CREQOR’s private engine. Live stock pricing and market capitalisation require a separately sourced and licensed feed.'},
+ {question:'Can I compare a private company against a listed peer?',answer:'Only when reviewed annual-report figures are stored for both. Even then, a fair valuation comparison needs adjustments for liquidity, control and accounting differences that this table does not make.'},
+ {question:'What does a missing comparison value mean?',answer:'It means the figure is not reported in the reviewed statements, or a ratio input is missing; it does not mean that the company reported zero. If no reviewed financials are stored for a company, no figures are shown at all.'}
  ]}/>
  <RouteTiles items={[
- {href:'/explore',label:'Check company identities',description:'Resolve issuer tickers and CIKs'},
+ {href:'/explore',label:'Check company identities',description:'Resolve legal entity identifiers (LEIs)'},
  {href:'/lab',label:'Run a valuation scenario',description:'Understand the assumptions behind value'},
  {href:'/methodology',label:'Understand limitations',description:'Read the source and calculation policies'}
  ]}/>
