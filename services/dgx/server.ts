@@ -18,6 +18,7 @@ import type {FinancialFact} from '../../lib/sec-financial-history';
 import type {LeiEntity} from '../../lib/gleif';
 import {decodeIndianIdentifier,regionFromAddress,indiaLeads} from '../../lib/india';
 import {financialProfile} from './financials';
+import {compareCompanies} from './compare-routes';
 import {register,verify,memberships,workspace,exportAccount,deleteAccount,watchChanges,mfa,UUID} from './accounts';
 import {corporateLinks,corporateLinkLeads,corporateGroup,indiaOverview,indiaEntities,type CorporateLinks} from './relationships';
 
@@ -508,6 +509,7 @@ export function startEngine(){
    }
    m=url.pathname.match(/^\/v1\/lei\/([A-Za-z0-9]{20})\/financials$/);
    if(req.method==='GET'&&m)return json(res,200,await financialProfile(getSourceCataloguePool(),parseLei(m[1]),url.searchParams.get('asOf')||undefined));
+   if(req.method==='POST'&&url.pathname==='/v1/compare')return json(res,200,await compareCompanies(getSourceCataloguePool(),await readBody(req,2000)));
    m=url.pathname.match(/^\/v1\/lei\/([A-Za-z0-9]{20})\/group$/);
    if(req.method==='GET'&&m){
     const g=await corporateGroup(parseLei(m[1]));

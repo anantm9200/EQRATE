@@ -605,3 +605,13 @@ section.gd-next{
  .cx-section.cx-split .cx-diagram{min-height:290px}
  .ux-distinction-grid article{text-align:center}
 }
+
+/* Compare: company pickers backed by the private engine search */
+.cmp-results{list-style:none;margin:6px 0 0;padding:4px;border:1px solid rgba(15,35,70,.14);border-radius:10px;background:#fff;max-height:280px;overflow:auto}
+.cmp-results button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;padding:9px 10px;border:0;border-radius:8px;background:transparent;cursor:pointer;color:inherit;font:inherit}
+.cmp-results button:hover,.cmp-results button:focus-visible{background:rgba(37,84,180,.08)}
+.cmp-results small,.cmp-picked small,.cmp-hint{font-size:.7rem;color:#5d6b80;overflow-wrap:anywhere}
+.cmp-picked{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid rgba(15,35,70,.14);border-radius:10px;overflow-wrap:anywhere}
+.cmp-picked .secondary-button{align-self:flex-start}
+.cmp-hint{display:block;margin-top:8px}
+.cmp-gap{color:#5d6b80;font-style:italic}

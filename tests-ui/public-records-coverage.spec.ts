@@ -26,13 +26,17 @@ test('public coverage source outage does not invent counts or block the homepage
  await expect(page.getByText('3,497,788')).toHaveCount(0);
 });
 
-test('SEC issuer area does not fabricate public companies when no database is connected',async({page})=>{
+test('SEC issuer area is disabled by policy and never lists or invents issuers',async({page})=>{
  await page.goto('/issuers');
- await expect(page.getByRole('heading',{name:/Real public issuers/i})).toBeVisible();
- const status=await page.request.get('/api/catalogue/status');
- const info=await status.json();
- if(info.status!=='ready'){
-  await expect(page.getByText(/SEC issuer catalogue is ready to ingest/i)).toBeVisible();
-  await expect(page.getByRole('link',{name:/Explore live GLEIF companies/i})).toHaveAttribute('href','/directory');
- }
+ await expect(page.getByRole('heading',{name:/SEC issuer directory/i})).toBeVisible();
+ await expect(page.getByText(/Disabled by policy/i)).toBeVisible();
+ await expect(page.getByRole('heading',{name:/No SEC issuer records are shown/i})).toBeVisible();
+ await expect(page.getByRole('link',{name:/Search the global company directory/i})).toHaveAttribute('href','/directory');
+ await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+ await expect(page.locator('table')).toHaveCount(0);
+ const api=await page.request.get('/api/issuers');
+ expect(api.status()).toBe(410);
+ const info=await api.json();
+ expect(info.code).toBe('SEC_DISABLED');
+ expect(info.note).toMatch(/\/api\/engine\//);
 });
